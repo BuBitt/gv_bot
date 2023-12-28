@@ -11,12 +11,9 @@ logger = settings.logging.getLogger(__name__)
 def run():
     database.db.create_tables([Account])
 
-    intents = discord.Intents.all()
-    # intents.message_content = True
-    # intents.members = True
-    # intents.guild_messages = True
-    # intents.guilds = True
-    # intents.
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.members = True
 
     bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -28,6 +25,7 @@ def run():
         for cog_file in settings.COGS_DIR.glob("*.py"):
             if cog_file.name != "__init__.py":
                 await bot.load_extension(f"cogs.{cog_file.name[:-3]}")
+                logger.info(f"cog {cog_file.name} loaded.")
 
         @bot.command()
         async def load(ctx, cog: str):
@@ -40,6 +38,8 @@ def run():
         @bot.command()
         async def reload(ctx, cog: str):
             await bot.reload_extension(f"cogs.{cog.lower()}")
+            logger.info(f"cog {cog} reloaded.")
+            await ctx.send(f"cog: {cog} reloaded")
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 

@@ -11,17 +11,25 @@ logger = settings.logging.getLogger(__name__)
 class GuildBankButton(discord.ui.View):
     # def test(self, interactions: discord.Interaction, test: int):
 
-    @discord.ui.button(label="New", style=discord.ButtonStyle.success)
-    async def create_new_entry(
+    @discord.ui.button(label="Novo", style=discord.ButtonStyle.success)
+    async def create_entry(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_message(
             f"{interaction.user.mention} Test", ephemeral=True
         )
-        await interaction.guild.create_text_channel(name="haha")
+        await interaction.guild.create_text_channel(
+            name="Thread Name",
+        )
 
-    @discord.ui.button(label="Edit", style=discord.ButtonStyle.grey)
+    @discord.ui.button(label="Edit")
     async def edit_entries(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("Edit")
+
+    @discord.ui.button(label="Cancelar", style=discord.ButtonStyle.red)
+    async def cancel_entries(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_message("Edit")
