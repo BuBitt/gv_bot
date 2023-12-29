@@ -1,19 +1,19 @@
 import datetime
 import re
 import time
+from wsgiref.types import WSGIApplication
 import discord
 import settings
 from datetime import datetime
-from discord import utils, app_commands
+from discord import Color, utils, app_commands
 from discord.ext import commands
 from models.cadastro import Transaction
 from models.items import Items
+from cogs.cadastro_persistent import Main, ConfirmTransactionPm
 
 
 logger = settings.logging.getLogger(__name__)
 
-class CancelButton():
-    pass
 
 class ActionNature(discord.ui.View):
     answer1 = None
@@ -33,7 +33,7 @@ class ActionNature(discord.ui.View):
         await interaction.message.edit(view=self)
         await interaction.response.defer()
         self.stop()
-
+        
 
 class CadastroTransacao(commands.Cog):
     def __init__(self, bot):
@@ -84,7 +84,7 @@ class CadastroTransacao(commands.Cog):
                         description="Uma menção usual (@NomeDoPlayer)",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=first_embed)
+                    await ctx.send(embed=first_embed, view=Main())
 
                 response = await self.bot.wait_for("message")
                 requester_mention = response.content
@@ -92,11 +92,11 @@ class CadastroTransacao(commands.Cog):
                 if requester_mention.startswith("<@"):
                     # Variáveis auxiliares portando os ids e nomes dos envolvidos na transação.
                     manager_name = ctx.message.author.nick
-                    
+
                     # verifica se o manager possui um nick no server
                     if manager_name is None:
                         manager_name = ctx.message.author.name
-                        
+
                     manager_id = ctx.message.author.id
                     requester_id = id_converter(requester_mention)
                     requester = await self.bot.fetch_user(requester_id)
@@ -128,7 +128,7 @@ class CadastroTransacao(commands.Cog):
                         description="Você não enviou uma menção do discord, digite @NomeDoPlayer.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=first_embed_error)
+                    await ctx.send(embed=first_embed_error, view=Main())
                     run = 1
 
             # Loop do nome do Item
@@ -256,7 +256,6 @@ class CadastroTransacao(commands.Cog):
                 if is_valid_url(print_proof):
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
-                    logger.info(transaction_dict)
 
                     run = 0
                     break
@@ -303,29 +302,42 @@ class CadastroTransacao(commands.Cog):
 
             if operation_type == "D":
                 embed_confirm.add_field(
-                    name="Item Doado", value=transaction_dict.get("item")
+                    name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
                 )
             else:
                 embed_confirm.add_field(
-                    name="Item Retirado", value=transaction_dict.get("item")
+                    name="Item Retirado", value=f'> {transaction_dict.get("item")}'
                 )
             embed_confirm.add_field(
-                name="Quantidade", value=transaction_dict.get("quantity"), inline=True
+                name="Quantidade", value=f'> {transaction_dict.get("quantity")}', inline=True
             )
 
             # encontra o canal chamado "doações"
             channel = utils.get(ctx.guild.text_channels, name="doações")
 
             # envia os embeds aos canais de interesse
-            await channel.send(embed=embed_confirm)
+            user_pm = discord.utils.get(ctx.guild.members, id=transaction_dict.get('requester_id'))
             await ctx.send(embed=embed_confirm)
+            await user_pm.send(embed=embed_confirm, view=ConfirmTransactionPm(ctx=ctx, embed=embed_confirm, transaction_dict=transaction_dict))
+            
+            waiting_confirm_embed = discord.Embed(
+                title="Aguardando a confirmação da transação...",
+                description=f"Aguarde enquanto `{transaction_dict.get('requester_name')}` confirma a ação.",
+                color=discord.Color.yellow()
+            )
+            await ctx.send(embed=waiting_confirm_embed)
 
-            # escreve tansação no banco de dados
-            transaction = Transaction.new(transaction_dict)
-            logger.info(transaction)
+
         else:
             channel = utils.get(ctx.guild.text_channels, name="guild-bank")
-            await ctx.send(f"Esse comando não pode ser ecxecutado nesse canal. Crie uma nova requisição em {channel.mention}")
+            await ctx.send(
+                f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {channel.mention}"
+            )
+
+    @cadastro.error
+    async def add_error(self, ctx, error):
+        if isinstance(error, commands.errors.MissingRole):
+            await ctx.send("Você não tem permissão para executar esse comando.")
 
 
 async def setup(bot):

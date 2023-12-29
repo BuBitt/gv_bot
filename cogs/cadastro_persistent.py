@@ -1,5 +1,8 @@
+from ast import Dict
 from dis import disco
+from turtle import width
 import discord
+from models.cadastro import Transaction
 import settings
 from discord import utils, app_commands
 from discord.ext import commands
@@ -22,8 +25,10 @@ class TransactionLauncher(discord.ui.View):
     ):
         transaction = utils.get(
             interaction.guild.text_channels,
-            name=f"gb-transaction-{interaction.user.nick}",
+            name=f"gb-transaction-{interaction.user.name}",
         )
+
+        logger.info(transaction)
         if transaction is not None:
             await interaction.response.send_message(
                 f"Você já possui um canal de transação aberto {transaction.mention}",
@@ -46,15 +51,17 @@ class TransactionLauncher(discord.ui.View):
             }
 
             channel = await interaction.guild.create_text_channel(
-                name=f"gb-transaction-{interaction.user.nick}",
+                name=f"gb-transaction-{interaction.user.name}",
                 overwrites=overwrites,
                 reason=f"Canal de transação para {interaction.user}",
             )
 
             instructions_embed = discord.Embed(
-                title=f"**Instruções de uso para {interaction.user.nick}.**",
+                title=f"**Instruções de uso**",
                 description="1 - Para iniciar um novo cadastro digite `!cadastro` no chat;\n \
-                    2 - Na parte `Item` o nome deve ser escrito em inglês;",
+                    2 - Na parte `Item` o nome deve ser escrito em inglês;\n \
+                    3 - Para cancelar o cadastro a qualquer momento digite `!break`\n \
+                    4 - Na parte `Print` envie uma imagem pelo discord ou por um link externo.",
                 color=discord.Color.yellow(),
             )
             await channel.send(
@@ -110,6 +117,108 @@ class Main(discord.ui.View):
         )
 
 
+# confirmação da transção pela dm
+class ConfirmTransactionPm(discord.ui.View):
+    def __init__(self, ctx, embed: discord.Embed, transaction_dict: dict) -> None:
+        self.ctx = ctx
+        self.embed = embed
+        self.transaction_dict = transaction_dict
+        super().__init__(timeout=30)
+
+    press_count = 0
+
+    def update_buttons(self, press_count, press_type):
+        if press_count == 1:
+            self.confirm_transaction_pm.disabled = True
+            self.cancel_transaction_pm.disabled = True
+        if press_type == 'S':
+            self.confirm_transaction_pm.label = "Confirmado"
+            self.cancel_transaction_pm.style = discord.ButtonStyle.gray
+        else:
+            self.cancel_transaction_pm.label = "Negado"
+            self.confirm_transaction_pm.style = discord.ButtonStyle.gray
+
+            
+    @discord.ui.button(
+        label="Confirmar Transação",
+        style=discord.ButtonStyle.success,
+        custom_id="confirm_transaction_pm",
+    )
+    async def confirm_transaction_pm(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        donation_channel = discord.utils.get(
+            self.ctx.guild.text_channels, name="doações"
+        )
+        # atualiza a mensagem para desligar os notões
+        press_count = 1
+        press_type = "S"
+        self.update_buttons(press_count, press_type)
+        await interaction.message.edit(embed=self.embed, view=self)
+        
+        # envia o embed da doação para o canal doações
+        await donation_channel.send(embed=self.embed)
+
+        # envia o feedback da confirmação para o manager
+        embed_confirm_transaction = discord.Embed(
+            title="**Transação Aceita!**",
+            description=f"A sua transação foi aceita e publicada no canal {donation_channel}",
+            color=discord.Color.green(),
+        )
+        await self.ctx.send(embed=embed_confirm_transaction)
+
+        # escreve a tansação no banco de dados
+        transaction = Transaction.new(self.transaction_dict)
+        logger.info(
+            f'Transação Nº {transaction} para {self.transaction_dict.get("requester_name")} criada por {self.transaction_dict.get("manager_name")} foi gravada com sucesso.'
+        )
+
+        # envia o feedback da confirmação para o requerente
+        embed_sucess_pm = discord.Embed(
+            title="**Transação Confirmada!**",
+            description="Sua transação foi publicada no canal de doações.",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed_sucess_pm)
+        
+    @discord.ui.button(
+        label="Negar Transação",
+        style=discord.ButtonStyle.danger,
+        custom_id="cancel_transaction_pm",
+    )
+    async def cancel_transaction_pm(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button,
+    ):
+        # atualiza a mensagem para desligar os notões
+        press_count = 1
+        press_type = "C"
+        self.update_buttons(press_count, press_type)
+        await interaction.message.edit(embed=self.embed, view=self)
+        
+        # envia o feedback da confirmação para o manager
+        transaction_denaied_embed = discord.Embed(
+            title=f"**Transação Negada.**",
+            description=f"{self.transaction_dict.get('requester_name')} negou o pedido de confirmação.",
+            color=discord.Color.red(),
+        )
+        await self.ctx.send(embed=transaction_denaied_embed)
+        
+        # log da operação
+        logger.info(
+            f'`{self.transaction_dict.get("requester_name")}` negou a transação cirada por {self.transaction_dict.get("manager_name")}'
+        )
+        
+        # envia o feedback da confirmação para o requerente
+        embed_sucess_pm = discord.Embed(
+            title="**Transação Negada.**",
+            description="Você negou a transação.",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed_sucess_pm)
+
+
 class CogImport(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -117,6 +226,7 @@ class CogImport(commands.Cog):
     @app_commands.command(
         name="transaction_button", description="Inicia o sistema de cadastro"
     )
+    @app_commands.checks.has_role("Admin")
     async def transactioning(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"Para criar um novo canal de transação pressione o botão abaixo.",
@@ -128,7 +238,8 @@ class CogImport(commands.Cog):
             ephemeral=True,
         )
 
-    @app_commands.command(name="close", description="Closes the cadastro")
+    @app_commands.command(name="close", description="Fecha o canal de cadastro")
+    @app_commands.checks.has_role("Guild Banker")
     async def close_command(self, interaction: discord.Interaction):
         if "gb-transaction-" in interaction.channel.name:
             embed = discord.Embed(
@@ -146,6 +257,7 @@ class CogImport(commands.Cog):
 
     @app_commands.command(name="add", description="Adds a user to the ticket.")
     @app_commands.describe(user="The user you want to add to the ticket")
+    @app_commands.checks.has_role("Guild Banker")
     async def add_command(self, interaction: discord.Interaction, user: discord.Member):
         if "gb-transaction-" in interaction.channel.name:
             await interaction.channel.set_permissions(
