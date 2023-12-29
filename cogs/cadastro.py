@@ -7,7 +7,7 @@ from discord import utils
 from datetime import datetime
 from models.items import Items
 from discord.ext import commands
-from cogs.cadastro_persistent import Main, ConfirmTransactionPm, CadastroBreak
+from cogs.cadastro_views import Main, ConfirmTransactionPm, CadastroBreak
 
 
 logger = settings.logging.getLogger(__name__)

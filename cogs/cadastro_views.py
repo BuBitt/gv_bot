@@ -1,12 +1,8 @@
-from ast import Dict
-from dis import disco
-from turtle import width
-from typing import ValuesView
 import discord
-from models.cadastro import Transaction
 import settings
-from discord import utils, app_commands
 from discord.ext import commands
+from models.cadastro import Transaction
+from discord import utils, app_commands
 
 
 logger = settings.logging.getLogger(__name__)
@@ -18,7 +14,7 @@ class CadastroBreak(discord.ui.View):
     
     @discord.ui.button(
         label="Cancelar Cadastro",
-        style=discord.ButtonStyle.red,
+        style=discord.ButtonStyle.primary,
         custom_id="break_button",
     )
     async def transaction(
