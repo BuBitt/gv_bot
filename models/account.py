@@ -10,6 +10,7 @@ class Account(peewee.Model):
 
     class Meta:
         database = db
+        db_table = 'account'
 
     @staticmethod
     def fetch(message):

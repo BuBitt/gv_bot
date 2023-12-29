@@ -4,7 +4,7 @@ import time
 import discord
 import settings
 from datetime import datetime
-from discord import utils
+from discord import utils, app_commands
 from discord.ext import commands
 from models.cadastro import Transaction
 from models.items import Items
@@ -40,6 +40,7 @@ class CadastroTransacao(commands.Cog):
     transaction_dict = {}
 
     @commands.command()
+    @commands.has_role("Guild Banker")
     async def cadastro(self, ctx):
         transaction_dict = {}
         run = 0
@@ -88,7 +89,6 @@ class CadastroTransacao(commands.Cog):
             if requester_mention.startswith("<@"):
                 # Variáveis auxiliares portando os ids e nomes dos envolvidos na transação.
                 manager_id = ctx.message.author.id
-                logger.info(type(manager_id))
                 manager_name = ctx.message.author.nick
                 requester_id = id_converter(requester_mention)
                 requester = await self.bot.fetch_user(requester_id)
@@ -108,6 +108,12 @@ class CadastroTransacao(commands.Cog):
                 run = 0
                 break
             else:
+                if requester_mention == "!break":
+                    embed = discord.Embed(
+                        title="**Cadastro cancelado**", color=discord.Color.dark_red()
+                    )
+                    return await ctx.send(embed=embed)
+
                 first_embed_error = discord.Embed(
                     title="**Formato não aceito**",
                     description="Você não enviou uma menção do discord, digite @NomeDoPlayer.",
@@ -131,13 +137,19 @@ class CadastroTransacao(commands.Cog):
 
             # Verifica se o imput existe na tabela de items no banco de dados.
             item_check = Items.fetch(input_item)
-            
+
             if item_check:
                 transaction_dict["item"] = input_item
 
                 run = 0
                 break
             else:
+                if input_item == "!break":
+                    embed = discord.Embed(
+                        title="**Cadastro cancelado**", color=discord.Color.dark_red()
+                    )
+                    return await ctx.send(embed=embed)
+
                 embed_item_error = discord.Embed(
                     title="**O item não existe, digite novamente**",
                     description=f"{response.content} não é um item do jogo.",
@@ -163,9 +175,16 @@ class CadastroTransacao(commands.Cog):
                 qte_item = int(response.content)
 
             except:
-                # Feedback de erro.
                 qte = response.content
 
+                # break cadastro
+                if qte == "!break":
+                    embed = discord.Embed(
+                        title="**Cadastro cancelado**", color=discord.Color.dark_red()
+                    )
+                    return await ctx.send(embed=embed)
+
+                # error message
                 embed_item_error = discord.Embed(
                     title="Isso não é um número",
                     description=f"{qte} não é um número, digite novamente.",
@@ -182,6 +201,14 @@ class CadastroTransacao(commands.Cog):
                 run = 0
                 break
             else:
+                # break cadastro
+                if qte == "!break":
+                    embed = discord.Embed(
+                        title="**Cadastro cancelado**", color=discord.Color.dark_red()
+                    )
+                    return await ctx.send(embed=embed)
+
+                # error message
                 embed_item_error = discord.Embed(
                     title="**A quantidade é inválida**",
                     description=f"{qte_item} não é um número positivo.",
@@ -215,12 +242,20 @@ class CadastroTransacao(commands.Cog):
 
             if is_valid_url(print_proof):
                 transaction_dict["print"] = print_proof
-                transaction_dict['timestamp'] = str(time.time()).split(".")[0]
+                transaction_dict["timestamp"] = str(time.time()).split(".")[0]
                 logger.info(transaction_dict)
 
                 run = 0
                 break
             else:
+                # break cadastro
+                if print_proof == "!break":
+                    embed = discord.Embed(
+                        title="**Cadastro cancelado**", color=discord.Color.dark_red()
+                    )
+                    return await ctx.send(embed=embed)
+
+                # error message
                 embed_print_error = discord.Embed(
                     title="**Print inválido**",
                     description=f"Por favor envie uma imagem.",
@@ -233,37 +268,46 @@ class CadastroTransacao(commands.Cog):
         manager_user = self.bot.get_user(transaction_dict.get("manager_id"))
         requester_user = self.bot.get_user(transaction_dict.get("requester_id"))
         operation_type = transaction_dict.get("operation_type")
-        
+
         embed_confirm = discord.Embed(
-            title=f"**Recibo - {transaction_dict.get('requester_name')}**",
+            title=f"**Recibo: {transaction_dict.get('requester_name')}**",
             description=f"{transaction_dict.get('requester_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
             color=discord.Color.brand_green(),
+            timestamp=datetime.fromtimestamp(int(transaction_dict.get("timestamp"))),
         )
         embed_confirm.set_author(
-            name=f'Guild Banker {transaction_dict.get("manager_name")}', icon_url=manager_user.display_avatar
+            name=f'Guild Banker {transaction_dict.get("manager_name")}',
+            icon_url=manager_user.display_avatar,
         )
-        embed_confirm.set_footer(text=f'{datetime.fromtimestamp(int(transaction_dict.get("timestamp")))}')
+        embed_confirm.set_footer(
+            text="Recibo de doação/retirada de itens no Guild Bank."
+        )
         embed_confirm.set_image(url=transaction_dict.get("print"))
         embed_confirm.set_thumbnail(url=requester_user.display_avatar)
-        if operation_type == 'D':
-            embed_confirm.add_field(name="Item Doado", value=transaction_dict.get("item"))
+
+        if operation_type == "D":
+            embed_confirm.add_field(
+                name="Item Doado", value=transaction_dict.get("item")
+            )
         else:
-            embed_confirm.add_field(name="Item Retirado", value=transaction_dict.get("item"))
+            embed_confirm.add_field(
+                name="Item Retirado", value=transaction_dict.get("item")
+            )
         embed_confirm.add_field(
             name="Quantidade", value=transaction_dict.get("quantity"), inline=True
         )
 
-        channel = utils.get(
-            ctx.guild.text_channels,
-            name="doações"
-        )
-        
+        # encontra o canal chamado "doações"
+        channel = utils.get(ctx.guild.text_channels, name="doações")
+
+        # envia os embeds aos canais de interesse
         await channel.send(embed=embed_confirm)
         await ctx.send(embed=embed_confirm)
-        
-        # Bando de dados
+
+        # escreve tansação no banco de dados
         transaction = Transaction.new(transaction_dict)
         logger.info(transaction)
+
 
 
 async def setup(bot):
