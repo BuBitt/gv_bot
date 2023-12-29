@@ -1,3 +1,4 @@
+from dis import disco
 import discord
 import settings
 from discord import utils, app_commands
@@ -50,11 +51,22 @@ class TransactionLauncher(discord.ui.View):
                 reason=f"Canal de transação para {interaction.user}",
             )
 
+            instructions_embed = discord.Embed(
+                title=f"**Instruções de uso para {interaction.user.nick}.**",
+                description="1 - Para iniciar um novo cadastro digite `!cadastro` no chat;\n \
+                    2 - Na parte `Item` o nome deve ser escrito em inglês;",
+                color=discord.Color.yellow(),
+            )
             await channel.send(
-                f"{interaction.user.mention} criou um canal de transação.", view=Main()
+                f"{interaction.user.mention} criou um canal de transação.",
+                embed=instructions_embed,
+                view=Main(),
             )
             await interaction.response.send_message(
                 f"Canal de transação criado para {channel.mention}.", ephemeral=True
+            )
+            logger.info(
+                f"Canal de transação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
             )
 
 
@@ -63,7 +75,7 @@ class Confirm(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Confirm", style=discord.ButtonStyle.danger, custom_id="confirm"
+        label="Confirmar", style=discord.ButtonStyle.red, custom_id="confirm"
     )
     async def confirm(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -82,7 +94,7 @@ class Main(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Close Ticket",
+        label="Fechar Transação",
         style=discord.ButtonStyle.danger,
         custom_id="close",
     )
@@ -90,7 +102,7 @@ class Main(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         embed = discord.Embed(
-            title="Are you sure you want to close this ticket?",
+            title="Você tem certeza que deseja cancelar o cadastro?",
             color=discord.Color.dark_red(),
         )
         await interaction.response.send_message(
@@ -102,7 +114,9 @@ class CogImport(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="ticket", description="Launches teh ticket system")
+    @app_commands.command(
+        name="transaction_button", description="Inicia o sistema de cadastro"
+    )
     async def transactioning(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"Para criar um novo canal de transação pressione o botão abaixo.",
@@ -114,12 +128,12 @@ class CogImport(commands.Cog):
             ephemeral=True,
         )
 
-    @app_commands.command(name="close", description="Closes the ticket")
+    @app_commands.command(name="close", description="Closes the cadastro")
     async def close_command(self, interaction: discord.Interaction):
         if "gb-transaction-" in interaction.channel.name:
             embed = discord.Embed(
-                title=f"Are you sure you want to close this ticket?",
-                color=discord.Color.red,
+                title=f"Você tem certeza que deseja cancelar o cadastro?",
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(
                 embed=embed, view=Confirm(), ephemeral=True

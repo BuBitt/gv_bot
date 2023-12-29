@@ -102,7 +102,7 @@ class CadastroTransacao(commands.Cog):
 
                 # Log da operação
                 logger.info(
-                    f"{manager_name}(ID: {manager_id}) abriu uma transação para {requester_name}(ID: {requester_id})."
+                    f"{manager_name}(ID: {manager_id}) iniciou um cadastro de transação para {requester_name}(ID: {requester_id})."
                 )
 
                 run = 0
@@ -126,8 +126,9 @@ class CadastroTransacao(commands.Cog):
         while True:
             if run == 0:
                 embed_item = discord.Embed(
-                    title="**Escreva abaixo o nome do Item**",
-                    description="Caso o item não exista no jogo voçê precisará escrever novamente.",
+                    title="**Item**",
+                    description="A existência do item é verificada no banco de dados.\n \
+                        Caso o item não exista no jogo você precisará escrever novamente.",
                     color=discord.Color.dark_blue(),
                 )
                 await ctx.send(embed=embed_item)
@@ -307,7 +308,6 @@ class CadastroTransacao(commands.Cog):
         # escreve tansação no banco de dados
         transaction = Transaction.new(transaction_dict)
         logger.info(transaction)
-
 
 
 async def setup(bot):
