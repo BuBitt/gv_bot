@@ -1,15 +1,14 @@
 import settings
 import discord
-from discord import commands
-
+from discord.ext import commands
 
 logger = settings.logging.getLogger(__name__)
 
 
-class Profile(commands.Cog):
+class ProfileViewsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
 
 async def setup(bot):
-    await bot.add_cog(Profile(bot))
+    await bot.add_cog(ProfileViewsCog(bot))
