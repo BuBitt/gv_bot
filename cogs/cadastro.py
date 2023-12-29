@@ -1,15 +1,13 @@
-import datetime
 import re
 import time
-from wsgiref.types import WSGIApplication
 import discord
+import datetime
 import settings
+from discord import utils
 from datetime import datetime
-from discord import Color, utils, app_commands
-from discord.ext import commands
-from models.cadastro import Transaction
 from models.items import Items
-from cogs.cadastro_persistent import Main, ConfirmTransactionPm
+from discord.ext import commands
+from cogs.cadastro_persistent import Main, ConfirmTransactionPm, CadastroBreak
 
 
 logger = settings.logging.getLogger(__name__)
@@ -84,7 +82,7 @@ class CadastroTransacao(commands.Cog):
                         description="Uma menção usual (@NomeDoPlayer)",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=first_embed, view=Main())
+                    await ctx.send(embed=first_embed, view=CadastroBreak())
 
                 response = await self.bot.wait_for("message")
                 requester_mention = response.content
@@ -128,7 +126,7 @@ class CadastroTransacao(commands.Cog):
                         description="Você não enviou uma menção do discord, digite @NomeDoPlayer.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=first_embed_error, view=Main())
+                    await ctx.send(embed=first_embed_error, view=CadastroBreak())
                     run = 1
 
             # Loop do nome do Item
@@ -140,7 +138,7 @@ class CadastroTransacao(commands.Cog):
                             Caso o item não exista no jogo você precisará escrever novamente.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_item)
+                    await ctx.send(embed=embed_item, view=CadastroBreak())
 
                 response = await self.bot.wait_for("message")
                 input_item = response.content.lower()
@@ -166,7 +164,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{response.content} não é um item do jogo.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_item_error)
+                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
                     run = 1
 
             # Loop da quantidade de itens
@@ -177,7 +175,7 @@ class CadastroTransacao(commands.Cog):
                         description="A quantidade de itens da operação.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_qte_item)
+                    await ctx.send(embed=embed_qte_item, view=CadastroBreak())
 
                 response = await self.bot.wait_for("message")
 
@@ -202,7 +200,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte} não é um número, digite novamente.",
                         color=discord.Color.brand_red(),
                     )
-                    await ctx.send(embed=embed_item_error)
+                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
 
                     run = 1
                     continue
@@ -227,7 +225,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte_item} não é um número positivo.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_item_error)
+                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
                     run = 1
 
             # menu de seleção da natureza da operação
@@ -244,7 +242,7 @@ class CadastroTransacao(commands.Cog):
                         description="Uma prova é necessária, envie uma imagem do trade. A imagem pode ser enviada pelo discord, ou por um link externo.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_print)
+                    await ctx.send(embed=embed_print, view=CadastroBreak())
 
                 response = await self.bot.wait_for("message")
 
@@ -274,7 +272,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"Por favor envie uma imagem.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_print_error)
+                    await ctx.send(embed=embed_print_error, view=CadastroBreak())
                     run = 1
 
             # Embed de Confirmação

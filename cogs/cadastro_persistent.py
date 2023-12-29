@@ -1,6 +1,7 @@
 from ast import Dict
 from dis import disco
 from turtle import width
+from typing import ValuesView
 import discord
 from models.cadastro import Transaction
 import settings
@@ -9,6 +10,22 @@ from discord.ext import commands
 
 
 logger = settings.logging.getLogger(__name__)
+
+
+class CadastroBreak(discord.ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=180)
+    
+    @discord.ui.button(
+        label="Cancelar Cadastro",
+        style=discord.ButtonStyle.red,
+        custom_id="break_button",
+    )
+    async def transaction(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("!break")   
+        
 
 
 class TransactionLauncher(discord.ui.View):
@@ -101,15 +118,15 @@ class Main(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Fechar Transação",
+        label="Fechar Canal",
         style=discord.ButtonStyle.danger,
-        custom_id="close",
+        custom_id="close_cannel_button",
     )
     async def close_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         embed = discord.Embed(
-            title="Você tem certeza que deseja cancelar o cadastro?",
+            title="Você tem certeza que deseja fechar esse canal?",
             color=discord.Color.dark_red(),
         )
         await interaction.response.send_message(
@@ -131,14 +148,13 @@ class ConfirmTransactionPm(discord.ui.View):
         if press_count == 1:
             self.confirm_transaction_pm.disabled = True
             self.cancel_transaction_pm.disabled = True
-        if press_type == 'S':
+        if press_type == "S":
             self.confirm_transaction_pm.label = "Confirmado"
             self.cancel_transaction_pm.style = discord.ButtonStyle.gray
         else:
             self.cancel_transaction_pm.label = "Negado"
             self.confirm_transaction_pm.style = discord.ButtonStyle.gray
 
-            
     @discord.ui.button(
         label="Confirmar Transação",
         style=discord.ButtonStyle.success,
@@ -155,7 +171,7 @@ class ConfirmTransactionPm(discord.ui.View):
         press_type = "S"
         self.update_buttons(press_count, press_type)
         await interaction.message.edit(embed=self.embed, view=self)
-        
+
         # envia o embed da doação para o canal doações
         await donation_channel.send(embed=self.embed)
 
@@ -165,7 +181,7 @@ class ConfirmTransactionPm(discord.ui.View):
             description=f"A sua transação foi aceita e publicada no canal {donation_channel}",
             color=discord.Color.green(),
         )
-        await self.ctx.send(embed=embed_confirm_transaction)
+        await self.ctx.send(embed=embed_confirm_transaction, view=Main())
 
         # escreve a tansação no banco de dados
         transaction = Transaction.new(self.transaction_dict)
@@ -180,7 +196,7 @@ class ConfirmTransactionPm(discord.ui.View):
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed_sucess_pm)
-        
+
     @discord.ui.button(
         label="Negar Transação",
         style=discord.ButtonStyle.danger,
@@ -196,20 +212,20 @@ class ConfirmTransactionPm(discord.ui.View):
         press_type = "C"
         self.update_buttons(press_count, press_type)
         await interaction.message.edit(embed=self.embed, view=self)
-        
+
         # envia o feedback da confirmação para o manager
         transaction_denaied_embed = discord.Embed(
             title=f"**Transação Negada.**",
             description=f"{self.transaction_dict.get('requester_name')} negou o pedido de confirmação.",
             color=discord.Color.red(),
         )
-        await self.ctx.send(embed=transaction_denaied_embed)
-        
+        await self.ctx.send(embed=transaction_denaied_embed, view=Main())
+
         # log da operação
         logger.info(
             f'`{self.transaction_dict.get("requester_name")}` negou a transação cirada por {self.transaction_dict.get("manager_name")}'
         )
-        
+
         # envia o feedback da confirmação para o requerente
         embed_sucess_pm = discord.Embed(
             title="**Transação Negada.**",
