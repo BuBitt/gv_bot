@@ -148,7 +148,7 @@ class CadastroTransacao(commands.Cog):
                 item_check = Items.fetch(input_item)
 
                 if item_check:
-                    transaction_dict["item"] = input_item
+                    transaction_dict["item"] = input_item.title()
 
                     run = 0
                     break

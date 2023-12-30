@@ -41,7 +41,6 @@ class TransactionLauncher(discord.ui.View):
             name=f"gb-transaction-{interaction.user.name}",
         )
 
-        logger.info(transaction)
         if transaction is not None:
             await interaction.response.send_message(
                 f"Você já possui um canal de transação aberto {transaction.mention}",
@@ -162,7 +161,7 @@ class ConfirmTransactionPm(discord.ui.View):
         donation_channel = discord.utils.get(
             self.waiting_message.guild.text_channels, name="doações"
         )
-        # atualiza a mensagem para desligar os notões
+        # atualiza a mensagem para desligar os botões
         press_count = 1
         press_type = "S"
         self.update_buttons(press_count, press_type)
@@ -178,7 +177,6 @@ class ConfirmTransactionPm(discord.ui.View):
             color=discord.Color.green(),
         )
         await self.waiting_message.edit(embed=embed_confirm_transaction, view=Main())
-        # self.waiting_message.guild.text_channels
 
         # escreve a tansação no banco de dados
         transaction = Transaction.new(self.transaction_dict)

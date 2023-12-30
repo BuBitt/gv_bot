@@ -1,3 +1,5 @@
 import peewee
 
-db = peewee.SqliteDatabase("database.db")
+
+db_name = "database.db"
+db = peewee.SqliteDatabase(db_name)
