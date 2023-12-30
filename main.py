@@ -42,6 +42,12 @@ def run():
                 await bot.load_extension(f"cogs.{cog_file.name[:-3]}")
                 logger.info(f"cog {cog_file.name[:-3]} loaded.")
         
+        # carrega todos os slashcommands no bot automaticamente
+        for slash_cmd in settings.SCMDS_DIR.glob("*.py"):
+            if slash_cmd.name != "__init__.py":
+                await bot.load_extension(f"slashcmds.{slash_cmd.name[:-3]}")
+                logger.info(f"slash commands {slash_cmd.name[:-3]} loaded.")        
+        
         # carrega slash_commands na guilda
         bot.tree.copy_global_to(guild=settings.GUILDS_ID)
         await bot.tree.sync(guild=settings.GUILDS_ID)
