@@ -5,7 +5,7 @@ import database
 from discord import app_commands
 from discord.ext import commands
 from models.account import Account
-from cogs.cadastro_views import TransactionLauncher, Main
+from cogs.cadastro_views import TransactionLauncher, Main, ConfirmTransactionPm
 
 logger = settings.logging.getLogger(__name__)
 

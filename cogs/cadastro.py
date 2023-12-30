@@ -233,6 +233,8 @@ class CadastroTransacao(commands.Cog):
             await ctx.send(view=view)
             await view.wait()
             transaction_dict["operation_type"] = view.answer1[0]
+            if view.answer1[0] == 'P':
+                transaction_dict['quantity'] -= 2 * transaction_dict['quantity']
 
             # Print
             while True:

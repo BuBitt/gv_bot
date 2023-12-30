@@ -136,7 +136,7 @@ class ConfirmTransactionPm(discord.ui.View):
         self.ctx = ctx
         self.embed = embed
         self.transaction_dict = transaction_dict
-        super().__init__(timeout=30)
+        super().__init__(timeout=None)
 
     press_count = 0
 
