@@ -29,7 +29,7 @@ class TransactionLauncher(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Criar Transação",
+        label="Criar Canal de Transação",
         style=discord.ButtonStyle.success,
         custom_id="transaction_button",
     )
@@ -132,10 +132,10 @@ class Main(discord.ui.View):
 
 # confirmação da transção pela dm
 class ConfirmTransactionPm(discord.ui.View):
-    def __init__(self, ctx, embed: discord.Embed, transaction_dict: dict) -> None:
-        self.ctx = ctx
+    def __init__(self, embed: discord.Embed, transaction_dict: dict, waiting_message) -> None:
         self.embed = embed
         self.transaction_dict = transaction_dict
+        self.waiting_message = waiting_message
         super().__init__(timeout=None)
 
     press_count = 0
@@ -160,7 +160,7 @@ class ConfirmTransactionPm(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         donation_channel = discord.utils.get(
-            self.ctx.guild.text_channels, name="doações"
+            self.waiting_message.guild.text_channels, name="doações"
         )
         # atualiza a mensagem para desligar os notões
         press_count = 1
@@ -173,11 +173,12 @@ class ConfirmTransactionPm(discord.ui.View):
 
         # envia o feedback da confirmação para o manager
         embed_confirm_transaction = discord.Embed(
-            title="**Transação Aceita!**",
-            description=f"A sua transação foi aceita e publicada no canal {donation_channel}",
+            title="**Transação Confirmada!**",
+            description=f"A transação de ` {self.transaction_dict.get('requester_name')} ` foi aceita e publicada no canal {donation_channel}",
             color=discord.Color.green(),
         )
-        await self.ctx.send(embed=embed_confirm_transaction, view=Main())
+        await self.waiting_message.edit(embed=embed_confirm_transaction, view=Main())
+        # self.waiting_message.guild.text_channels
 
         # escreve a tansação no banco de dados
         transaction = Transaction.new(self.transaction_dict)
@@ -191,6 +192,7 @@ class ConfirmTransactionPm(discord.ui.View):
             description="Sua transação foi publicada no canal de doações.",
             color=discord.Color.green(),
         )
+        
         await interaction.response.send_message(embed=embed_sucess_pm)
 
     @discord.ui.button(
@@ -212,10 +214,10 @@ class ConfirmTransactionPm(discord.ui.View):
         # envia o feedback da confirmação para o manager
         transaction_denaied_embed = discord.Embed(
             title=f"**Transação Negada.**",
-            description=f"{self.transaction_dict.get('requester_name')} negou o pedido de confirmação.",
+            description=f"` {self.transaction_dict.get('requester_name')} ` negou o pedido de confirmação e a transação não será publicada.",
             color=discord.Color.red(),
         )
-        await self.ctx.send(embed=transaction_denaied_embed, view=Main())
+        await self.waiting_message.edit(embed=transaction_denaied_embed, view=Main())
 
         # log da operação
         logger.info(
@@ -230,63 +232,3 @@ class ConfirmTransactionPm(discord.ui.View):
         )
         await interaction.response.send_message(embed=embed_sucess_pm)
 
-
-class CogImport(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @app_commands.command(
-        name="transaction_button", description="Inicia o sistema de cadastro"
-    )
-    @app_commands.checks.has_role("Admin")
-    async def transactioning(self, interaction: discord.Interaction):
-        embed = discord.Embed(
-            title=f"Para criar um novo canal de transação pressione o botão abaixo.",
-            color=discord.Color.blue(),
-        )
-        await interaction.channel.send(embed=embed, view=TransactionLauncher())
-        await interaction.response.send_message(
-            f"{interaction.user.mention} Botão criado.",
-            ephemeral=True,
-        )
-
-    @app_commands.command(name="close", description="Fecha o canal de cadastro")
-    @app_commands.checks.has_role("Guild Banker")
-    async def close_command(self, interaction: discord.Interaction):
-        if "gb-transaction-" in interaction.channel.name:
-            embed = discord.Embed(
-                title=f"Você tem certeza que deseja cancelar o cadastro?",
-                color=discord.Color.red(),
-            )
-            await interaction.response.send_message(
-                embed=embed, view=Confirm(), ephemeral=True
-            )
-        else:
-            await interaction.response.send_message(
-                f"{interaction.user.mention} isn't a Ticket.",
-                ephemeral=True,
-            )
-
-    @app_commands.command(name="add", description="Adds a user to the ticket.")
-    @app_commands.describe(user="The user you want to add to the ticket")
-    @app_commands.checks.has_role("Guild Banker")
-    async def add_command(self, interaction: discord.Interaction, user: discord.Member):
-        if "gb-transaction-" in interaction.channel.name:
-            await interaction.channel.set_permissions(
-                user,
-                view_channel=True,
-                send_messages=True,
-                attach_files=True,
-                embed_links=True,
-            )
-            await interaction.response.send_message(
-                f"{user.mention} has been added to ticket {interaction.user.mention}"
-            )
-        else:
-            await interaction.response.send_message(
-                f"This isn't a ticket.", ephemeral=True
-            )
-
-
-async def setup(bot):
-    await bot.add_cog(CogImport(bot))

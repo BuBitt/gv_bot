@@ -7,7 +7,7 @@ from discord.ext import commands
 from models.account import Account
 from models.cadastro import Transaction
 from models.items import Items
-from cogs.cadastro_views import TransactionLauncher, Main, ConfirmTransactionPm
+from views.cadastro import TransactionLauncher, Main, ConfirmTransactionPm
 
 logger = settings.logging.getLogger(__name__)
 

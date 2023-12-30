@@ -3,11 +3,11 @@ import time
 import discord
 import datetime
 import settings
-from discord import utils
+from discord import Color, utils
 from datetime import datetime
 from models.items import Items
 from discord.ext import commands
-from cogs.cadastro_views import Main, ConfirmTransactionPm, CadastroBreak
+from views.cadastro import Main, ConfirmTransactionPm, CadastroBreak
 
 
 logger = settings.logging.getLogger(__name__)
@@ -318,15 +318,26 @@ class CadastroTransacao(commands.Cog):
             # envia os embeds aos canais de interesse
             user_pm = discord.utils.get(ctx.guild.members, id=transaction_dict.get('requester_id'))
             await ctx.send(embed=embed_confirm)
-            await user_pm.send(embed=embed_confirm, view=ConfirmTransactionPm(ctx=ctx, embed=embed_confirm, transaction_dict=transaction_dict))
-            
+
             waiting_confirm_embed = discord.Embed(
                 title="Aguardando a confirmação da transação...",
-                description=f"Aguarde enquanto `{transaction_dict.get('requester_name')}` confirma a ação.",
+                description=f"Aguarde enquanto ` {transaction_dict.get('requester_name')} ` confirma a ação.",
                 color=discord.Color.yellow()
             )
-            await ctx.send(embed=waiting_confirm_embed)
 
+            # envia a mensagem de aguardo de confirmação
+            waiting_message = await ctx.send(embed=waiting_confirm_embed)
+            
+            # envia a mensagem privada de confirmação
+            embed_warning_new_confirmation = discord.Embed(
+                title="**Novo pedidod de confirmação de transação**",
+                color=discord.Color.yellow()
+            )
+            embed_warning_new_confirmation.set_thumbnail(url="https://www.freeiconspng.com/img/2749")
+            
+            await user_pm.send(embed=embed_warning_new_confirmation)
+            await user_pm.send(embed=embed_confirm, view=ConfirmTransactionPm(embed=embed_confirm, transaction_dict=transaction_dict, waiting_message=waiting_message))
+            
 
         else:
             channel = utils.get(ctx.guild.text_channels, name="guild-bank")
