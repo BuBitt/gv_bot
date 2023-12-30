@@ -5,16 +5,23 @@ import database
 from discord import app_commands
 from discord.ext import commands
 from models.account import Account
+from models.cadastro import Transaction
+from models.items import Items
 from cogs.cadastro_views import TransactionLauncher, Main, ConfirmTransactionPm
 
 logger = settings.logging.getLogger(__name__)
 
 
 def run():
+    # Cria tabela no banco de dados
+    database.db.create_tables([Account, Transaction, Items])
+    
+    # Regula as permissões do BOT no servidor
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
 
+    # Define o prefixo dos comandos
     bot = commands.Bot(command_prefix="!", intents=intents)
 
     @bot.event
