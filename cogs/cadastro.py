@@ -49,15 +49,15 @@ class CadastroTransacao(commands.Cog):
             def id_converter(raw_id: str):
                 return int(raw_id[2:-1])
 
-            def is_valid_url(url):
+            def is_valid_regex(url, regex):
                 # Regex to check valid URL
-                regex = (
-                    "((http|https)://)(www.)?"
-                    + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-                    + "{2,256}\\.[a-z]"
-                    + "{2,6}\\b([-a-zA-Z0-9@:%"
-                    + "._\\+~#?&//=]*)"
-                )
+                # regex = (
+                #     "((http|https)://)(www.)?"
+                #     + "[a-zA-Z0-9@:%._\\+~#?&//=]"
+                #     + "{2,256}\\.[a-z]"
+                #     + "{2,6}\\b([-a-zA-Z0-9@:%"
+                #     + "._\\+~#?&//=]*)"
+                # )
 
                 # Compile the ReGex
                 p = re.compile(regex)
@@ -87,7 +87,8 @@ class CadastroTransacao(commands.Cog):
                 response = await self.bot.wait_for("message")
                 requester_mention = response.content
 
-                if requester_mention.startswith("<@"):
+                regex = "^<@(\d+)>$"
+                if is_valid_regex(requester_mention, regex):
                     # Variáveis auxiliares portando os ids e nomes dos envolvidos na transação.
                     manager_name = ctx.message.author.nick
 
@@ -253,7 +254,14 @@ class CadastroTransacao(commands.Cog):
                 except:
                     print_proof = response.content
 
-                if is_valid_url(print_proof):
+                regex = (
+                    "((http|https)://)(www.)?"
+                    + "[a-zA-Z0-9@:%._\\+~#?&//=]"
+                    + "{2,256}\\.[a-z]"
+                    + "{2,6}\\b([-a-zA-Z0-9@:%"
+                    + "._\\+~#?&//=]*)"
+                )
+                if is_valid_regex(print_proof, regex):
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
 
@@ -330,7 +338,7 @@ class CadastroTransacao(commands.Cog):
             
             # envia a mensagem privada de confirmação
             embed_warning_new_confirmation = discord.Embed(
-                title="**Novo pedidod de confirmação de transação**",
+                title=f"**Novo pedido de confirmação de transação enviado por `{transaction_dict.get('manager_name')}`**",
                 color=discord.Color.yellow()
             )
             embed_warning_new_confirmation.set_thumbnail(url="https://www.freeiconspng.com/img/2749")
