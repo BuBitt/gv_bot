@@ -16,14 +16,19 @@ class Account(peewee.Model):
     @staticmethod
     def fetch(interaction):
         try:
+            user = interaction.user
+        except:
+            user = interaction
+
+        try:
             account = Account.get(
-                Account.user_id == interaction.user.id,
-                Account.user_name == interaction.user.name,
+                Account.user_id == user.id,
+                Account.user_name == user.name,
             )
         except peewee.DoesNotExist:
             account = Account.create(
-                user_id=interaction.user.id,
-                user_name=interaction.user.name,
+                user_id=user.id,
+                user_name=user.name,
                 level=1,
                 role="No Role",
                 points=0

@@ -26,7 +26,7 @@ def transactions_table(bool=False):
 
 
 class Profile(app_commands.Group):
-    @app_commands.command(description="seu perfil")
+    @app_commands.command(description="Gerencie seu perfil")
     async def me(self, interaction: discord.Interaction):
         account = Account.fetch(interaction)
         embed_me = discord.Embed()
@@ -53,13 +53,13 @@ class Profile(app_commands.Group):
         embed_me.add_field(name="**Pontuação**", value=account.points)
         embed_me.add_field(name="**Role**", value=account.role)
         embed_me.add_field(
-            name="_**últimas Transações:**_", value=f"""```{table.head(5)}```"""
+            name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```"""
         )
 
         view = UserProfileView()
-        await interaction.response.send_message(embed=embed_me, view=view)
+        await interaction.response.send_message(embed=embed_me, view=view, ephemeral=True)
 
-    @app_commands.command(description="perfil da guilda")
+    @app_commands.command(description="Perfil da guilda")
     async def guilda(self, interaction: discord.Interaction):
         table = transactions_table()
         table = table.select(
@@ -92,8 +92,73 @@ class Profile(app_commands.Group):
         )
         table_send = transactions_table(bool=True).drop("manager_id", "requester_id").sort("id", descending=True)
         guild_embed_message = await interaction.response.send_message(
-            embed=embed_guild, view=GuildProfileView(table_send)
+            embed=embed_guild, view=GuildProfileView(table_send, g_profile_embed=embed_guild)
         )
+    
+    @app_commands.command(name="send", description="Envie seu perfil no chat")
+    async def send_me(self, interaction: discord.Interaction):
+        account = Account.fetch(interaction)
+        embed_me = discord.Embed()
+        embed_me.set_author(
+            name=f"Perfil de {interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+            icon_url=interaction.user.display_avatar,
+        )
+        table = transactions_table()
+        table = (
+            table.filter(pl.col("requester_id") == interaction.user.id)
+            .select("id", "manager_name", "item", "quantity")
+            .sort("id", descending=True)
+        )
+        table = table.rename(
+            {
+                "id": "N°",
+                "manager_name": "GUILD BANKER",
+                "item": "ITEM",
+                "quantity": "QUANTIDADE",
+            }
+        )
+
+        embed_me.add_field(name="**Level**", value=account.level)
+        embed_me.add_field(name="**Pontuação**", value=account.points)
+        embed_me.add_field(name="**Role**", value=account.role)
+        embed_me.add_field(
+            name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```""",
+            inline=False
+        )
+        await interaction.response.send_message(embed=embed_me)
+    
+    @app_commands.command(name="see", description="Envia no chat o perfil de outro usuário")
+    @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
+    async def see(self, interaction: discord.Interaction, user: discord.Member):
+        account = Account.fetch(user)
+        embed_me = discord.Embed()
+        embed_me.set_author(
+            name=f"Perfil de {user.name if user.nick == None else user.nick}",
+            icon_url=user.display_avatar,
+        )
+        table = transactions_table()
+        table = (
+            table.filter(pl.col("requester_id") == user.id)
+            .select("id", "manager_name", "item", "quantity")
+            .sort("id", descending=True)
+        )
+        table = table.rename(
+            {
+                "id": "N°",
+                "manager_name": "GUILD BANKER",
+                "item": "ITEM",
+                "quantity": "QUANTIDADE",
+            }
+        )
+
+        embed_me.add_field(name="**Level**", value=account.level)
+        embed_me.add_field(name="**Pontuação**", value=account.points)
+        embed_me.add_field(name="**Role**", value=account.role)
+        embed_me.add_field(
+            name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```""",
+            inline=False
+        )
+        await interaction.response.send_message(embed=embed_me)
 
 
 async def setup(bot):
