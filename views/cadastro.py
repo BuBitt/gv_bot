@@ -1,4 +1,5 @@
 import discord
+from models.account import Account
 import settings
 from discord.ext import commands
 from models.cadastro import Transaction
@@ -11,7 +12,7 @@ logger = settings.logging.getLogger(__name__)
 class CadastroBreak(discord.ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=180)
-    
+
     @discord.ui.button(
         label="Cancelar Cadastro",
         style=discord.ButtonStyle.primary,
@@ -20,8 +21,7 @@ class CadastroBreak(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_message("!break")   
-        
+        await interaction.response.send_message("!break")
 
 
 class TransactionLauncher(discord.ui.View):
@@ -131,7 +131,9 @@ class Main(discord.ui.View):
 
 # confirmação da transção pela dm
 class ConfirmTransactionPm(discord.ui.View):
-    def __init__(self, embed: discord.Embed, transaction_dict: dict, waiting_message) -> None:
+    def __init__(
+        self, embed: discord.Embed, transaction_dict: dict, waiting_message
+    ) -> None:
         self.embed = embed
         self.transaction_dict = transaction_dict
         self.waiting_message = waiting_message
@@ -178,8 +180,19 @@ class ConfirmTransactionPm(discord.ui.View):
         )
         await self.waiting_message.edit(embed=embed_confirm_transaction, view=Main())
 
-        # escreve a tansação no banco de dados
+        # escreve a tansação na tabela transactions no banco de dados
         transaction = Transaction.new(self.transaction_dict)
+
+        # escreve a pontuação na tabela accounts do banco de dados
+        user_to_add = discord.utils.get(
+            self.waiting_message.guild.members,
+            id=self.transaction_dict.get("requester_id"),
+        )
+        account = Account.fetch(user_to_add)
+        account.points += (
+            self.transaction_dict["market_price"] * self.transaction_dict["quantity"]
+        )
+        account.save()
         logger.info(
             f'Transação Nº {transaction} para {self.transaction_dict.get("requester_name")} criada por {self.transaction_dict.get("manager_name")} foi gravada com sucesso.'
         )
@@ -190,7 +203,7 @@ class ConfirmTransactionPm(discord.ui.View):
             description="Sua transação foi publicada no canal de doações.",
             color=discord.Color.green(),
         )
-        
+
         await interaction.response.send_message(embed=embed_sucess_pm)
 
     @discord.ui.button(
@@ -229,4 +242,3 @@ class ConfirmTransactionPm(discord.ui.View):
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed_sucess_pm)
-

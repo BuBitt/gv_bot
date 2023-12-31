@@ -1,3 +1,4 @@
+from dis import disco
 from turtle import title
 import polars as pl
 import settings
@@ -6,6 +7,31 @@ import os
 
 
 logger = settings.logging.getLogger(__name__)
+
+
+class NewAccountView(discord.ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Role",
+        style=discord.ButtonStyle.success,
+        custom_id="edit_role_button",
+    )
+    async def role_edit(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        ...
+
+    @discord.ui.button(
+        label="Level",
+        style=discord.ButtonStyle.success,
+        custom_id="edit_level_button",
+    )
+    async def level_edit(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        ...
 
 
 class UserProfileView(discord.ui.View):
@@ -47,10 +73,9 @@ class GuildProfileView(discord.ui.View):
             self.guild_print_all.disabled = True
             self.guild_print_all.style = discord.ButtonStyle.gray
         if self.gb_pressed == 1:
-            self.guild_balance.label="Últimas Transações"
+            self.guild_balance.label = "Últimas Transações"
         else:
-            self.guild_balance.label="Balanço"
-            
+            self.guild_balance.label = "Balanço"
 
     @discord.ui.button(
         label="Balanço",
@@ -94,7 +119,6 @@ class GuildProfileView(discord.ui.View):
             self.gb_pressed = 0
             self.update_buttons()
             await interaction.message.edit(embed=self.g_profile_embed, view=self)
-            
 
     @discord.ui.button(
         label="Baixar Dados",

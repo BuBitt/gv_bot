@@ -2,6 +2,7 @@ import re
 import time
 import discord
 import datetime
+from models.account import Account
 import settings
 from discord import Color, utils
 from datetime import datetime
@@ -31,7 +32,7 @@ class ActionNature(discord.ui.View):
         await interaction.message.edit(view=self)
         await interaction.response.defer()
         self.stop()
-        
+
 
 class CadastroTransacao(commands.Cog):
     def __init__(self, bot):
@@ -76,16 +77,22 @@ class CadastroTransacao(commands.Cog):
 
             # Loop do solicitante
             while True:
+                first_embed = discord.Embed(
+                    title="**Mencione abaixo o solicitante**",
+                    description="Uma menção usual (@NomeDoPlayer)",
+                    color=discord.Color.dark_blue(),
+                )
                 if run == 0:
-                    first_embed = discord.Embed(
-                        title="**Mencione abaixo o solicitante**",
-                        description="Uma menção usual (@NomeDoPlayer)",
-                        color=discord.Color.dark_blue(),
+                    message_sent = await ctx.send(
+                        embed=first_embed, view=CadastroBreak()
                     )
-                    await ctx.send(embed=first_embed, view=CadastroBreak())
 
                 response = await self.bot.wait_for("message")
                 requester_mention = response.content
+
+                # deleta mensagem de erro
+                if run == 1:
+                    await message_send_error.delete()
 
                 regex = "^<@(\d+)>$"
                 if is_valid_regex(requester_mention, regex):
@@ -107,6 +114,10 @@ class CadastroTransacao(commands.Cog):
                     transaction_dict["requester_id"] = requester_id
                     transaction_dict["requester_name"] = requester_name
 
+                    # remove os botões da pergunta depois de passada
+                    first_embed.color = discord.Color.green()
+                    await message_sent.edit(embed=first_embed, view=None)
+
                     # Log da operação
                     logger.info(
                         f"{manager_name}(ID: {manager_id}) iniciou um cadastro de transação para {requester_name}(ID: {requester_id})."
@@ -122,12 +133,19 @@ class CadastroTransacao(commands.Cog):
                         )
                         return await ctx.send(embed=embed)
 
+                    # remove os botões da pergunta depois de passada
+                    first_embed.color = discord.Color.red()
+                    await message_sent.edit(embed=first_embed, view=None)
+
                     first_embed_error = discord.Embed(
                         title="**Formato não aceito**",
                         description="Você não enviou uma menção do discord, digite @NomeDoPlayer.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=first_embed_error, view=CadastroBreak())
+
+                    message_send_error = await ctx.send(
+                        embed=first_embed_error, view=CadastroBreak()
+                    )
                     run = 1
 
             # Loop do nome do Item
@@ -139,16 +157,26 @@ class CadastroTransacao(commands.Cog):
                             Caso o item não exista no jogo você precisará escrever novamente.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_item, view=CadastroBreak())
+                    message_sent = await ctx.send(
+                        embed=embed_item, view=CadastroBreak()
+                    )
 
                 response = await self.bot.wait_for("message")
                 input_item = response.content.lower()
+
+                # deleta mensagem de erro
+                if run == 1:
+                    await message_send_error.delete()
 
                 # Verifica se o imput existe na tabela de items no banco de dados.
                 item_check = Items.fetch(input_item)
 
                 if item_check:
                     transaction_dict["item"] = input_item.title()
+
+                    # remove os botões da pergunta depois de passada
+                    embed_item.color = discord.Color.green()
+                    await message_sent.edit(embed=embed_item, view=None)
 
                     run = 0
                     break
@@ -165,7 +193,14 @@ class CadastroTransacao(commands.Cog):
                         description=f"{response.content} não é um item do jogo.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
+                    message_send_error = await ctx.send(
+                        embed=embed_item_error, view=CadastroBreak()
+                    )
+
+                    # remove os botões da pergunta depois de passada
+                    embed_item.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_item, view=None)
+
                     run = 1
 
             # Loop da quantidade de itens
@@ -176,10 +211,16 @@ class CadastroTransacao(commands.Cog):
                         description="A quantidade de itens da operação.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_qte_item, view=CadastroBreak())
+                    message_sent = await ctx.send(
+                        embed=embed_qte_item, view=CadastroBreak()
+                    )
 
                 response = await self.bot.wait_for("message")
-
+                
+                # deleta mensagem de erro
+                if run == 1:
+                    await message_send_error.delete()
+                
                 # Verifica se o input é um número
                 try:
                     qte_item = int(response.content)
@@ -201,14 +242,20 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte} não é um número, digite novamente.",
                         color=discord.Color.brand_red(),
                     )
-                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
+                    message_send_error = await ctx.send(embed=embed_item_error, view=CadastroBreak())
 
                     run = 1
                     continue
 
+
                 # Verifica se o input é maior que 0
                 if qte_item > 0:
                     transaction_dict["quantity"] = int(qte_item)
+
+                    # remove os botões da pergunta depois de passada
+                    embed_qte_item.color = discord.Color.green()
+                    await message_sent.edit(embed=embed_qte_item, view=None)
+
                     run = 0
                     break
                 else:
@@ -226,7 +273,66 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte_item} não é um número positivo.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_item_error, view=CadastroBreak())
+                    message_send_error = await ctx.send(
+                        embed=embed_item_error, view=CadastroBreak()
+                    )
+
+                    # remove os botões da pergunta depois de passada
+                    embed_qte_item.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_qte_item, view=None)
+
+                    run = 1
+
+            # market price input
+            while True:
+                if run == 0:
+                    embed_price = discord.Embed(
+                        title="**Preço no Market**",
+                        description="O preço precisa ser maior ou igual a 20 e um valor inteiro.",
+                        color=discord.Color.dark_blue(),
+                    )
+                    message_sent = await ctx.send(
+                        embed=embed_price, view=CadastroBreak()
+                    )
+
+                response = await self.bot.wait_for("message")
+                market_price = int(response.content)
+
+                # deleta mensagem de erro
+                if run == 1:
+                    await message_send_error.delete()
+
+                # Verifica se o imput é maior ou igual a 20 e inteiro
+                if market_price >= 20 and type(market_price) == int:
+                    transaction_dict["market_price"] = market_price
+
+                    # remove os botões da pergunta depois de passada
+                    embed_price.color = discord.Color.green()
+                    await message_sent.edit(embed=embed_price, view=None)
+
+                    run = 0
+                    break
+                else:
+                    if input_item == "!break":
+                        embed = discord.Embed(
+                            title="**Cadastro cancelado**",
+                            color=discord.Color.dark_red(),
+                        )
+                        return await ctx.send(embed=embed)
+
+                    embed_item_error = discord.Embed(
+                        title="**O preço fornecido não é válido.**",
+                        description=f"{response.content} ou é menor que 20 ou não é um valor inteiro.",
+                        color=discord.Color.dark_red(),
+                    )
+                    message_send_error = await ctx.send(
+                        embed=embed_item_error, view=CadastroBreak()
+                    )
+
+                    # remove os botões da pergunta depois de passada
+                    embed_price.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_price, view=None)
+
                     run = 1
 
             # menu de seleção da natureza da operação
@@ -234,8 +340,8 @@ class CadastroTransacao(commands.Cog):
             await ctx.send(view=view)
             await view.wait()
             transaction_dict["operation_type"] = view.answer1[0]
-            if view.answer1[0] == 'P':
-                transaction_dict['quantity'] -= 2 * transaction_dict['quantity']
+            if view.answer1[0] == "P":
+                transaction_dict["quantity"] -= 2 * transaction_dict["quantity"]
 
             # Print
             while True:
@@ -245,7 +351,9 @@ class CadastroTransacao(commands.Cog):
                         description="Uma prova é necessária, envie uma imagem do trade. A imagem pode ser enviada pelo discord, ou por um link externo.",
                         color=discord.Color.dark_blue(),
                     )
-                    await ctx.send(embed=embed_print, view=CadastroBreak())
+                    message_sent = await ctx.send(
+                        embed=embed_print, view=CadastroBreak()
+                    )
 
                 response = await self.bot.wait_for("message")
 
@@ -261,9 +369,18 @@ class CadastroTransacao(commands.Cog):
                     + "{2,6}\\b([-a-zA-Z0-9@:%"
                     + "._\\+~#?&//=]*)"
                 )
+
+                # deleta mensagem de erro
+                if run == 1:
+                    await message_send_error.delete()
+
                 if is_valid_regex(print_proof, regex):
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
+
+                    # remove os botões da pergunta depois de passada
+                    embed_print.color = discord.Color.green()
+                    await message_sent.edit(embed=embed_print, view=None)
 
                     run = 0
                     break
@@ -276,13 +393,19 @@ class CadastroTransacao(commands.Cog):
                         )
                         return await ctx.send(embed=embed)
 
+                    # remove os botões da pergunta depois de passada
+                    embed_print.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_print, view=None)
+
                     # error message
                     embed_print_error = discord.Embed(
                         title="**Print inválido**",
                         description=f"Por favor envie uma imagem.",
                         color=discord.Color.dark_red(),
                     )
-                    await ctx.send(embed=embed_print_error, view=CadastroBreak())
+                    message_send_error = await ctx.send(
+                        embed=embed_print_error, view=CadastroBreak()
+                    )
                     run = 1
 
             # Embed de Confirmação
@@ -317,35 +440,47 @@ class CadastroTransacao(commands.Cog):
                     name="Item Retirado", value=f'> {transaction_dict.get("item")}'
                 )
             embed_confirm.add_field(
-                name="Quantidade", value=f'> {transaction_dict.get("quantity")}', inline=True
+                name="Quantidade",
+                value=f'> {transaction_dict.get("quantity")}',
+                inline=True,
             )
 
             # encontra o canal chamado "doações"
             channel = utils.get(ctx.guild.text_channels, name="doações")
 
             # envia os embeds aos canais de interesse
-            user_pm = discord.utils.get(ctx.guild.members, id=transaction_dict.get('requester_id'))
+            user_pm = discord.utils.get(
+                ctx.guild.members, id=transaction_dict.get("requester_id")
+            )
             await ctx.send(embed=embed_confirm)
 
             waiting_confirm_embed = discord.Embed(
                 title="Aguardando a confirmação da transação...",
                 description=f"Aguarde enquanto ` {transaction_dict.get('requester_name')} ` confirma a ação.",
-                color=discord.Color.yellow()
+                color=discord.Color.yellow(),
             )
 
             # envia a mensagem de aguardo de confirmação
             waiting_message = await ctx.send(embed=waiting_confirm_embed)
-            
+
             # envia a mensagem privada de confirmação
             embed_warning_new_confirmation = discord.Embed(
                 title=f"**Novo pedido de confirmação de transação enviado por `{transaction_dict.get('manager_name')}`**",
-                color=discord.Color.yellow()
+                color=discord.Color.yellow(),
             )
-            embed_warning_new_confirmation.set_thumbnail(url="https://www.freeiconspng.com/img/2749")
-            
+            embed_warning_new_confirmation.set_thumbnail(
+                url="https://www.freeiconspng.com/img/2749"
+            )
+
             await user_pm.send(embed=embed_warning_new_confirmation)
-            await user_pm.send(embed=embed_confirm, view=ConfirmTransactionPm(embed=embed_confirm, transaction_dict=transaction_dict, waiting_message=waiting_message))
-            
+            await user_pm.send(
+                embed=embed_confirm,
+                view=ConfirmTransactionPm(
+                    embed=embed_confirm,
+                    transaction_dict=transaction_dict,
+                    waiting_message=waiting_message,
+                ),
+            )
 
         else:
             channel = utils.get(ctx.guild.text_channels, name="guild-bank")
