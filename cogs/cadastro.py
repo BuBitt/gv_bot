@@ -2,8 +2,8 @@ import re
 import time
 import discord
 import datetime
-from models.account import Account
 import settings
+from models.account import Account
 from discord import Color, utils
 from datetime import datetime
 from models.items import Items
@@ -442,7 +442,7 @@ class CadastroTransacao(commands.Cog):
                 )
             embed_confirm.add_field(
                 name="Quantidade",
-                value=f'> {transaction_dict.get("quantity")}',
+                value=f'> {abs(transaction_dict.get("quantity"))}',
                 inline=True,
             )
 
