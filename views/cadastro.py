@@ -35,7 +35,7 @@ class TransactionLauncher(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f""
+        global_thread_name = f"💲 | Canal do {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
         transaction = utils.get(
             interaction.guild.threads,
             name=global_thread_name,
