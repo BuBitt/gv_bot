@@ -181,7 +181,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
     @app_commands.command(name="edit_lvl", description="Editar o lvl do seu perfil")
     @app_commands.describe(lvl="lvl atual da classe principal")
     async def edit_lvl(self, interaction: discord.Interaction, lvl: int):
-        validate = True if lvl else False
+        validate = True if lvl > 0 and lvl < 75 else False
         account = Account.fetch(interaction)
 
         if validate:
@@ -196,7 +196,8 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             await interaction.response.send_message(embed=embed_me, ephemeral=True)
         else:
             embed_me = discord.Embed(color=discord.Colour.red())
-            embed_me.add_field(name=f"**{lvl} é um valor inválido**", value="")
+            embed_me.add_field(name=f"**` {lvl} ` é um valor inválido**", value="")
+            await interaction.response.send_message(embed=embed_me, ephemeral=True)
 
     @app_commands.command(
         name="edit_role", description="Edita o role principal do seu perfil"
