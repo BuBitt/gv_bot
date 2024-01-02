@@ -153,8 +153,7 @@ class CadastroTransacao(commands.Cog):
                 if run == 0:
                     embed_item = discord.Embed(
                         title="**Item**",
-                        description="A existência do item é verificada no banco de dados.\n \
-                            Caso o item não exista no jogo você precisará escrever novamente.",
+                        description="A existência do item é verificada no banco de dados.\nCaso o item não exista no jogo você precisará escrever novamente.",
                         color=discord.Color.dark_blue(),
                     )
                     message_sent = await ctx.send(
@@ -204,7 +203,7 @@ class CadastroTransacao(commands.Cog):
                     run = 1
 
             # Loop da quantidade de itens
-            # FIXME valores =< 0 crasham o comando. 
+            # FIXME valores =< 0 crasham o comando.
             while True:
                 if run == 0:
                     embed_qte_item = discord.Embed(
@@ -217,11 +216,11 @@ class CadastroTransacao(commands.Cog):
                     )
 
                 response = await self.bot.wait_for("message")
-                
+
                 # deleta mensagem de erro
                 if run == 1:
                     await message_send_error.delete()
-                
+
                 # Verifica se o input é um número
                 try:
                     qte_item = int(response.content)
@@ -243,11 +242,12 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte} não é um número, digite novamente.",
                         color=discord.Color.brand_red(),
                     )
-                    message_send_error = await ctx.send(embed=embed_item_error, view=CadastroBreak())
+                    message_send_error = await ctx.send(
+                        embed=embed_item_error, view=CadastroBreak()
+                    )
 
                     run = 1
                     continue
-
 
                 # Verifica se o input é maior que 0
                 if qte_item > 0:

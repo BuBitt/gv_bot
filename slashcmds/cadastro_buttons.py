@@ -3,7 +3,7 @@ from discord import app_commands
 from views.cadastro import TransactionLauncher, Confirm
 
 
-class Cadastro(app_commands.Group):
+class CadastroButtons(app_commands.Group):
     @app_commands.command(
         name="new_tchannel_button", description="Inicia o sistema de cadastro"
     )
@@ -58,4 +58,4 @@ class Cadastro(app_commands.Group):
 
 
 async def setup(bot):
-    bot.tree.add_command(Cadastro(name="cadastro", description="Comandos do perfil"))
+    bot.tree.add_command(CadastroButtons(name="niterface_cadastro", description="Comandos do perfil"))

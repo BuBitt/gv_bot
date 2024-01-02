@@ -70,10 +70,11 @@ class TransactionLauncher(discord.ui.View):
 
             instructions_embed = discord.Embed(
                 title=f"**Instruções de uso**",
-                description="1 - Para iniciar um novo cadastro digite `!cadastro` no chat;\n \
-                    2 - Na parte `Item` o nome deve ser escrito em inglês;\n \
-                    3 - Para cancelar o cadastro a qualquer momento digite `!break`\n \
-                    4 - Na parte `Print` envie uma imagem pelo discord ou por um link externo.",
+                description="\
+1 - Para iniciar um novo cadastro digite `!cadastro` no chat;\n\
+2 - Na parte `Item` o nome deve ser escrito em inglês;\n\
+3 - Para cancelar o cadastro a qualquer momento digite `!break`\n\
+4 - Na parte `Print` envie uma imagem pelo discord ou por um link externo.",
                 color=discord.Color.yellow(),
             )
             await channel.send(
