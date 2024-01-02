@@ -1,15 +1,13 @@
 import re
-from tabnanny import check
 import time
 import discord
 import datetime
 import settings
-from models.account import Account
-from discord import Color, utils
+from discord import utils
 from datetime import datetime
 from models.items import Items
 from discord.ext import commands
-from views.cadastro import Main, ConfirmTransactionPm, CadastroBreak
+from views.cadastro import ConfirmTransactionPm, CadastroBreak
 
 
 logger = settings.logging.getLogger(__name__)
@@ -52,15 +50,6 @@ class CadastroTransacao(commands.Cog):
                 return int(raw_id[2:-1])
 
             def is_valid_regex(url, regex):
-                # Regex to check valid URL
-                # regex = (
-                #     "((http|https)://)(www.)?"
-                #     + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-                #     + "{2,256}\\.[a-z]"
-                #     + "{2,6}\\b([-a-zA-Z0-9@:%"
-                #     + "._\\+~#?&//=]*)"
-                # )
-
                 # Compile the ReGex
                 p = re.compile(regex)
 
