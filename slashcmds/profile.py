@@ -37,7 +37,7 @@ class Profile(app_commands.Group):
         table = transactions_table()
 
         # calcula e aplica a pontuação na db
-        # TODO esse if é desnecssário e pode ser removido uma vez uma base de dados comece do 0
+        # TODO if é desnecssário. Pode ser removido com uma database vazia
         if account.points == 0:
             points = table
             points = (
@@ -71,6 +71,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
 
         else:
+            # TODO embed: código duplicado
             embed_me = discord.Embed()
             embed_me.set_author(
                 name=f"Perfil de {interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
@@ -199,6 +200,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             embed_me.add_field(name=f"**` {lvl} ` é um valor inválido**", value="")
             await interaction.response.send_message(embed=embed_me, ephemeral=True)
 
+    # TODO o input não possui qualquer tipo de validação
     @app_commands.command(
         name="edit_role", description="Edita o role principal do seu perfil"
     )

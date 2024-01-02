@@ -193,7 +193,6 @@ class CadastroTransacao(commands.Cog):
                     run = 1
 
             # Loop da quantidade de itens
-            # FIXME valores =< 0 crasham o comando.
             while True:
                 if run == 0:
                     embed_qte_item = discord.Embed(
