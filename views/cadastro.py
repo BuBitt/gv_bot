@@ -36,9 +36,10 @@ class TransactionLauncher(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        global_thread_name = f""
         transaction = utils.get(
-            interaction.guild.text_channels,
-            name=f"gb-transaction-{interaction.user.name}",
+            interaction.guild.threads,
+            name=global_thread_name,
         )
 
         if transaction is not None:
@@ -47,24 +48,10 @@ class TransactionLauncher(discord.ui.View):
                 ephemeral=True,
             )
         else:
-            overwrites = {
-                interaction.guild.default_role: discord.PermissionOverwrite(
-                    view_channel=False
-                ),
-                interaction.user: discord.PermissionOverwrite(
-                    view_channel=True,
-                    send_messages=True,
-                    attach_files=True,
-                    embed_links=True,
-                ),
-                interaction.guild.me: discord.PermissionOverwrite(
-                    view_channel=True, send_messages=True, read_message_history=True
-                ),
-            }
-
-            channel = await interaction.guild.create_text_channel(
-                name=f"gb-transaction-{interaction.user.name}",
-                overwrites=overwrites,
+            channel = await interaction.channel.create_thread(
+                name=global_thread_name,
+                invitable=False,
+                auto_archive_duration=60,
                 reason=f"Canal de transação para {interaction.user}",
             )
 
@@ -78,7 +65,7 @@ class TransactionLauncher(discord.ui.View):
                 color=discord.Color.yellow(),
             )
             await channel.send(
-                f"{interaction.user.mention} criou um canal de transação.",
+                f"{interaction.user.mention}",
                 embed=instructions_embed,
                 view=Main(),
             )
