@@ -140,39 +140,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             view=GuildProfileView(table_send, g_profile_embed=embed_guild),
         )
 
-    @app_commands.command(name="send", description="Envie seu perfil no chat")
-    async def send_me(self, interaction: discord.Interaction):
-        account = Account.fetch(interaction)
-        embed_me = discord.Embed()
-        embed_me.set_author(
-            name=f"Perfil de {interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
-            icon_url=interaction.user.display_avatar,
-        )
-        table = transactions_table()
-        table = (
-            table.filter(pl.col("requester_id") == interaction.user.id)
-            .select("id", "manager_name", "item", "quantity")
-            .sort("id", descending=True)
-        )
-        table = table.rename(
-            {
-                "id": "N°",
-                "manager_name": "GUILD BANKER",
-                "item": "ITEM",
-                "quantity": "QUANTIDADE",
-            }
-        )
-
-        embed_me.add_field(name="**Level**", value=account.level)
-        embed_me.add_field(name="**Pontuação**", value=account.points)
-        embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(
-            name="_**Últimas Transações:**_",
-            value=f"""```{table.head(5)}```""",
-            inline=False,
-        )
-        await interaction.response.send_message(embed=embed_me)
-
     @app_commands.command(
         name="see", description="Envia no chat o perfil de outro usuário"
     )
