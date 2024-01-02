@@ -1,9 +1,8 @@
 import discord
 import settings
-from discord.ext import commands
+from discord import utils
 from models.account import Account
 from models.cadastro import Transaction
-from discord import utils, app_commands
 
 
 logger = settings.logging.getLogger(__name__)
