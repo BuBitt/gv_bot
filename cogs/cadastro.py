@@ -23,7 +23,7 @@ class ActionNature(discord.ui.View):
             discord.SelectOption(label="Pedido", value="P"),
         ],
     )
-    async def select_age(
+    async def select_nature(
         self, interaction: discord.Interaction, select_item: discord.ui.Select
     ):
         self.answer1 = select_item.values

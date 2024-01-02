@@ -1,11 +1,12 @@
+import typing
 import discord
 import settings
 import polars as pl
 from database import db_name
-from discord import app_commands
+from discord import Role, app_commands
 from models.account import Account
 from sqlalchemy import create_engine
-from views.profile import UserProfileView, GuildProfileView, NewAccountView
+from views.profile import UserProfileView, GuildProfileView
 
 
 logger = settings.logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class Profile(app_commands.Group):
         table = transactions_table()
 
         # calcula e aplica a pontuação na db
+        # TODO esse if é desnecssário e pode ser removido uma vez uma base de dados comece do 0
         if account.points == 0:
             points = table
             points = (
@@ -54,13 +56,18 @@ class Profile(app_commands.Group):
             account.points = points
             account.save()
 
+        # primeira interação com o comando (registro de lvl e role)
         if account.role == "No Role":
             new_account_embed = discord.Embed(
-                title="**Você não possui um cadastro. Por favor edite seus dados abaixo**",
+                title="**🔒 Você não concluiu o seu cadastro**",
                 color=discord.Color.yellow(),
+                description=f"\n\n\
+1 - Edite seu ` LVL ` com o comando:  `/profile edit_lvl`\n\
+2 - Edite seu ` ROLE ` com o comando: `/profile edit_role`\n\n\
+_**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente, execute os mesmo comandos**_.",
             )
             await interaction.response.send_message(
-                embed=new_account_embed, view=NewAccountView(), ephemeral=True
+                embed=new_account_embed, ephemeral=True
             )
 
         else:
@@ -90,10 +97,7 @@ class Profile(app_commands.Group):
                 name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```"""
             )
 
-            view = UserProfileView()
-            await interaction.response.send_message(
-                embed=embed_me, view=view, ephemeral=True
-            )
+            await interaction.response.send_message(embed=embed_me)
 
     @app_commands.command(description="Perfil da guilda")
     async def guilda(self, interaction: discord.Interaction):
@@ -191,7 +195,7 @@ class Profile(app_commands.Group):
                 "quantity": "QUANTIDADE",
             }
         )
-        
+
         embed_me = discord.Embed()
         embed_me.set_author(
             name=f"Perfil de {user.name if user.nick == None else user.nick}",
@@ -206,6 +210,43 @@ class Profile(app_commands.Group):
             inline=False,
         )
         await interaction.response.send_message(embed=embed_me)
+
+    @app_commands.command(name="edit_lvl", description="Editar o lvl do seu perfil")
+    @app_commands.describe(lvl="lvl atual da classe principal")
+    async def edit_lvl(self, interaction: discord.Interaction, lvl: int):
+        validate = True if lvl else False
+        account = Account.fetch(interaction)
+
+        if validate:
+            embed_me = discord.Embed(color=discord.Colour.green())
+            embed_me.set_author(
+                name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+                icon_url=interaction.user.display_avatar,
+            )
+            embed_me.add_field(name="**Novo Level:**", value=f"> {lvl}")
+            account.level = lvl
+            account.save()
+            await interaction.response.send_message(embed=embed_me, ephemeral=True)
+        else:
+            embed_me = discord.Embed(color=discord.Colour.red())
+            embed_me.add_field(name=f"**{lvl} é um valor inválido**", value="")
+
+    @app_commands.command(
+        name="edit_role", description="Edita o role principal do seu perfil"
+    )
+    @app_commands.describe(role="role")
+    async def edit_role(self, interaction: discord.Interaction, role: str):
+        account = Account.fetch(interaction)
+
+        embed_me = discord.Embed(color=discord.Colour.green())
+        embed_me.set_author(
+            name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+            icon_url=interaction.user.display_avatar,
+        )
+        await interaction.response.send_message(embed=embed_me)
+        embed_me.add_field(name="**Novo Role:**", value=f"> {role}")
+        account.role = role
+        account.save()
 
 
 async def setup(bot):

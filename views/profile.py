@@ -1,37 +1,10 @@
-from dis import disco
-from turtle import title
-import polars as pl
+from models.account import Account
 import settings
 import discord
 import os
 
 
 logger = settings.logging.getLogger(__name__)
-
-
-class NewAccountView(discord.ui.View):
-    def __init__(self) -> None:
-        super().__init__(timeout=None)
-
-    @discord.ui.button(
-        label="Role",
-        style=discord.ButtonStyle.success,
-        custom_id="edit_role_button",
-    )
-    async def role_edit(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        ...
-
-    @discord.ui.button(
-        label="Level",
-        style=discord.ButtonStyle.success,
-        custom_id="edit_level_button",
-    )
-    async def level_edit(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        ...
 
 
 class UserProfileView(discord.ui.View):

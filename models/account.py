@@ -12,7 +12,6 @@ class Account(peewee.Model):
     points: int = peewee.IntegerField()
     level: int = peewee.IntegerField()
     role: str = peewee.CharField(max_length=255)
-    amount: int = peewee.IntegerField()
 
     class Meta:
         database = db
