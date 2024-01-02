@@ -5,12 +5,12 @@ from views.cadastro import TransactionLauncher, Confirm
 
 class CadastroButtons(app_commands.Group):
     @app_commands.command(
-        name="new_tchannel_button", description="Inicia o sistema de cadastro"
+        name="gb_panel", description="Inicia o sistema de cadastro"
     )
     @app_commands.checks.has_role("Admin")
     async def transactioning(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title=f"Para criar um novo canal de transação pressione o botão abaixo.",
+            title=f"Painel de gerenciamento do Guild Bank.",
             color=discord.Color.blue(),
         )
         await interaction.channel.send(embed=embed, view=TransactionLauncher())
@@ -36,26 +36,8 @@ class CadastroButtons(app_commands.Group):
                 ephemeral=True,
             )
 
-    @app_commands.command(name="add", description="Adds a user to the ticket.")
-    @app_commands.describe(user="The user you want to add to the ticket")
-    @app_commands.checks.has_role("Guild Banker")
-    async def add_command(self, interaction: discord.Interaction, user: discord.Member):
-        if "gb-transaction-" in interaction.channel.name:
-            await interaction.channel.set_permissions(
-                user,
-                view_channel=True,
-                send_messages=True,
-                attach_files=True,
-                embed_links=True,
-            )
-            await interaction.response.send_message(
-                f"{user.mention} has been added to ticket {interaction.user.mention}"
-            )
-        else:
-            await interaction.response.send_message(
-                f"This isn't a ticket.", ephemeral=True
-            )
-
 
 async def setup(bot):
-    bot.tree.add_command(CadastroButtons(name="niterface_cadastro", description="Comandos do perfil"))
+    bot.tree.add_command(
+        CadastroButtons(name="iterface", description="Comandos do perfil")
+    )

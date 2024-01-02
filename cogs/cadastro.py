@@ -42,7 +42,7 @@ class CadastroTransacao(commands.Cog):
     @commands.command()
     @commands.has_role("Guild Banker")
     async def cadastro(self, ctx):
-        if ctx.channel.name.startswith("gb-transaction-"):
+        if ctx.channel.name.startswith("💲| Transação |"):
             transaction_dict = {}
             run = 0
 

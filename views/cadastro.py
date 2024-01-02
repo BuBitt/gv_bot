@@ -35,7 +35,7 @@ class TransactionLauncher(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f"💲 | Canal do {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
+        global_thread_name = f"💲| Transação | {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
         transaction = utils.get(
             interaction.guild.threads,
             name=global_thread_name,
@@ -43,7 +43,7 @@ class TransactionLauncher(discord.ui.View):
 
         if transaction is not None:
             await interaction.response.send_message(
-                f"Você já possui um canal de transação aberto {transaction.mention}",
+                f"Você já possui um canal de transação aberto: {transaction.mention}",
                 ephemeral=True,
             )
         else:
@@ -73,6 +73,52 @@ class TransactionLauncher(discord.ui.View):
             )
             logger.info(
                 f"Canal de transação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
+            )
+
+    @discord.ui.button(
+        label="Novo Item",
+        style=discord.ButtonStyle.success,
+        custom_id="new_item_button",
+    )
+    async def new_tem(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        global_thread_name = f"🛒| Novo Item | {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
+        item_channel = utils.get(
+            interaction.guild.threads,
+            name=global_thread_name,
+        )
+
+        if item_channel is not None:
+            await interaction.response.send_message(
+                f"Você já possui um canal para adicionar itens aberto: {item_channel.mention}",
+                ephemeral=True,
+            )
+        else:
+            channel = await interaction.channel.create_thread(
+                name=global_thread_name,
+                invitable=False,
+                auto_archive_duration=60,
+                reason=f"Canal para adicionar itens para {interaction.user}",
+            )
+
+            instructions_embed = discord.Embed(
+                title=f"**Instruções de uso**",
+                description="\
+1 - TODO\n",
+                color=discord.Color.yellow(),
+            )
+            await channel.send(
+                f"{interaction.user.mention}",
+                embed=instructions_embed,
+                view=Main(),
+            )
+            await interaction.response.send_message(
+                f"Canal para adicionar itens criado em {channel.mention}.",
+                ephemeral=True,
+            )
+            logger.info(
+                f"Canal para adicionar itens {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
             )
 
 
