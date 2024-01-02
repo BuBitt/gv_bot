@@ -1,4 +1,5 @@
 import re
+from tabnanny import check
 import time
 import discord
 import datetime
@@ -87,7 +88,7 @@ class CadastroTransacao(commands.Cog):
                         embed=first_embed, view=CadastroBreak()
                     )
 
-                response = await self.bot.wait_for("message")
+                response = await self.bot.wait_for("message", check=lambda msg: msg.channel == ctx.channel)
                 requester_mention = response.content
 
                 # deleta mensagem de erro
@@ -160,7 +161,7 @@ class CadastroTransacao(commands.Cog):
                         embed=embed_item, view=CadastroBreak()
                     )
 
-                response = await self.bot.wait_for("message")
+                response = await self.bot.wait_for("message", check=lambda msg: msg.channel == ctx.channel)
                 input_item = response.content.lower()
 
                 # deleta mensagem de erro
@@ -215,7 +216,7 @@ class CadastroTransacao(commands.Cog):
                         embed=embed_qte_item, view=CadastroBreak()
                     )
 
-                response = await self.bot.wait_for("message")
+                response = await self.bot.wait_for("message", check=lambda msg: msg.channel == ctx.channel)
 
                 # deleta mensagem de erro
                 if run == 1:
@@ -296,7 +297,7 @@ class CadastroTransacao(commands.Cog):
                         embed=embed_price, view=CadastroBreak()
                     )
 
-                response = await self.bot.wait_for("message")
+                response = await self.bot.wait_for("message", check=lambda msg: msg.channel == ctx.channel)
                 market_price = int(response.content)
 
                 # deleta mensagem de erro
@@ -356,7 +357,7 @@ class CadastroTransacao(commands.Cog):
                         embed=embed_print, view=CadastroBreak()
                     )
 
-                response = await self.bot.wait_for("message")
+                response = await self.bot.wait_for("message", check=lambda msg: msg.channel == ctx.channel)
 
                 try:
                     print_proof = response.attachments[0].url.split("?ex=")[0]
