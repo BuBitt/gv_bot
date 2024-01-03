@@ -78,7 +78,7 @@ class Profile(app_commands.Group):
                 color=discord.Color.yellow(),
                 description=f"\n\n\
 1 - Edite seu Perfil com o comando:  `/profile edit`\n\n\
-_**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente, execute o mesmo comando**_.",
+_**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente execute o mesmo comando**_.",
             )
             await interaction.response.send_message(
                 embed=new_account_embed, ephemeral=True

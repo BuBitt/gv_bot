@@ -22,7 +22,7 @@ class CadastroButtons(app_commands.Group):
     @app_commands.command(name="close", description="Fecha o canal de cadastro")
     @app_commands.checks.has_role("Guild Banker")
     async def close_command(self, interaction: discord.Interaction):
-        if interaction.user.name or interaction.user.nick in interaction.channel.name:
+        if interaction.user.name in interaction.channel.name or interaction.user.nick in interaction.channel.name:
             embed = discord.Embed(
                 title=f"Você tem certeza que deseja cancelar o cadastro?",
                 color=discord.Color.red(),
@@ -32,7 +32,7 @@ class CadastroButtons(app_commands.Group):
             )
         else:
             await interaction.response.send_message(
-                f"{interaction.user.mention} não é um canal de transação.",
+                f"{interaction.channel.mention} não é um canal de transação.",
                 ephemeral=True,
             )
 
