@@ -1,5 +1,3 @@
-from typing import Any, Coroutine
-from discord.interactions import Interaction
 from models.account import Account
 import settings
 import discord
@@ -7,6 +5,20 @@ import os
 
 
 logger = settings.logging.getLogger(__name__)
+
+
+class PlayerGeneralIfo(discord.ui.View):
+    def __init__(self, ctx_menu_interaction) -> None:
+        self.ctx_menu_interaction = ctx_menu_interaction
+        super().__init__(timeout=None)
+    
+    @discord.ui.button(
+        label="Puxar Capivara", style=discord.ButtonStyle.blurple, custom_id="capibara_pull"
+    )
+    async def tank_profile_edit(
+        self, interaction: discord.Interaction, button: discord.Button
+    ):
+        await interaction.response.send_message("ping", ephemeral=True)
 
 
 class UserProfileRoles(discord.ui.View):
