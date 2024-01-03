@@ -17,6 +17,6 @@ def populate_table_from_csv(file_path):
             Items.create(item=row['items'])
 
 # Example usage
-csv_file_path = 'items.csv'  # Replace with your CSV file path
+csv_file_path = 'items.csv'
 populate_table_from_csv(csv_file_path)
 db.close()
