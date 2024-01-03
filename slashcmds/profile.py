@@ -1,12 +1,14 @@
+from turtle import title
 import typing
 import discord
 import settings
 import polars as pl
 from database import db_name
-from discord import Role, app_commands
+from discord import Colour, app_commands
+from discord.ext import commands
 from models.account import Account
 from sqlalchemy import create_engine
-from views.profile import UserProfileView, GuildProfileView
+from views.profile import GuildProfileView, UserProfileEdit
 
 
 logger = settings.logging.getLogger(__name__)
@@ -16,7 +18,7 @@ logger = settings.logging.getLogger(__name__)
 def transactions_table(bool=False):
     pl.Config.set_tbl_cols(10)
     pl.Config.set_tbl_rows(10)
-    pl.Config.set_fmt_str_lengths(18)
+    pl.Config.set_fmt_str_lengths(12)
     pl.Config.set_tbl_formatting("NOTHING")
     pl.Config.set_tbl_hide_dataframe_shape(True)
     pl.Config.set_tbl_hide_column_data_types(True)
@@ -31,30 +33,46 @@ def transactions_table(bool=False):
 
 
 class Profile(app_commands.Group):
-    @app_commands.command(description="Gerencie seu perfil")
-    async def me(self, interaction: discord.Interaction):
+    @staticmethod
+    def embed_me(interaction):
+        user = (
+            interaction.user
+            if type(interaction) == discord.Interaction
+            else interaction
+        )
         account = Account.fetch(interaction)
         table = transactions_table()
 
-        # calcula e aplica a pontuação na db
-        # TODO if é desnecssário. Pode ser removido com uma database vazia
-        if account.points == 0:
-            points = table
-            points = (
-                points.filter(pl.col("requester_id") == interaction.user.id)
-                .select("quantity", "market_price")
-                .with_columns(
-                    (pl.col("quantity") * pl.col("market_price")).alias("points")
-                )
-                .select(pl.sum("points"))
-                .to_dicts()[0]
-                .get("points")
-            )
-            logger.info(
-                f"{interaction.user.name} teve {points} pontos adormecidos registrados ao criar o perfil"
-            )
-            account.points = points
-            account.save()
+        embed_me = discord.Embed()
+        embed_me.set_author(
+            name=f"Perfil de {user.name if user.nick == None else user.nick}",
+            icon_url=user.display_avatar,
+        )
+        table = (
+            table.filter(pl.col("requester_id") == user.id)
+            .select("id", "manager_name", "item", "quantity")
+            .sort("id", descending=True)
+        )
+        table = table.rename(
+            {
+                "id": "N°",
+                "manager_name": "GUILD BANKER",
+                "item": "ITEM",
+                "quantity": "QUANTIDADE",
+            }
+        )
+
+        embed_me.add_field(name="**Level**", value=account.level)
+        embed_me.add_field(name="**Pontuação**", value=account.points)
+        embed_me.add_field(name="**Role**", value=account.role)
+        embed_me.add_field(
+            name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```"""
+        )
+        return embed_me
+
+    @app_commands.command(description="Gerencie seu perfil")
+    async def me(self, interaction: discord.Interaction):
+        account = Account.fetch(interaction)
 
         # primeira interação com o comando (registro de lvl e role)
         if account.role == "No Role":
@@ -62,43 +80,15 @@ class Profile(app_commands.Group):
                 title="**🔒 Você não concluiu o seu cadastro**",
                 color=discord.Color.yellow(),
                 description=f"\n\n\
-1 - Edite seu ` LVL ` com o comando:  `/profile edit_lvl`\n\
-2 - Edite seu ` ROLE ` com o comando: `/profile edit_role`\n\n\
-_**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente, execute os mesmo comandos**_.",
+1 - Edite seu Perfil com o comando:  `/profile edit`\n\n\
+_**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente, execute o mesmo comando**_.",
             )
             await interaction.response.send_message(
                 embed=new_account_embed, ephemeral=True
             )
 
         else:
-            # TODO embed: código duplicado
-            embed_me = discord.Embed()
-            embed_me.set_author(
-                name=f"Perfil de {interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
-                icon_url=interaction.user.display_avatar,
-            )
-            table = (
-                table.filter(pl.col("requester_id") == interaction.user.id)
-                .select("id", "manager_name", "item", "quantity")
-                .sort("id", descending=True)
-            )
-            table = table.rename(
-                {
-                    "id": "N°",
-                    "manager_name": "GUILD BANKER",
-                    "item": "ITEM",
-                    "quantity": "QUANTIDADE",
-                }
-            )
-
-            embed_me.add_field(name="**Level**", value=account.level)
-            embed_me.add_field(name="**Pontuação**", value=account.points)
-            embed_me.add_field(name="**Role**", value=account.role)
-            embed_me.add_field(
-                name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```"""
-            )
-
-            await interaction.response.send_message(embed=embed_me)
+            await interaction.response.send_message(embed=self.embed_me(interaction))
 
     @app_commands.command(description="Perfil da guilda")
     async def guilda(self, interaction: discord.Interaction):
@@ -116,29 +106,74 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             }
         ).drop("N°")
 
-        embed_guild = discord.Embed()
+        embed_guild = discord.Embed(
+            title="**Informações Gerais**",
+            color=discord.Color.blue(),
+            description=f"Com {interaction.guild.member_count} membros, é uma guilda do jogo Ravendawn.",
+        )
         embed_guild.set_author(
             name=f"Guilda {interaction.guild.name}", icon_url=interaction.guild.icon
         )
         embed_guild.add_field(
-            name="Membros",
-            value=len([m for m in interaction.guild.members if not m.bot]),
+            name="Tanks",
+            value=Account.select().where(Account.role == "Tank").count(),
         )
-        embed_guild.add_field(name="Online", value=None)
-        embed_guild.add_field(name="teste", value="test")
+        embed_guild.add_field(
+            name="Healers",
+            value=Account.select().where(Account.role == "Healer").count(),
+        )
+        embed_guild.add_field(
+            name="Damagers",
+            value=Account.select().where(Account.role == "Damage").count(),
+        )
         embed_guild.add_field(
             name="_**Últimas Transações:**_",
             value=f"```{table.head(10)}```",
-            inline=True,
+            inline=False,
         )
         table_send = (
             transactions_table(bool=True)
             .drop("manager_id", "requester_id")
             .sort("id", descending=True)
         )
-        guild_embed_message = await interaction.response.send_message(
+
+        balance = (
+            table.select("ITEM", "QUANTIDADE")
+            .group_by("ITEM")
+            .sum()
+            .sort("QUANTIDADE", descending=True)
+        )
+
+        lista = []
+        for dicionario in balance.to_dicts():
+            item = dicionario["ITEM"].title()
+            maiores = (
+                table.filter(pl.col("ITEM") == item)
+                .select("REQUERENTE", "QUANTIDADE")
+                .group_by("REQUERENTE")
+                .sum()
+                .sort("QUANTIDADE", descending=True)
+                .row(0)
+            )
+            lista.append(maiores)
+
+        most_donator = pl.DataFrame(lista, schema=["MAIOR DOADOR", "DOAÇÃO"])
+        table_balance = pl.concat([balance, most_donator], how="horizontal")
+
+        pl.Config.set_fmt_str_lengths(14)
+        embed_guild.add_field(
+            name="_**Balanço de Itens:**_",
+            value=f"```{table_balance}```",
+            inline=False,
+        )
+
+        await interaction.response.send_message(
             embed=embed_guild,
-            view=GuildProfileView(table_send, g_profile_embed=embed_guild),
+            view=GuildProfileView(
+                transactions_table=table_send,
+                g_profile_embed=embed_guild,
+                balance_all=table_balance,
+            ),
         )
 
     @app_commands.command(
@@ -146,77 +181,17 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
     )
     @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
     async def see(self, interaction: discord.Interaction, user: discord.Member):
-        account = Account.fetch(user)
-        table = transactions_table()
+        await interaction.response.send_message(embed=self.embed_me(user))
 
-        # constroi tabela de balanço
-        table = (
-            table.filter(pl.col("requester_id") == user.id)
-            .select("id", "manager_name", "item", "quantity")
-            .sort("id", descending=True)
-        )
-        table = table.rename(
-            {
-                "id": "N°",
-                "manager_name": "GUILD BANKER",
-                "item": "ITEM",
-                "quantity": "QUANTIDADE",
-            }
-        )
-
-        embed_me = discord.Embed()
-        embed_me.set_author(
-            name=f"Perfil de {user.name if user.nick == None else user.nick}",
-            icon_url=user.display_avatar,
-        )
-        embed_me.add_field(name="**Level**", value=account.level)
-        embed_me.add_field(name="**Pontuação**", value=account.points)
-        embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(
-            name="_**Últimas Transações:**_",
-            value=f"""```{table.head(5)}```""",
-            inline=False,
-        )
-        await interaction.response.send_message(embed=embed_me)
-
-    @app_commands.command(name="edit_lvl", description="Editar o lvl do seu perfil")
-    @app_commands.describe(lvl="lvl atual da classe principal")
-    async def edit_lvl(self, interaction: discord.Interaction, lvl: int):
-        validate = True if lvl > 0 and lvl < 75 else False
-        account = Account.fetch(interaction)
-
-        if validate:
-            embed_me = discord.Embed(color=discord.Colour.green())
-            embed_me.set_author(
-                name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
-                icon_url=interaction.user.display_avatar,
-            )
-            embed_me.add_field(name="**Novo Level:**", value=f"> {lvl}")
-            account.level = lvl
-            account.save()
-            await interaction.response.send_message(embed=embed_me, ephemeral=True)
-        else:
-            embed_me = discord.Embed(color=discord.Colour.red())
-            embed_me.add_field(name=f"**` {lvl} ` é um valor inválido**", value="")
-            await interaction.response.send_message(embed=embed_me, ephemeral=True)
-
-    # TODO o input não possui qualquer tipo de validação
     @app_commands.command(
-        name="edit_role", description="Edita o role principal do seu perfil"
+        name="edit", description="Edita o role principal do seu perfil"
     )
-    @app_commands.describe(role="role")
-    async def edit_role(self, interaction: discord.Interaction, role: str):
-        account = Account.fetch(interaction)
-
-        embed_me = discord.Embed(color=discord.Colour.green())
-        embed_me.set_author(
-            name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
-            icon_url=interaction.user.display_avatar,
+    async def edit(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+            embed=self.embed_me(interaction),
+            view=UserProfileEdit(profile_embed=self.embed_me(interaction)),
+            ephemeral=True,
         )
-        await interaction.response.send_message(embed=embed_me)
-        embed_me.add_field(name="**Novo Role:**", value=f"> {role}")
-        account.role = role
-        account.save()
 
 
 async def setup(bot):

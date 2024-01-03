@@ -36,7 +36,7 @@ class ConfirmNewItem(discord.ui.View):
         )
 
 
-class NewItem(discord.ui.Modal, title="Adicione um novo item ao banco de dados"):
+class NewItem(discord.ui.Modal, title="Adicione um novo item"):
     new_item = discord.ui.TextInput(
         style=discord.TextStyle.short,
         label="Item",
@@ -67,6 +67,10 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item ao banco de dados")
         traceback.print_tb(error.__traceback__)
 
 
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        traceback.print_tb(error.__traceback__)
+
+
 # FIXME break command doesnt break
 class CadastroBreak(discord.ui.View):
     def __init__(self) -> None:
@@ -88,7 +92,7 @@ class TransactionLauncher(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Criar Canal de Transação",
+        label="Novo Canal de Transação",
         style=discord.ButtonStyle.success,
         custom_id="transaction_button",
     )
@@ -143,18 +147,7 @@ class TransactionLauncher(discord.ui.View):
     async def new_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        # await interaction.response.send_message()
         await interaction.response.send_modal(NewItem())
-
-    @discord.ui.button(
-        label="Busca",
-        style=discord.ButtonStyle.success,
-        custom_id="search_transaction_button",
-    )
-    async def search_transaction(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        ...
 
 
 class Confirm(discord.ui.View):

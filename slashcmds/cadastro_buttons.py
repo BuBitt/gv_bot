@@ -5,7 +5,7 @@ from views.cadastro import TransactionLauncher, Confirm
 
 class CadastroButtons(app_commands.Group):
     @app_commands.command(
-        name="gb_panel", description="Inicia o sistema de cadastro"
+        name="gb_controler", description="Inicia o sistema de cadastro"
     )
     @app_commands.checks.has_role("Admin")
     async def transactioning(self, interaction: discord.Interaction):
@@ -22,7 +22,7 @@ class CadastroButtons(app_commands.Group):
     @app_commands.command(name="close", description="Fecha o canal de cadastro")
     @app_commands.checks.has_role("Guild Banker")
     async def close_command(self, interaction: discord.Interaction):
-        if "gb-transaction-" in interaction.channel.name:
+        if interaction.user.name or interaction.user.nick in interaction.channel.name:
             embed = discord.Embed(
                 title=f"Você tem certeza que deseja cancelar o cadastro?",
                 color=discord.Color.red(),
@@ -32,12 +32,12 @@ class CadastroButtons(app_commands.Group):
             )
         else:
             await interaction.response.send_message(
-                f"{interaction.user.mention} isn't a Ticket.",
+                f"{interaction.user.mention} não é um canal de transação.",
                 ephemeral=True,
             )
 
 
 async def setup(bot):
     bot.tree.add_command(
-        CadastroButtons(name="iterface", description="Comandos do perfil")
+        CadastroButtons(name="interface", description="Comandos do perfil")
     )
