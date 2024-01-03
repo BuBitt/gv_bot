@@ -119,7 +119,7 @@ class CadastroTransacao(commands.Cog):
                     run = 0
                     break
                 else:
-                    if input_item == "!break":
+                    if requester_mention == "!break":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),

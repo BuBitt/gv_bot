@@ -244,7 +244,7 @@ class GuildProfileView(discord.ui.View):
         file = discord.File(f"data-balance-{interaction.user.id}.csv")
 
         file_down_embed = discord.Embed(
-            title="**O Balanço completo está presentes no arquivo**",
+            title="**O balanço completo está disponível no arquivo**",
             color=discord.Color.yellow(),
         )
         await interaction.response.send_message(
