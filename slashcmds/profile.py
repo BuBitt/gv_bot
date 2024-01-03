@@ -1,11 +1,8 @@
-from turtle import title
-import typing
 import discord
 import settings
 import polars as pl
 from database import db_name
-from discord import Colour, app_commands
-from discord.ext import commands
+from discord import app_commands
 from models.account import Account
 from sqlalchemy import create_engine
 from views.profile import GuildProfileView, UserProfileEdit
