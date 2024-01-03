@@ -1,7 +1,7 @@
 import discord
 import settings
 import traceback
-from discord import Embed, utils
+from discord import utils
 from models.items import Items
 from models.account import Account
 from models.cadastro import Transaction
@@ -69,22 +69,6 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
-
-
-# FIXME break command doesnt break
-class CadastroBreak(discord.ui.View):
-    def __init__(self) -> None:
-        super().__init__(timeout=180)
-
-    @discord.ui.button(
-        label="Cancelar Cadastro",
-        style=discord.ButtonStyle.primary,
-        custom_id="break_button",
-    )
-    async def transaction(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        await interaction.response.send_message("!break")
 
 
 class TransactionLauncher(discord.ui.View):

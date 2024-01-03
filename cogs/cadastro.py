@@ -7,7 +7,7 @@ from discord import utils
 from datetime import datetime
 from models.items import Items
 from discord.ext import commands
-from views.cadastro import ConfirmTransactionPm, CadastroBreak
+from views.cadastro import ConfirmTransactionPm
 
 
 logger = settings.logging.getLogger(__name__)
@@ -42,6 +42,8 @@ class CadastroTransacao(commands.Cog):
     @commands.command()
     @commands.has_role("Guild Banker")
     async def cadastro(self, ctx):
+        global loop_stop
+        loop_stop = True
         if ctx.channel.name.startswith("💲| Transação |"):
             transaction_dict = {}
             run = 0
@@ -73,9 +75,7 @@ class CadastroTransacao(commands.Cog):
                     color=discord.Color.dark_blue(),
                 )
                 if run == 0:
-                    message_sent = await ctx.send(
-                        embed=first_embed, view=CadastroBreak()
-                    )
+                    message_sent = await ctx.send(embed=first_embed)
 
                 response = await self.bot.wait_for(
                     "message",
@@ -110,7 +110,6 @@ class CadastroTransacao(commands.Cog):
 
                     # remove os botões da pergunta depois de passada
                     first_embed.color = discord.Color.green()
-                    await message_sent.edit(embed=first_embed, view=None)
 
                     # Log da operação
                     logger.info(
@@ -120,7 +119,7 @@ class CadastroTransacao(commands.Cog):
                     run = 0
                     break
                 else:
-                    if requester_mention == "!break":
+                    if not loop_stop:
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -129,7 +128,6 @@ class CadastroTransacao(commands.Cog):
 
                     # remove os botões da pergunta depois de passada
                     first_embed.color = discord.Color.red()
-                    await message_sent.edit(embed=first_embed, view=None)
 
                     first_embed_error = discord.Embed(
                         title="**Formato não aceito**",
@@ -137,9 +135,7 @@ class CadastroTransacao(commands.Cog):
                         color=discord.Color.dark_red(),
                     )
 
-                    message_send_error = await ctx.send(
-                        embed=first_embed_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=first_embed_error)
                     run = 1
 
             # Loop do nome do Item
@@ -150,9 +146,7 @@ class CadastroTransacao(commands.Cog):
                         description="A existência do item é verificada no banco de dados.\nCaso o item não exista no jogo você precisará escrever novamente.",
                         color=discord.Color.dark_blue(),
                     )
-                    message_sent = await ctx.send(
-                        embed=embed_item, view=CadastroBreak()
-                    )
+                    message_sent = await ctx.send(embed=embed_item)
 
                 response = await self.bot.wait_for(
                     "message",
@@ -190,9 +184,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{response.content} não é um item do jogo.",
                         color=discord.Color.dark_red(),
                     )
-                    message_send_error = await ctx.send(
-                        embed=embed_item_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
 
                     # remove os botões da pergunta depois de passada
                     embed_item.color = discord.Color.red()
@@ -208,9 +200,7 @@ class CadastroTransacao(commands.Cog):
                         description="A quantidade de itens da operação.",
                         color=discord.Color.dark_blue(),
                     )
-                    message_sent = await ctx.send(
-                        embed=embed_qte_item, view=CadastroBreak()
-                    )
+                    message_sent = await ctx.send(embed=embed_qte_item)
 
                 response = await self.bot.wait_for(
                     "message",
@@ -243,9 +233,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte} não é um número, digite novamente.",
                         color=discord.Color.brand_red(),
                     )
-                    message_send_error = await ctx.send(
-                        embed=embed_item_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
 
                     run = 1
                     continue
@@ -275,9 +263,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{qte_item} não é um número positivo.",
                         color=discord.Color.dark_red(),
                     )
-                    message_send_error = await ctx.send(
-                        embed=embed_item_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
 
                     # remove os botões da pergunta depois de passada
                     embed_qte_item.color = discord.Color.red()
@@ -293,9 +279,7 @@ class CadastroTransacao(commands.Cog):
                         description="O preço precisa ser maior ou igual a 20 e um valor inteiro.",
                         color=discord.Color.dark_blue(),
                     )
-                    message_sent = await ctx.send(
-                        embed=embed_price, view=CadastroBreak()
-                    )
+                    message_sent = await ctx.send(embed=embed_price)
 
                 response = await self.bot.wait_for(
                     "message",
@@ -331,9 +315,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"{response.content} ou é menor que 20 ou não é um valor inteiro.",
                         color=discord.Color.dark_red(),
                     )
-                    message_send_error = await ctx.send(
-                        embed=embed_item_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
 
                     # remove os botões da pergunta depois de passada
                     embed_price.color = discord.Color.red()
@@ -357,9 +339,7 @@ class CadastroTransacao(commands.Cog):
                         description="Uma prova é necessária, envie uma imagem do trade. A imagem pode ser enviada pelo discord, ou por um link externo.",
                         color=discord.Color.dark_blue(),
                     )
-                    message_sent = await ctx.send(
-                        embed=embed_print, view=CadastroBreak()
-                    )
+                    message_sent = await ctx.send(embed=embed_print)
 
                 response = await self.bot.wait_for(
                     "message",
@@ -413,9 +393,7 @@ class CadastroTransacao(commands.Cog):
                         description=f"Por favor envie uma imagem.",
                         color=discord.Color.dark_red(),
                     )
-                    message_send_error = await ctx.send(
-                        embed=embed_print_error, view=CadastroBreak()
-                    )
+                    message_send_error = await ctx.send(embed=embed_print_error)
                     run = 1
 
             # Embed de Confirmação
