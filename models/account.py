@@ -3,8 +3,6 @@ import peewee
 from database import db
 import settings
 
-logger = settings.logging.getLogger(__name__)
-
 
 class Account(peewee.Model):
     user_id: str = peewee.CharField(max_length=255)

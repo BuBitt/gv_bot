@@ -1,4 +1,7 @@
+from sqlalchemy import create_engine
 from models.account import Account
+from database import db_name
+import polars as pl
 import settings
 import discord
 import os
@@ -11,14 +14,45 @@ class PlayerGeneralIfo(discord.ui.View):
     def __init__(self, ctx_menu_interaction) -> None:
         self.ctx_menu_interaction = ctx_menu_interaction
         super().__init__(timeout=None)
-    
+
     @discord.ui.button(
-        label="Puxar Capivara", style=discord.ButtonStyle.blurple, custom_id="capibara_pull"
+        label="Puxar Capivara",
+        style=discord.ButtonStyle.success,
+        custom_id="capibara_pull",
     )
     async def tank_profile_edit(
         self, interaction: discord.Interaction, button: discord.Button
     ):
-        await interaction.response.send_message("ping", ephemeral=True)
+        # polars config
+        pl.Config.set_tbl_cols(10)
+        pl.Config.set_tbl_rows(10)
+        pl.Config.set_fmt_str_lengths(12)
+        pl.Config.set_tbl_formatting("NOTHING")
+        pl.Config.set_tbl_hide_dataframe_shape(True)
+        pl.Config.set_tbl_hide_column_data_types(True)
+        pl.Config.set_tbl_cell_numeric_alignment("RIGHT")
+
+        # acess db
+        conn = create_engine(f"sqlite:///{db_name}")
+        query = "SELECT * FROM transactions"
+        tabel = pl.read_database(query=query, connection=conn.connect())
+        
+        # cria e envia arquivo com dados do usuário
+        transactions = (
+            tabel.filter(pl.col("requester_id") == self.ctx_menu_interaction.id)
+            .drop("requester_id")
+            .write_csv(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv", separator=",")
+        )
+        file = discord.File(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv")
+
+        file_down_embed = discord.Embed(
+            title=f"**Todas as trasações do player {self.ctx_menu_interaction.name} estão presentes no arquivo**",
+            color=discord.Color.yellow(),
+        )
+        await interaction.response.send_message(
+            embed=file_down_embed, file=file, ephemeral=True
+        )
+        os.remove(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv")
 
 
 class UserProfileRoles(discord.ui.View):

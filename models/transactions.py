@@ -1,6 +1,10 @@
-from ast import Dict
-import peewee
 from database import db
+from ast import Dict
+import settings
+import peewee
+
+
+logger = settings.logging.getLogger(__name__)
 
 
 class Transaction(peewee.Model):
@@ -48,5 +52,5 @@ class Transaction(peewee.Model):
                 print_proof=transaction_dict.get("print"),
                 timestamp=transaction_dict.get("timestamp"),
             )
-            
+        
         return transaction

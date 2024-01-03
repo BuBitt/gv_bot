@@ -4,7 +4,7 @@ import traceback
 from discord import utils
 from models.items import Items
 from models.account import Account
-from models.cadastro import Transaction
+from models.transactions import Transaction
 
 
 logger = settings.logging.getLogger(__name__)

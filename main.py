@@ -6,7 +6,7 @@ from models.items import Items
 from discord import app_commands
 from discord.ext import commands
 from models.account import Account
-from models.cadastro import Transaction
+from models.transactions import Transaction
 from views.cadastro import TransactionLauncher, Main
 from views.profile import PlayerGeneralIfo
 
@@ -74,8 +74,11 @@ def run():
     @bot.tree.context_menu(name="Informações Gerais")
     @app_commands.checks.has_role("Guild Banker")
     async def general_info(interaction: discord.Interaction, member: discord.Member):
+        embed = discord.Embed(title=f"Informações do player: **{member.name}**")
         await interaction.response.send_message(
-            view=PlayerGeneralIfo(ctx_menu_interaction=interaction), ephemeral=True
+            embed=embed,
+            view=PlayerGeneralIfo(ctx_menu_interaction=member),
+            ephemeral=True
         )
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
