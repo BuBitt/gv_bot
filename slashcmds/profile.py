@@ -131,11 +131,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             value=f"```{table.head(10)}```",
             inline=False,
         )
-        table_send = (
-            transactions_table(bool=True)
-            .drop("manager_id", "requester_id")
-            .sort("id", descending=True)
-        )
 
         balance = (
             table.select("ITEM", "QUANTIDADE")
@@ -170,7 +165,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         await interaction.response.send_message(
             embed=embed_guild,
             view=GuildProfileView(
-                transactions_table=table_send,
+                transactions_table=transactions_table(),
                 g_profile_embed=embed_guild,
                 balance_all=table_balance,
             ),
