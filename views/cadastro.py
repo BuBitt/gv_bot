@@ -1,6 +1,8 @@
 import discord
 import settings
-from discord import utils
+import traceback
+from discord import Embed, utils
+from models.items import Items
 from models.account import Account
 from models.cadastro import Transaction
 
@@ -8,6 +10,64 @@ from models.cadastro import Transaction
 logger = settings.logging.getLogger(__name__)
 
 
+class ConfirmNewItem(discord.ui.View):
+    def __init__(self, new_item) -> None:
+        self.new_item = new_item
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Confirmar",
+        style=discord.ButtonStyle.success,
+        custom_id="confirm_new_item_button",
+    )
+    async def confirm_new_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        item_instance = Items.create(item=self.new_item)
+        item_instance.save()
+
+        embed_new_item = discord.Embed(
+            title=f"**` {self.new_item} ` - Foi adicionado a base de dados**",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
+        logger.info(
+            f"{interaction.user.nick if interaction.user.nick is not None else interaction.user.name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados."
+        )
+
+
+class NewItem(discord.ui.Modal, title="Adicione um novo item ao banco de dados"):
+    new_item = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Item",
+        required=True,
+        placeholder="Digite o nome do item",
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        new_item = self.new_item.value.title()
+        embed = discord.Embed(
+            title=f"**Confirme o nome do novo item:** ` {new_item} `",
+            color=discord.Color.yellow(),
+        )
+        # verifica se new_item já existe na base de dados
+        item_check = Items.fetch(new_item.lower())
+        if not item_check:
+            await interaction.response.send_message(
+                embed=embed, view=ConfirmNewItem(new_item.title()), ephemeral=True
+            )
+        else:
+            embed = discord.Embed(
+                title=f"**O Item ` {new_item} ` já está cadastrado na base de dados**",
+                color=discord.Color.red(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        traceback.print_tb(error.__traceback__)
+
+
+# FIXME break command doesnt break
 class CadastroBreak(discord.ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=180)
@@ -80,46 +140,21 @@ class TransactionLauncher(discord.ui.View):
         style=discord.ButtonStyle.success,
         custom_id="new_item_button",
     )
-    async def new_tem(
+    async def new_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f"🛒| Novo Item | {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
-        item_channel = utils.get(
-            interaction.guild.threads,
-            name=global_thread_name,
-        )
+        # await interaction.response.send_message()
+        await interaction.response.send_modal(NewItem())
 
-        if item_channel is not None:
-            await interaction.response.send_message(
-                f"Você já possui um canal para adicionar itens aberto: {item_channel.mention}",
-                ephemeral=True,
-            )
-        else:
-            channel = await interaction.channel.create_thread(
-                name=global_thread_name,
-                invitable=False,
-                auto_archive_duration=60,
-                reason=f"Canal para adicionar itens para {interaction.user}",
-            )
-
-            instructions_embed = discord.Embed(
-                title=f"**Instruções de uso**",
-                description="\
-1 - TODO\n",
-                color=discord.Color.yellow(),
-            )
-            await channel.send(
-                f"{interaction.user.mention}",
-                embed=instructions_embed,
-                view=Main(),
-            )
-            await interaction.response.send_message(
-                f"Canal para adicionar itens criado em {channel.mention}.",
-                ephemeral=True,
-            )
-            logger.info(
-                f"Canal para adicionar itens {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
-            )
+    @discord.ui.button(
+        label="Busca",
+        style=discord.ButtonStyle.success,
+        custom_id="search_transaction_button",
+    )
+    async def search_transaction(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        ...
 
 
 class Confirm(discord.ui.View):

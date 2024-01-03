@@ -7,7 +7,6 @@ class Items(peewee.Model):
 
     class Meta:
         database = db
-        db_table = 'items'
 
     @staticmethod
     def fetch(item):
