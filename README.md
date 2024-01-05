@@ -8,6 +8,7 @@ Esse bot precisa do programa `podman` para funcionar corretamente.
 1 - Crie um arquivo com o nome `.env`:
 ```env
 DISCORD_API_TOKEN="token do seu bot"
+
 GUILD="id da sua guild"
 ```
 
