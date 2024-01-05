@@ -1,14 +1,15 @@
+import datetime
 import re
 import time
-import discord
-import datetime
-import settings
-from discord import utils
 from datetime import datetime
-from models.items import Items
-from discord.ext import commands
-from views.cadastro import ConfirmTransactionPm
 
+import discord
+from discord import utils
+from discord.ext import commands
+
+import settings
+from models.items import Items
+from views.cadastro import ConfirmTransactionPm
 
 logger = settings.logging.getLogger(__name__)
 
@@ -113,7 +114,8 @@ class CadastroTransacao(commands.Cog):
 
                     # Log da operação
                     logger.info(
-                        f"{manager_name}(ID: {manager_id}) iniciou um cadastro de transação para {requester_name}(ID: {requester_id})."
+                        f"{manager_name}(ID: {manager_id}) iniciou um cadastro de transação para {
+                            requester_name}(ID: {requester_id})."
                     )
 
                     run = 0
@@ -181,7 +183,8 @@ class CadastroTransacao(commands.Cog):
 
                     embed_item_error = discord.Embed(
                         title="**O item não existe, digite novamente**",
-                        description=f"{response.content} não é um item do jogo.",
+                        description=f"{
+                            response.content} não é um item do jogo.",
                         color=discord.Color.dark_red(),
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
@@ -230,7 +233,8 @@ class CadastroTransacao(commands.Cog):
                     # error message
                     embed_item_error = discord.Embed(
                         title="Isso não é um número",
-                        description=f"{qte} não é um número, digite novamente.",
+                        description=f"{
+                            qte} não é um número, digite novamente.",
                         color=discord.Color.brand_red(),
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
@@ -312,7 +316,8 @@ class CadastroTransacao(commands.Cog):
 
                     embed_item_error = discord.Embed(
                         title="**O preço fornecido não é válido.**",
-                        description=f"{response.content} ou é menor que 20 ou não é um valor inteiro.",
+                        description=f"{
+                            response.content} ou é menor que 20 ou não é um valor inteiro.",
                         color=discord.Color.dark_red(),
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
@@ -329,7 +334,8 @@ class CadastroTransacao(commands.Cog):
             await view.wait()
             transaction_dict["operation_type"] = view.answer1[0]
             if view.answer1[0] == "P":
-                transaction_dict["quantity"] -= 2 * transaction_dict["quantity"]
+                transaction_dict["quantity"] -= 2 * \
+                    transaction_dict["quantity"]
 
             # Print
             while True:
@@ -366,7 +372,8 @@ class CadastroTransacao(commands.Cog):
 
                 if is_valid_regex(print_proof, regex):
                     transaction_dict["print"] = print_proof
-                    transaction_dict["timestamp"] = str(time.time()).split(".")[0]
+                    transaction_dict["timestamp"] = str(
+                        time.time()).split(".")[0]
 
                     # remove os botões da pergunta depois de passada
                     embed_print.color = discord.Color.green()
@@ -397,13 +404,16 @@ class CadastroTransacao(commands.Cog):
                     run = 1
 
             # Embed de Confirmação
-            manager_user = self.bot.get_user(transaction_dict.get("manager_id"))
-            requester_user = self.bot.get_user(transaction_dict.get("requester_id"))
+            manager_user = self.bot.get_user(
+                transaction_dict.get("manager_id"))
+            requester_user = self.bot.get_user(
+                transaction_dict.get("requester_id"))
             operation_type = transaction_dict.get("operation_type")
 
             embed_confirm = discord.Embed(
                 title=f"**Recibo: {transaction_dict.get('requester_name')}**",
-                description=f"{transaction_dict.get('requester_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
+                description=f"{transaction_dict.get(
+                    'requester_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
                 color=discord.Color.brand_green(),
                 timestamp=datetime.fromtimestamp(
                     int(transaction_dict.get("timestamp"))
@@ -432,6 +442,10 @@ class CadastroTransacao(commands.Cog):
                 value=f'> {abs(transaction_dict.get("quantity"))}',
                 inline=True,
             )
+            embed_confirm.add_field(
+                name="Preço no Market",
+                value=f'> {transaction_dict.get("market_price")}',
+            )
 
             # encontra o canal chamado "doações"
             channel = utils.get(ctx.guild.text_channels, name="doações")
@@ -444,7 +458,8 @@ class CadastroTransacao(commands.Cog):
 
             waiting_confirm_embed = discord.Embed(
                 title="Aguardando a confirmação da transação...",
-                description=f"Aguarde enquanto ` {transaction_dict.get('requester_name')} ` confirma a ação.",
+                description=f"Aguarde enquanto ` {
+                    transaction_dict.get('requester_name')} ` confirma a ação.",
                 color=discord.Color.yellow(),
             )
 
@@ -453,7 +468,8 @@ class CadastroTransacao(commands.Cog):
 
             # envia a mensagem privada de confirmação
             embed_warning_new_confirmation = discord.Embed(
-                title=f"**Novo pedido de confirmação de transação enviado por `{transaction_dict.get('manager_name')}`**",
+                title=f"**Novo pedido de confirmação de transação enviado por `{
+                    transaction_dict.get('manager_name')}`**",
                 color=discord.Color.yellow(),
             )
             embed_warning_new_confirmation.set_thumbnail(
@@ -473,7 +489,8 @@ class CadastroTransacao(commands.Cog):
         else:
             channel = utils.get(ctx.guild.text_channels, name="guild-bank")
             await ctx.send(
-                f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {channel.mention}"
+                f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {
+                    channel.mention}"
             )
 
     @cadastro.error
