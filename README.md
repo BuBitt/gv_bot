@@ -4,7 +4,7 @@ Usado na Guilda Good Vibes para o gerenciamento de doaçẽos, retiradas e caft 
 
 Esse bot precisa do programa **[podman](https://podman.io/)** para funcionar corretamente.
 
-### Como iniciar:
+### Como usar:
 1 - Crie um arquivo com o nome `.env`:
 ```env
 DISCORD_API_TOKEN="token do seu bot"
