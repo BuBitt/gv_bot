@@ -89,7 +89,7 @@ class CadastroTransacao(commands.Cog):
                 if run == 1:
                     await message_send_error.delete()
 
-                regex = "^<@(\d+)>$"
+                regex = "^<@[0-9]+>$"
                 if is_valid_regex(requester_mention, regex):
                     # Variáveis auxiliares portando os ids e nomes dos envolvidos na transação.
                     manager_name = ctx.message.author.nick
