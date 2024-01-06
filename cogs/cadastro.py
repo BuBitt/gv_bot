@@ -305,23 +305,28 @@ class CadastroTransacao(commands.Cog):
                     check=lambda msg: msg.channel == ctx.channel
                     and msg.author == ctx.author,
                 )
-                market_price = int(response.content)
+                market_price = response.content
 
                 # deleta mensagem de erro
                 if run == 1:
                     await message_send_error.delete()
 
-                # Verifica se o imput é maior ou igual a 20 e inteiro
-                if market_price >= 20 and type(market_price) == int:
-                    transaction_dict["market_price"] = market_price
+                try:
+                    market_price = int(market_price)
 
-                    # remove os botões da pergunta depois de passada
-                    embed_price.color = discord.Color.green()
-                    await message_sent.edit(embed=embed_price, view=None)
+                    if market_price < 20:
+                        raise IsNegativeError
+                    else:
+                        transaction_dict["market_price"] = market_price
 
-                    run = 0
-                    break
-                else:
+                        # remove os botões da pergunta depois de passada
+                        embed_price.color = discord.Color.green()
+                        await message_sent.edit(embed=embed_price, view=None)
+
+                        run = 0
+                        break
+
+                except IsNegativeError:
                     if input_item == "!break":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
@@ -331,8 +336,28 @@ class CadastroTransacao(commands.Cog):
 
                     embed_item_error = discord.Embed(
                         title="**O preço fornecido não é válido.**",
-                        description=f"{
-                            response.content} ou é menor que 20 ou não é um valor inteiro.",
+                        description=f"{response.content} é menor que 20",
+                        color=discord.Color.dark_red(),
+                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
+
+                    # remove os botões da pergunta depois de passada
+                    embed_price.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_price, view=None)
+
+                    run = 1
+
+                except ValueError:
+                    if input_item == "!break":
+                        embed = discord.Embed(
+                            title="**Cadastro cancelado**",
+                            color=discord.Color.dark_red(),
+                        )
+                        return await ctx.send(embed=embed)
+
+                    embed_item_error = discord.Embed(
+                        title="**O preço fornecido é inválido.**",
+                        description=f"{response.content} não é um número inteiro.",
                         color=discord.Color.dark_red(),
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
