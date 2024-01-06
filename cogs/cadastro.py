@@ -14,6 +14,12 @@ from views.cadastro import ConfirmTransactionPm
 logger = settings.logging.getLogger(__name__)
 
 
+class IsNegativeError(Exception):
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__(message)
+
+
 class ActionNature(discord.ui.View):
     answer1 = None
 
@@ -111,6 +117,7 @@ class CadastroTransacao(commands.Cog):
 
                     # remove os botões da pergunta depois de passada
                     first_embed.color = discord.Color.green()
+                    await message_sent.edit(embed=first_embed)
 
                     # Log da operação
                     logger.info(
@@ -195,12 +202,13 @@ class CadastroTransacao(commands.Cog):
 
                     run = 1
 
+            message_sent = None
             # Loop da quantidade de itens
             while True:
                 if run == 0:
                     embed_qte_item = discord.Embed(
                         title="**Quantidade**",
-                        description="A quantidade de itens da operação.",
+                        description="A quantidade de itens deve ser positiva",
                         color=discord.Color.dark_blue(),
                     )
                     message_sent = await ctx.send(embed=embed_qte_item)
@@ -215,46 +223,27 @@ class CadastroTransacao(commands.Cog):
                 if run == 1:
                     await message_send_error.delete()
 
-                # Verifica se o input é um número
                 try:
                     qte_item = int(response.content)
 
-                except:
-                    qte = response.content
+                    if qte_item < 1:
+                        logger.info(IsNegativeError)
+                        raise IsNegativeError
+                    else:
+                        transaction_dict["quantity"] = int(qte_item)
+
+                        # remove os botões da pergunta depois de passada
+                        embed_qte_item.color = discord.Color.green()
+                        await message_sent.edit(embed=embed_qte_item, view=None)
+                        
+                        run = 0
+                        break
+                    
+                except IsNegativeError:
+                    qte_item = response.content
 
                     # break cadastro
-                    if qte == "!break":
-                        embed = discord.Embed(
-                            title="**Cadastro cancelado**",
-                            color=discord.Color.dark_red(),
-                        )
-                        return await ctx.send(embed=embed)
-
-                    # error message
-                    embed_item_error = discord.Embed(
-                        title="Isso não é um número",
-                        description=f"{
-                            qte} não é um número, digite novamente.",
-                        color=discord.Color.brand_red(),
-                    )
-                    message_send_error = await ctx.send(embed=embed_item_error)
-
-                    run = 1
-                    continue
-
-                # Verifica se o input é maior que 0
-                if qte_item > 0:
-                    transaction_dict["quantity"] = int(qte_item)
-
-                    # remove os botões da pergunta depois de passada
-                    embed_qte_item.color = discord.Color.green()
-                    await message_sent.edit(embed=embed_qte_item, view=None)
-
-                    run = 0
-                    break
-                else:
-                    # break cadastro
-                    if qte == "!break":
+                    if qte_item == "!break":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -264,7 +253,7 @@ class CadastroTransacao(commands.Cog):
                     # error message
                     embed_item_error = discord.Embed(
                         title="**A quantidade é inválida**",
-                        description=f"{qte_item} não é um número positivo.",
+                        description=f"{qte_item} não é um maior que 0",
                         color=discord.Color.dark_red(),
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
@@ -274,6 +263,32 @@ class CadastroTransacao(commands.Cog):
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
                     run = 1
+
+                except ValueError:
+                    qte_item = response.content
+
+                    # break cadastro
+                    if qte_item == "!break":
+                        embed = discord.Embed(
+                            title="**Cadastro cancelado**",
+                            color=discord.Color.dark_red(),
+                        )
+                        return await ctx.send(embed=embed)
+
+                    # error message
+                    embed_item_error = discord.Embed(
+                        title="**A quantidade é inválida**",
+                        description=f"{qte_item} não é um número",
+                        color=discord.Color.dark_red(),
+                    )
+                    message_send_error = await ctx.send(embed=embed_item_error)
+
+                    # remove os botões da pergunta depois de passada
+                    embed_qte_item.color = discord.Color.red()
+                    await message_sent.edit(embed=embed_qte_item, view=None)
+
+                    run = 1
+
 
             # market price input
             while True:
