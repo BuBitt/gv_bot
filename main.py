@@ -1,4 +1,3 @@
-import utils
 import discord
 import settings
 import database
@@ -27,8 +26,6 @@ def run():
 
     @bot.event
     async def on_ready():
-        await utils.load_videocmds(bot)
-
         # persistent views
         bot.added = False
 
@@ -78,7 +75,7 @@ def run():
         await interaction.response.send_message(
             embed=embed,
             view=PlayerGeneralIfo(ctx_menu_interaction=member),
-            ephemeral=True
+            ephemeral=True,
         )
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)

@@ -1,23 +1,33 @@
-import pathlib
 import logging
-import discord
 import os
+import pathlib
 from logging.config import dictConfig
-from dotenv import load_dotenv
 
+import discord
+from dotenv import load_dotenv
 
 load_dotenv()
 
+
+# DISCORD CONFIG
 DISCORD_API_SECRET = os.getenv("DISCORD_API_TOKEN")
 GUILDS_ID = discord.Object(id=int(os.getenv("GUILD")))
-FEEDBACK_CH = int(os.getenv("FEEDBACK_CH"))
 
+# POSTGRES CONFIG
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_PORT = os.getenv("POSTGRES_PORT")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+# Directories CONFIG
 BASE_DIR = pathlib.Path(__file__).parent
 CMDS_DIR = BASE_DIR / "cmds"
 COGS_DIR = BASE_DIR / "cogs"
 SCMDS_DIR = BASE_DIR / "slashcmds"
-VIDEOCMDS_DIR = BASE_DIR / "videocmds"
 
+# LOG CONFIG
 LOGGING_CONFIG = {
     "version": 1,
     "disabled_existing_loggers": False,

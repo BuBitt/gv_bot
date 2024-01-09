@@ -1,10 +1,8 @@
 import discord
 import settings
 import polars as pl
-from database import db_name
 from discord import app_commands
 from models.account import Account
-from sqlalchemy import create_engine
 from views.profile import GuildProfileView, UserProfileEdit
 
 
@@ -24,9 +22,9 @@ def transactions_table(bool=False):
         pl.Config.set_tbl_rows(100)
         pl.Config.set_fmt_str_lengths(30)
 
-    conn = create_engine(f"sqlite:///{db_name}")
+    # connect to DB
     query = "SELECT * FROM transactions"
-    return pl.read_database(query=query, connection=conn.connect())
+    return pl.read_database_uri(query=query, uri=settings.DB_URI)
 
 
 class Profile(app_commands.Group):
@@ -105,7 +103,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
         embed_guild = discord.Embed(
             title="**Informações Gerais**",
-            color=discord.Color.blue(),
+            color=discord.Color.dark_green(),
             description=f"Com {interaction.guild.member_count} membros, é uma guilda do jogo Ravendawn.",
         )
         embed_guild.set_author(

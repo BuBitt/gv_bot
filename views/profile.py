@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine
 from models.account import Account
-from database import db_name
 import polars as pl
 import settings
 import discord
@@ -18,9 +16,9 @@ class PlayerGeneralIfo(discord.ui.View):
     @discord.ui.button(
         label="Puxar Capivara",
         style=discord.ButtonStyle.success,
-        custom_id="capibara_pull",
+        custom_id="capibara_pull_button",
     )
-    async def tank_profile_edit(
+    async def capibara_pull(
         self, interaction: discord.Interaction, button: discord.Button
     ):
         # polars config
@@ -33,17 +31,21 @@ class PlayerGeneralIfo(discord.ui.View):
         pl.Config.set_tbl_cell_numeric_alignment("RIGHT")
 
         # acess db
-        conn = create_engine(f"sqlite:///{db_name}")
         query = "SELECT * FROM transactions"
-        tabel = pl.read_database(query=query, connection=conn.connect())
-        
+        tabel = pl.read_database_uri(query=query, uri=settings.DB_URI)
+
         # cria e envia arquivo com dados do usuário
         transactions = (
             tabel.filter(pl.col("requester_id") == self.ctx_menu_interaction.id)
             .drop("requester_id")
-            .write_csv(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv", separator=",")
+            .write_csv(
+                f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv",
+                separator=",",
+            )
         )
-        file = discord.File(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv")
+        file = discord.File(
+            f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
+        )
 
         file_down_embed = discord.Embed(
             title=f"**Todas as trasações do player {self.ctx_menu_interaction.name} estão presentes no arquivo**",
@@ -52,7 +54,9 @@ class PlayerGeneralIfo(discord.ui.View):
         await interaction.response.send_message(
             embed=file_down_embed, file=file, ephemeral=True
         )
-        os.remove(f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv")
+        os.remove(
+            f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
+        )
 
 
 class UserProfileRoles(discord.ui.View):
@@ -66,12 +70,14 @@ class UserProfileRoles(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.Button
     ):
         account = Account.fetch(interaction)
-        embed_me = discord.Embed(color=discord.Colour.green())
+        embed_me = discord.Embed(
+            title="**Novo Role: Tank**", color=discord.Colour.green()
+        )
         embed_me.set_author(
             name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
             icon_url=interaction.user.display_avatar,
         )
-        embed_me.add_field(name="**Novo Role: Tank**", value=f"")
+
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Tank"
         account.save()
@@ -85,12 +91,14 @@ class UserProfileRoles(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.Button
     ):
         account = Account.fetch(interaction)
-        embed_me = discord.Embed(color=discord.Colour.green())
+        embed_me = discord.Embed(
+            title="**Novo Role: Healer**", color=discord.Colour.green()
+        )
         embed_me.set_author(
             name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
             icon_url=interaction.user.display_avatar,
         )
-        embed_me.add_field(name="**Novo Role: Healer**", value=f"", inline=True)
+
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Healer"
         account.save()
@@ -104,12 +112,14 @@ class UserProfileRoles(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.Button
     ):
         account = Account.fetch(interaction)
-        embed_me = discord.Embed(color=discord.Colour.green())
+        embed_me = discord.Embed(
+            title="**Novo Role: Damage**", color=discord.Colour.green()
+        )
         embed_me.set_author(
             name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
             icon_url=interaction.user.display_avatar,
         )
-        embed_me.add_field(name="**Novo Role: Damage**", value=f"")
+
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Damage"
         account.save()
