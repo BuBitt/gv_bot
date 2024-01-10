@@ -66,7 +66,6 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
 
-
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
 
@@ -239,7 +238,7 @@ class ConfirmTransactionPm(discord.ui.View):
         )
         account.save()
         logger.info(
-            f'Transação Nº {transaction} para {self.transaction_dict.get("requester_name")} criada por {self.transaction_dict.get("manager_name")} foi gravada com sucesso.'
+            f'Transação Nº {transaction} criada por {self.transaction_dict.get("manager_name")} para {self.transaction_dict.get("requester_name")} foi gravada com sucesso'
         )
 
         # envia o feedback da confirmação para o requerente

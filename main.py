@@ -1,9 +1,8 @@
-import signal
 import sys
+import signal
 import discord
 import settings
 import database
-from functools import partial
 from models.items import Items
 from discord import app_commands
 from discord.ext import commands

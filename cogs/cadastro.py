@@ -51,7 +51,7 @@ class CadastroTransacao(commands.Cog):
     async def cadastro(self, ctx: commands.context.Context):
         global loop_stop
         loop_stop = True
-        logger.info(f"context: {ctx}")
+        logger.debug(f"context: {ctx}")
         if ctx.channel.name.startswith("💲| Transação |"):
             transaction_dict = {}
             run = 0
@@ -63,13 +63,11 @@ class CadastroTransacao(commands.Cog):
                 # Compile the ReGex
                 p = re.compile(regex)
 
-                # If the string is empty
-                # return false
+                # If the string is empty reutn False
                 if url == None:
                     return False
 
-                # Return if the string
-                # matched the ReGex
+                # Return if the string matched the ReGex
                 if re.search(p, url):
                     return True
                 else:
@@ -226,7 +224,6 @@ class CadastroTransacao(commands.Cog):
                     qte_item = int(response.content)
 
                     if qte_item < 1:
-                        logger.info(IsNegativeError)
                         raise IsNegativeError
                     else:
                         transaction_dict["quantity"] = int(qte_item)

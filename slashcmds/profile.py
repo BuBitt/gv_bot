@@ -1,7 +1,7 @@
 import discord
-from beautifultable import BeautifulTable
-from discord import app_commands
 from peewee import fn
+from discord import app_commands
+from beautifultable import BeautifulTable
 
 import settings
 from models.account import Account
