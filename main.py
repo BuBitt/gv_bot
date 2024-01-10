@@ -1,13 +1,17 @@
+import signal
+import sys
 import discord
 import settings
 import database
+from functools import partial
 from models.items import Items
 from discord import app_commands
 from discord.ext import commands
 from models.account import Account
+from views.profile import PlayerGeneralIfo
 from models.transactions import Transaction
 from views.cadastro import TransactionLauncher, Main
-from views.profile import PlayerGeneralIfo
+
 
 logger = settings.logging.getLogger(__name__)
 
@@ -26,6 +30,7 @@ def run():
 
     @bot.event
     async def on_ready():
+        logger.warning(f"Good Vibes Crafter's Bot Started")
         # persistent views
         bot.added = False
 
@@ -75,12 +80,11 @@ def run():
         if isinstance(error, app_commands.CommandOnCooldown):
             return await interaction.response.send_message(
                 f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
-                ephemeral=True
+                ephemeral=True,
             )
         elif isinstance(error, app_commands.MissingPermissions):
             return await interaction.response.send_message(
-                f"Você não tem permissão para usar esse comando.",
-                ephemeral=True
+                f"Você não tem permissão para usar esse comando.", ephemeral=True
             )
         else:
             raise error
@@ -100,5 +104,13 @@ def run():
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 
 
+def interrupt_handler(signum, frame):
+    print("────────────────────────────────────────────────────────────────────────────────────")
+    logger.warning("Desligando Good Vibes Crafter's Bot…")
+    logger.warning("Desligado")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, interrupt_handler)
     run()

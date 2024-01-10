@@ -1,5 +1,4 @@
 import discord
-
 from beautifultable import BeautifulTable
 from discord import app_commands
 from peewee import fn
@@ -96,6 +95,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
 
         else:
+            logger.info(
+                f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o próprio perfil"
+            )
             await interaction.response.send_message(embed=self.embed_me(interaction))
 
     @app_commands.command(description="Perfil da guilda")
@@ -185,7 +187,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         # Greatest Donators
         items = [truncated.get(item, item) for item in items]
 
-        # Create a Peewee query for the translation of the provided SQL
+        # Translate query to Peewee
         subquery = (
             Transaction.select(
                 Transaction.requester_name,
@@ -198,7 +200,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
                 )
                 .alias("row_num"),
             )
-            .where(Transaction.item.in_(items))
+            .where(
+                Transaction.item.in_(Transaction.select(Transaction.item).distinct())
+            )
             .group_by(Transaction.requester_name, Transaction.item)
             .alias("ranked")
         )
@@ -212,7 +216,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             .limit(10)
         )
 
-        # Execute the query and print the results
+        # Execute the query
         results = list(query)
 
         # Initialize the dictionary
@@ -248,6 +252,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
                 g_profile_embed=embed_guild,
             ),
         )
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o pergil da guilda"
+        )
 
     @app_commands.command(
         name="see", description="Envia no chat o perfil de outro usuário"
@@ -255,6 +262,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
     @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
     @app_commands.checks.cooldown(5, 120.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o perfil do membro {user.name if user.nick == None else user.nick}"
+        )
         await interaction.response.send_message(embed=self.embed_me(user))
 
     @app_commands.command(
