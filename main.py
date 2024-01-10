@@ -74,7 +74,7 @@ def run():
     ):
         if isinstance(error, app_commands.CommandOnCooldown):
             return await interaction.response.send_message(
-                f"Esse comando está em cooldown! Use-o novamente em **{error.retry_after:.2f}** segundos!",
+                f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
                 ephemeral=True
             )
         elif isinstance(error, app_commands.MissingPermissions):
