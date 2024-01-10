@@ -104,7 +104,7 @@ def run():
 
 
 def interrupt_handler(signum, frame):
-    print("────────────────────────────────────────────────────────────────────────────────────")
+    print("")
     logger.warning("Desligando Good Vibes Crafter's Bot…")
     logger.warning("Desligado")
     sys.exit(0)
