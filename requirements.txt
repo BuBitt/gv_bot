@@ -5,5 +5,5 @@ peewee
 PyNaCl
 psycopg2-binary
 pyarrow
-pip install beautifultable
+beautifultable
 beautifultable
