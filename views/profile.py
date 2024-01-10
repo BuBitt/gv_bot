@@ -220,7 +220,7 @@ class GuildProfileView(discord.ui.View):
         retry = bucket.update_rate_limit()
         if retry:
             return await interaction.response.send_message(
-                f"Vá com calma! Você poderá baixar novamente o arquivo por essa mensagem alguns minutos",
+                f"Vá com calma! Você poderá baixar novamente o arquivo por essa mensagem alguns minutos!",
                 ephemeral=True,
             )
 
