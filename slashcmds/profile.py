@@ -1,68 +1,81 @@
 import discord
-import settings
-import polars as pl
-from discord import app_commands
-from models.account import Account
-from views.profile import GuildProfileView, UserProfileEdit
 
+from beautifultable import BeautifulTable
+from discord import app_commands
+from peewee import fn
+
+import settings
+from models.account import Account
+from models.transactions import Transaction
+from views.profile import GuildProfileView, UserProfileEdit
 
 logger = settings.logging.getLogger(__name__)
 
 
-# Polars configs
-def transactions_table(bool=False):
-    pl.Config.set_tbl_cols(10)
-    pl.Config.set_tbl_rows(10)
-    pl.Config.set_fmt_str_lengths(12)
-    pl.Config.set_tbl_formatting("NOTHING")
-    pl.Config.set_tbl_hide_dataframe_shape(True)
-    pl.Config.set_tbl_hide_column_data_types(True)
-    pl.Config.set_tbl_cell_numeric_alignment("RIGHT")
-    if bool:
-        pl.Config.set_tbl_rows(100)
-        pl.Config.set_fmt_str_lengths(30)
+truncated = {}
 
-    # connect to DB
-    query = "SELECT * FROM transactions"
-    return pl.read_database_uri(query=query, uri=settings.DB_URI)
+
+def truncar_string(input_string, max_length=13):
+    if len(input_string) > max_length:
+        result = input_string[: max_length - 3] + "…"
+        truncated[result] = input_string
+        return result
+    else:
+        return input_string
 
 
 class Profile(app_commands.Group):
     @staticmethod
     def embed_me(interaction):
+        account = Account.fetch(interaction)
+        transactions = Transaction
+
         user = (
             interaction.user
             if type(interaction) == discord.Interaction
             else interaction
         )
-        account = Account.fetch(interaction)
-        table = transactions_table()
 
-        embed_me = discord.Embed()
+        user_query = (
+            Transaction.select(
+                Transaction.id,
+                Transaction.manager_name,
+                Transaction.item,
+                Transaction.quantity,
+            )
+            .where(Transaction.requester_id == user.id)
+            .order_by(Transaction.id.desc())
+            .limit(5)
+        )
+
+        table = BeautifulTable()
+        table.set_style(BeautifulTable.STYLE_COMPACT)
+        headers = ["Nº", "GUILD BANKER", "ITEM", "QUANTIDADE"]
+        table.columns.header = headers
+
+        table.columns.alignment["Nº"] = BeautifulTable.ALIGN_RIGHT
+        table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["GUILD BANKER"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+
+        for transaction in list(user_query):
+            row = [
+                transaction.id,
+                truncar_string(transaction.manager_name),
+                truncar_string(transaction.item),
+                transaction.quantity,
+            ]
+            table.rows.append(row)
+
+        embed_me = discord.Embed(color=discord.Color.dark_green())
         embed_me.set_author(
             name=f"Perfil de {user.name if user.nick == None else user.nick}",
             icon_url=user.display_avatar,
         )
-        table = (
-            table.filter(pl.col("requester_id") == user.id)
-            .select("id", "manager_name", "item", "quantity")
-            .sort("id", descending=True)
-        )
-        table = table.rename(
-            {
-                "id": "N°",
-                "manager_name": "GUILD BANKER",
-                "item": "ITEM",
-                "quantity": "QUANTIDADE",
-            }
-        )
-
         embed_me.add_field(name="**Level**", value=account.level)
         embed_me.add_field(name="**Pontuação**", value=account.points)
         embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(
-            name="_**Últimas Transações:**_", value=f"""```{table.head(5)}```"""
-        )
+        embed_me.add_field(name="_**Últimas Transações:**_", value=f"""```{table}```""")
         return embed_me
 
     @app_commands.command(description="Gerencie seu perfil")
@@ -86,20 +99,39 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             await interaction.response.send_message(embed=self.embed_me(interaction))
 
     @app_commands.command(description="Perfil da guilda")
+    @app_commands.checks.cooldown(1, 300.0, key=lambda i: i.user.id)
     async def guilda(self, interaction: discord.Interaction):
-        table = transactions_table()
-        table = table.select(
-            "id", "manager_name", "requester_name", "item", "quantity"
-        ).sort("id", descending=True)
-        table = table.rename(
-            {
-                "id": "N°",
-                "manager_name": "GUILD BANKER",
-                "requester_name": "REQUERENTE",
-                "item": "ITEM",
-                "quantity": "QUANTIDADE",
-            }
-        ).drop("N°")
+        last_transactions_query = (
+            Transaction.select(
+                Transaction.id,
+                Transaction.manager_name,
+                Transaction.requester_name,
+                Transaction.item,
+                Transaction.quantity,
+            )
+            .order_by(Transaction.id.desc())
+            .limit(10)
+        )
+
+        table = BeautifulTable()
+        table.set_style(BeautifulTable.STYLE_COMPACT)
+
+        headers = ["GUILD BANKER", "REQUERENTE", "ITEM", "QUANTIDADE"]
+        table.columns.header = headers
+
+        table.columns.alignment["REQUERENTE"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["GUILD BANKER"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+
+        for transaction in last_transactions_query:
+            row = [
+                truncar_string(transaction.manager_name),
+                truncar_string(transaction.requester_name),
+                truncar_string(transaction.item),
+                transaction.quantity,
+            ]
+            table.rows.append(row)
 
         embed_guild = discord.Embed(
             title="**Informações Gerais**",
@@ -123,46 +155,97 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         )
         embed_guild.add_field(
             name="_**Últimas Transações:**_",
-            value=f"```{table.head(10)}```",
+            value=f"```{table}```",
             inline=False,
         )
 
-        balance = (
-            table.select("ITEM", "QUANTIDADE")
-            .group_by("ITEM")
-            .sum()
-            .sort("QUANTIDADE", descending=True)
+        # Balance
+        balance_query = (
+            Transaction.select(
+                Transaction.item, fn.SUM(Transaction.quantity).alias("total_quantity")
+            )
+            .group_by(Transaction.item)
+            .order_by(fn.SUM(Transaction.quantity).desc())
         )
 
-        lista = []
-        for dicionario in balance.to_dicts():
-            item = dicionario["ITEM"].title()
-            maiores = (
-                table.filter(pl.col("ITEM") == item)
-                .select("REQUERENTE", "QUANTIDADE")
-                .group_by("REQUERENTE")
-                .sum()
-                .sort("QUANTIDADE", descending=True)
-                .row(0)
+        table = BeautifulTable()
+        table.set_style(BeautifulTable.STYLE_COMPACT)
+
+        headers = ["ITEM", "QUANTIDADE"]
+        table.columns.header = headers
+
+        # Fetch all balance data in a single query
+        balance_data = list(balance_query)
+        items = [truncar_string(transaction.item) for transaction in balance_data]
+
+        for transaction in balance_data:
+            row = [truncar_string(transaction.item), int(transaction.total_quantity)]
+            table.rows.append(row)
+
+        # Greatest Donators
+        items = [truncated.get(item, item) for item in items]
+
+        # Create a Peewee query for the translation of the provided SQL
+        subquery = (
+            Transaction.select(
+                Transaction.requester_name,
+                Transaction.item,
+                fn.SUM(Transaction.quantity).alias("quantity"),
+                fn.ROW_NUMBER()
+                .over(
+                    partition_by=[Transaction.item],
+                    order_by=[fn.SUM(Transaction.quantity).desc()],
+                )
+                .alias("row_num"),
             )
-            lista.append(maiores)
+            .where(Transaction.item.in_(items))
+            .group_by(Transaction.requester_name, Transaction.item)
+            .alias("ranked")
+        )
 
-        most_donator = pl.DataFrame(lista, schema=["MAIOR DOADOR", "DOAÇÃO"])
-        table_balance = pl.concat([balance, most_donator], how="horizontal")
+        query = (
+            Transaction.select(
+                subquery.c.requester_name, subquery.c.item, subquery.c.quantity
+            )
+            .from_(subquery)
+            .where(subquery.c.row_num == 1)
+            .limit(10)
+        )
 
-        pl.Config.set_fmt_str_lengths(14)
+        # Execute the query and print the results
+        results = list(query)
+
+        # Initialize the dictionary
+        raw = {}
+
+        # Iterate over the results and populate the dictionary
+        for result in results:
+            raw[result.item] = [result.requester_name, result.quantity]
+
+        # Populate the lists using a single loop
+        column_name = [truncar_string(raw[item][0]) for item in items if item in raw]
+        column_qte = [raw[item][1] for item in items if item in raw]
+
+        # Process the greatest donators data
+
+        table.columns.append(column_name, header="MAIOR DOADOR")
+        table.columns.append(column_qte, header="QTE DOADA")
+
+        table.columns.alignment["MAIOR DOADOR"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+        table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["QTE DOADA"] = BeautifulTable.ALIGN_RIGHT
+
         embed_guild.add_field(
             name="_**Balanço de Itens:**_",
-            value=f"```{table_balance}```",
+            value=f"```{table}```",
             inline=False,
         )
 
         await interaction.response.send_message(
             embed=embed_guild,
             view=GuildProfileView(
-                transactions_table=transactions_table(),
                 g_profile_embed=embed_guild,
-                balance_all=table_balance,
             ),
         )
 

@@ -1,8 +1,0 @@
-python-dotenv
-discord.py
-polars
-connectorx
-peewee
-PyNaCl
-psycopg2-binary
-pyarrow

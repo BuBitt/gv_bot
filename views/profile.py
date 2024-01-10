@@ -1,9 +1,13 @@
-from models.account import Account
-import polars as pl
-import settings
-import discord
+import csv
 import os
+import time
 
+import discord
+from discord.ext import commands
+
+import settings
+from models.account import Account
+from models.transactions import Transaction
 
 logger = settings.logging.getLogger(__name__)
 
@@ -21,42 +25,46 @@ class PlayerGeneralIfo(discord.ui.View):
     async def capibara_pull(
         self, interaction: discord.Interaction, button: discord.Button
     ):
-        # polars config
-        pl.Config.set_tbl_cols(10)
-        pl.Config.set_tbl_rows(10)
-        pl.Config.set_fmt_str_lengths(12)
-        pl.Config.set_tbl_formatting("NOTHING")
-        pl.Config.set_tbl_hide_dataframe_shape(True)
-        pl.Config.set_tbl_hide_column_data_types(True)
-        pl.Config.set_tbl_cell_numeric_alignment("RIGHT")
+        # query all transactions
+        query = (
+            Transaction.select()
+            .where(Transaction.requester_id == self.ctx_menu_interaction.id)
+            .order_by(Transaction.id.desc())
+        )
+        csv_filename = f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
 
-        # acess db
-        query = "SELECT * FROM transactions"
-        tabel = pl.read_database_uri(query=query, uri=settings.DB_URI)
+        # Fetch all rows as tuples
+        results = list(query)
 
-        # cria e envia arquivo com dados do usuário
-        transactions = (
-            tabel.filter(pl.col("requester_id") == self.ctx_menu_interaction.id)
-            .drop("requester_id")
-            .write_csv(
-                f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv",
-                separator=",",
+        # Write data to CSV file
+        with open(csv_filename, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+
+            # Write header
+            csv_writer.writerow(
+                [field.name for field in results[0]._meta.sorted_fields]
             )
-        )
-        file = discord.File(
-            f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
-        )
+
+            # Write rows
+            for result in results:
+                csv_writer.writerow(
+                    [
+                        getattr(result, field.name)
+                        for field in result._meta.sorted_fields
+                    ]
+                )
+
+        # create a discor file object
+        file = discord.File(csv_filename)
 
         file_down_embed = discord.Embed(
-            title=f"**Todas as trasações do player {self.ctx_menu_interaction.name} estão presentes no arquivo**",
+            title="**Todas as trasações já realizadas estão presentes no arquivo**",
             color=discord.Color.yellow(),
         )
         await interaction.response.send_message(
             embed=file_down_embed, file=file, ephemeral=True
         )
-        os.remove(
-            f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
-        )
+        os.remove(csv_filename)
 
 
 class UserProfileRoles(discord.ui.View):
@@ -192,23 +200,13 @@ class UserProfileEdit(discord.ui.View):
 
 
 class GuildProfileView(discord.ui.View):
-    def __init__(self, transactions_table, g_profile_embed, balance_all) -> None:
-        self.transactions_table = transactions_table
+    def __init__(self, g_profile_embed) -> None:
         self.g_profile_embed = g_profile_embed
-        self.balance_all = balance_all
+        # self.balance_all = balance_all
         super().__init__(timeout=None)
-
-    gpa_pressed = 0
-    gpb_pressed = 0
-
-    def update_buttons(self):
-        if self.gpa_pressed == 1:
-            self.guild_download_transactions.disabled = True
-            self.guild_download_transactions.style = discord.ButtonStyle.gray
-
-        if self.gpb_pressed == 1:
-            self.guild_download_balance.disabled = True
-            self.guild_download_balance.style = discord.ButtonStyle.gray
+        self.cooldown = commands.CooldownMapping.from_cooldown(
+            1, 300, commands.BucketType.member
+        )
 
     @discord.ui.button(
         label="Baixar Transações",
@@ -218,14 +216,44 @@ class GuildProfileView(discord.ui.View):
     async def guild_download_transactions(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        self.gpa_pressed = 1
-        self.update_buttons()
-        await interaction.message.edit(view=self)
+        interaction.message.author = interaction.user
+        bucket = self.cooldown.get_bucket(interaction.message)
+        retry = bucket.update_rate_limit()
+        if retry:
+            return await interaction.response.send_message(
+                f"Vá com calma! Você poderá baixar novamente alguns minutos",
+                ephemeral=True,
+            )
 
-        self.transactions_table.write_csv(
-            f"data-transactions-{interaction.user.id}.csv", separator=","
-        )
-        file = discord.File(f"data-transactions-{interaction.user.id}.csv")
+            
+        # query all transactions
+        query = Transaction.select().order_by(Transaction.id.desc())
+
+        # Fetch all rows as tuples
+        results = list(query)
+
+        # Write data to CSV file
+        csv_filename = f"data-transactions-{interaction.message.id}.csv"
+        
+        with open(csv_filename, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+
+            # Write header
+            csv_writer.writerow(
+                [field.name for field in results[0]._meta.sorted_fields]
+            )
+
+            # Write rows
+            for result in results:
+                csv_writer.writerow(
+                    [
+                        getattr(result, field.name)
+                        for field in result._meta.sorted_fields
+                    ]
+                )
+
+        # create a discor file object
+        file = discord.File(csv_filename)
 
         file_down_embed = discord.Embed(
             title="**Todas as trasações já realizadas estão presentes no arquivo**",
@@ -234,30 +262,30 @@ class GuildProfileView(discord.ui.View):
         await interaction.response.send_message(
             embed=file_down_embed, file=file, ephemeral=True
         )
-        os.remove(f"data-transactions-{interaction.user.id}.csv")
+        os.remove(csv_filename)
 
-    @discord.ui.button(
-        label="Baixar Balanço",
-        style=discord.ButtonStyle.success,
-        custom_id="guild_balance_button",
-    )
-    async def guild_download_balance(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        self.gpb_pressed = 1
-        self.update_buttons()
-        await interaction.message.edit(view=self)
-
-        self.balance_all.write_csv(
-            f"data-balance-{interaction.user.id}.csv", separator=","
-        )
-        file = discord.File(f"data-balance-{interaction.user.id}.csv")
-
-        file_down_embed = discord.Embed(
-            title="**O balanço completo está disponível no arquivo**",
-            color=discord.Color.yellow(),
-        )
-        await interaction.response.send_message(
-            embed=file_down_embed, file=file, ephemeral=True
-        )
-        os.remove(f"data-balance-{interaction.user.id}.csv")
+    # @discord.ui.button(
+    #     label="Baixar Balanço",
+    #     style=discord.ButtonStyle.success,
+    #     custom_id="guild_balance_button",
+    # )
+    # async def guild_download_balance(
+    #     self, interaction: discord.Interaction, button: discord.ui.Button
+    # ):
+    #     self.gpb_pressed = 1
+    #     self.update_buttons()
+    #     await interaction.message.edit(view=self)
+    #
+    #     self.balance_all.write_csv(
+    #         f"data-balance-{interaction.user.id}.csv", separator=","
+    #     )
+    #     file = discord.File(f"data-balance-{interaction.user.id}.csv")
+    #
+    #     file_down_embed = discord.Embed(
+    #         title="**O balanço completo está disponível no arquivo**",
+    #         color=discord.Color.yellow(),
+    #     )
+    #     await interaction.response.send_message(
+    #         embed=file_down_embed, file=file, ephemeral=True
+    #     )
+    #     os.remove(f"data-balance-{interaction.user.id}.csv")
