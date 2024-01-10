@@ -6,4 +6,3 @@ PyNaCl
 psycopg2-binary
 pyarrow
 beautifultable
-beautifultable
