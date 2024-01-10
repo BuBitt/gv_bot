@@ -36,13 +36,26 @@ class PlayerGeneralIfo(discord.ui.View):
         results = list(query)
 
         # Write data to CSV file
+        capibara_pulled_user = (
+            self.ctx_menu_interaction.name
+            if self.ctx_menu_interaction.nick == None
+            else self.ctx_menu_interaction.nick
+        )
+
         with open(csv_filename, "w", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
 
             # Write header
-            csv_writer.writerow(
-                [field.name for field in results[0]._meta.sorted_fields]
-            )
+            try:
+                csv_writer.writerow(
+                    [field.name for field in results[0]._meta.sorted_fields]
+                )
+            except IndexError:
+                os.remove(csv_filename)
+                return await interaction.response.send_message(
+                    f"{capibara_pulled_user} não possui transações",
+                    ephemeral=True,
+                )
 
             # Write rows
             for result in results:
@@ -52,11 +65,16 @@ class PlayerGeneralIfo(discord.ui.View):
                         for field in result._meta.sorted_fields
                     ]
                 )
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} puxou a capivara de {self.ctx_menu_interaction.name if self.ctx_menu_interaction.nick == None else self.ctx_menu_interaction.nick}"
+            f"{interaction_name_check} puxou a capivara de {capibara_pulled_user}"
         )
 
-        # create a discor file object
+        # create a discord file object
         file = discord.File(csv_filename)
 
         file_down_embed = discord.Embed(
@@ -79,12 +97,18 @@ class UserProfileRoles(discord.ui.View):
     async def tank_profile_edit(
         self, interaction: discord.Interaction, button: discord.Button
     ):
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
         account = Account.fetch(interaction)
+
         embed_me = discord.Embed(
             title="**Novo Role: Tank**", color=discord.Colour.green()
         )
         embed_me.set_author(
-            name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+            name=f"{interaction_name_check}",
             icon_url=interaction.user.display_avatar,
         )
 
@@ -92,7 +116,7 @@ class UserProfileRoles(discord.ui.View):
         account.role = "Tank"
         account.save()
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Tank"
+            f"{interaction_name_check}(id: {interaction.user.id}) mudou o role para Tank"
         )
 
     @discord.ui.button(
@@ -103,12 +127,17 @@ class UserProfileRoles(discord.ui.View):
     async def healer_profile_edit(
         self, interaction: discord.Interaction, button: discord.Button
     ):
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
         account = Account.fetch(interaction)
         embed_me = discord.Embed(
             title="**Novo Role: Healer**", color=discord.Colour.green()
         )
         embed_me.set_author(
-            name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+            name=f"{interaction_name_check}",
             icon_url=interaction.user.display_avatar,
         )
 
@@ -116,7 +145,7 @@ class UserProfileRoles(discord.ui.View):
         account.role = "Healer"
         account.save()
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Healer"
+            f"{interaction_name_check}(id: {interaction.user.id}) mudou o role para Healer"
         )
 
     @discord.ui.button(
@@ -127,12 +156,17 @@ class UserProfileRoles(discord.ui.View):
     async def damage_profile_edit(
         self, interaction: discord.Interaction, button: discord.Button
     ):
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
         account = Account.fetch(interaction)
         embed_me = discord.Embed(
             title="**Novo Role: Damage**", color=discord.Colour.green()
         )
         embed_me.set_author(
-            name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+            name=f"{interaction_name_check}",
             icon_url=interaction.user.display_avatar,
         )
 
@@ -140,7 +174,7 @@ class UserProfileRoles(discord.ui.View):
         account.role = "Damage"
         account.save()
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Damage"
+            f"{interaction_name_check}(id: {interaction.user.id}) mudou o role para Damage"
         )
 
 
@@ -153,6 +187,12 @@ class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
+
         lvl = self.lvl.value.strip()
         account = Account.fetch(interaction)
 
@@ -165,7 +205,7 @@ class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
                     title=f"**Novo Level: {lvl}**", color=discord.Colour.green()
                 )
                 embed_me.set_author(
-                    name=f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick}",
+                    name=f"{interaction_name_check}",
                     icon_url=interaction.user.display_avatar,
                 )
 
@@ -173,7 +213,7 @@ class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
                 account.save()
                 await interaction.response.send_message(embed=embed_me, ephemeral=True)
                 logger.info(
-                    f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} editou o lvl para {lvl}"
+                    f"{interaction_name_check}(id: {interaction.user.id}) editou o lvl para {lvl}"
                 )
             else:
                 embed_me = discord.Embed(
@@ -275,9 +315,12 @@ class GuildProfileView(discord.ui.View):
         await interaction.response.send_message(
             embed=file_down_embed, file=file, ephemeral=True
         )
-        logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} baixou os dados de transação da guilda"
+        interaction_name_check = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
         )
+        logger.info(f"{interaction_name_check} baixou os dados de transação da guilda")
         os.remove(csv_filename)
 
     # @discord.ui.button(

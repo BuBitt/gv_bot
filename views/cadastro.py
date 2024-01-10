@@ -32,7 +32,7 @@ class ConfirmNewItem(discord.ui.View):
         )
         await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
         logger.info(
-            f"{interaction.user.nick if interaction.user.nick is not None else interaction.user.name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados."
+            f"{interaction.user.nick if interaction.user.nick is not None else interaction.user.name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
         )
 
 
@@ -51,7 +51,7 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
             color=discord.Color.yellow(),
         )
         # verifica se new_item já existe na base de dados
-        item_check = Items.fetch(new_item.lower())
+        item_check = Items.fetch(new_item.title())
         if not item_check:
             await interaction.response.send_message(
                 embed=embed, view=ConfirmNewItem(new_item.title()), ephemeral=True
@@ -62,9 +62,6 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
                 color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    async def on_error(self, interaction: discord.Interaction, error: Exception):
-        traceback.print_tb(error.__traceback__)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
