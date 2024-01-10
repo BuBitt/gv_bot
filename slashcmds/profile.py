@@ -253,7 +253,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             ),
         )
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o pergil da guilda"
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o perfil da guilda"
         )
 
     @app_commands.command(

@@ -52,6 +52,9 @@ class PlayerGeneralIfo(discord.ui.View):
                         for field in result._meta.sorted_fields
                     ]
                 )
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} puxou a capivara de {self.ctx_menu_interaction.name if self.ctx_menu_interaction.nick == None else self.ctx_menu_interaction.nick}"
+        )
 
         # create a discor file object
         file = discord.File(csv_filename)
@@ -88,6 +91,9 @@ class UserProfileRoles(discord.ui.View):
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Tank"
         account.save()
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Tank"
+        )
 
     @discord.ui.button(
         label="Healer",
@@ -109,6 +115,9 @@ class UserProfileRoles(discord.ui.View):
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Healer"
         account.save()
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Healer"
+        )
 
     @discord.ui.button(
         label="Damage",
@@ -130,6 +139,9 @@ class UserProfileRoles(discord.ui.View):
         await interaction.response.send_message(embed=embed_me, ephemeral=True)
         account.role = "Damage"
         account.save()
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} mudou o role para Damage"
+        )
 
 
 class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
@@ -160,6 +172,9 @@ class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
                 account.level = lvl
                 account.save()
                 await interaction.response.send_message(embed=embed_me, ephemeral=True)
+                logger.info(
+                    f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} editou o lvl para {lvl}"
+                )
             else:
                 embed_me = discord.Embed(
                     title=f"**` {lvl} ` não está entre `0` e `75`**",
@@ -259,6 +274,9 @@ class GuildProfileView(discord.ui.View):
         )
         await interaction.response.send_message(
             embed=file_down_embed, file=file, ephemeral=True
+        )
+        logger.info(
+            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} baixou os dados de transação da guilda"
         )
         os.remove(csv_filename)
 

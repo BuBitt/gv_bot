@@ -29,7 +29,7 @@ def run():
 
     @bot.event
     async def on_ready():
-        logger.warning(f"Good Vibes Crafter's Bot Started")
+        logger.info(f"Good Vibes Crafter's Bot Started")
         # persistent views
         bot.added = False
 
