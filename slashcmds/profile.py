@@ -253,12 +253,14 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         name="see", description="Envia no chat o perfil de outro usuário"
     )
     @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
+    @app_commands.checks.cooldown(5, 120.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
         await interaction.response.send_message(embed=self.embed_me(user))
 
     @app_commands.command(
         name="edit", description="Edita o role principal do seu perfil"
     )
+    @app_commands.checks.cooldown(1, 21600.0, key=lambda i: i.user.id)
     async def edit(self, interaction: discord.Interaction):
         await interaction.response.send_message(
             embed=self.embed_me(interaction),

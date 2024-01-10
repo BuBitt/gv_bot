@@ -1,6 +1,5 @@
 import csv
 import os
-import time
 
 import discord
 from discord.ext import commands
@@ -225,7 +224,6 @@ class GuildProfileView(discord.ui.View):
                 ephemeral=True,
             )
 
-            
         # query all transactions
         query = Transaction.select().order_by(Transaction.id.desc())
 
@@ -234,7 +232,7 @@ class GuildProfileView(discord.ui.View):
 
         # Write data to CSV file
         csv_filename = f"data-transactions-{interaction.message.id}.csv"
-        
+
         with open(csv_filename, "w", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
 
