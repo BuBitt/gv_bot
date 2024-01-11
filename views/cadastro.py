@@ -1,6 +1,8 @@
+import time
 import discord
 import settings
 import traceback
+import cogs.cadastro as cd
 from discord import utils
 from models.items import Items
 from models.account import Account
@@ -10,7 +12,7 @@ from models.donation import Donation
 logger = settings.logging.getLogger(__name__)
 
 
-class ConfirmNewItem(discord.ui.View):
+class NewItemLauncher(discord.ui.View):
     def __init__(self, new_item) -> None:
         self.new_item = new_item
         super().__init__(timeout=None)
@@ -36,9 +38,13 @@ class ConfirmNewItem(discord.ui.View):
             if interaction.user.nick is not None
             else interaction.user.name
         )
-        logger.info(
-            f"{gb_name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
-        )
+
+        # Log da operação (terminal)
+        log_message_terminal = f"{gb_name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
+        logger.info(log_message_terminal)
+        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.id}` adicionou um novo item a base de dados: {self.new_item} `"
+        channel = utils.get(interaction.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
 
 
 class NewItem(discord.ui.Modal, title="Adicione um novo item"):
@@ -59,7 +65,7 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
         item_check = Items.fetch(new_item.title())
         if not item_check:
             await interaction.response.send_message(
-                embed=embed, view=ConfirmNewItem(new_item.title()), ephemeral=True
+                embed=embed, view=NewItemLauncher(new_item.title()), ephemeral=True
             )
         else:
             embed = discord.Embed(
@@ -242,9 +248,21 @@ class ConfirmTransactionPm(discord.ui.View):
         account = Account.fetch(user_to_add)
         account.points += self.transaction_dict["quantity"]
         account.save()
-        logger.info(
-            f'Transação Nº {transaction} criada por {self.transaction_dict.get("crafter_name")} para {self.transaction_dict.get("donor_name")} foi gravada com sucesso'
+
+        # Log da operação (terminal)
+        donor = utils.get(
+            donation_channel.guild.members, id=self.transaction_dict.get("donor_id")
         )
+        crafter = utils.get(
+            donation_channel.guild.members, id=self.transaction_dict.get("crafter_id")
+        )
+
+        log_message_terminal = f'Doação Nº {transaction} foi efetuada com sucesso. {self.transaction_dict["donor_name"]} doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]}, Crafter {self.transaction_dict.get("crafter_name")}'
+        logger.info(log_message_terminal)
+
+        log_message_ch = f'<t:{str(time.time()).split(".")[0]}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
+        channel = utils.get(donation_channel.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
 
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
@@ -280,9 +298,19 @@ class ConfirmTransactionPm(discord.ui.View):
         await self.waiting_message.edit(embed=transaction_denaied_embed, view=Main())
 
         # log da operação
-        logger.info(
-            f'`{self.transaction_dict.get("donor_name")}` negou a transação cirada por {self.transaction_dict.get("crafter_name")}'
+        donor = utils.get(
+            interaction.guild.members, id=self.transaction_dict.get("donor_id")
         )
+        crafter = utils.get(
+            interaction.guild.members, id=self.transaction_dict.get("crafter_id")
+        )
+
+        log_message_terminal = f"Transação negada. Criada por {self.transaction_dict.get('donor_name')}, negada por {self.transaction_dict.get('crafter_name')}"
+        logger.info(log_message_terminal)
+
+        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - Transação negada. Criada por `{donor.mention}`, negada por `{crafter.mention}"
+        channel = utils.get(interaction.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
 
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(

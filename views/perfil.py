@@ -1,8 +1,12 @@
 import csv
 import os
+import time
 
 import discord
+from discord import utils
 from discord.ext import commands
+
+import cogs.cadastro as cd
 
 import settings
 from models.account import Account
@@ -324,8 +328,15 @@ class GuildProfileView(discord.ui.View):
             if interaction.user.nick == None
             else interaction.user.nick
         )
-        logger.info(f"{interaction_name_check} baixou os dados de doação da guilda")
         os.remove(csv_filename)
+        
+        # log da operação
+        log_message_terminal = f"{interaction_name_check} baixou os dados de doação da guilda"
+        logger.info(log_message_terminal)
+
+        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.mention}` baixou os dados de doação da guilda `"
+        channel = utils.get(interaction.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
 
     # @discord.ui.button(
     #     label="Baixar Balanço",

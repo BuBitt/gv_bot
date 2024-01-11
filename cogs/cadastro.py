@@ -1,6 +1,6 @@
-import datetime
 import re
 import time
+import datetime
 from datetime import datetime
 
 import discord
@@ -97,11 +97,9 @@ class CadastroTransacao(commands.Cog):
 
                 # checa se o mencionado é crafter
                 crafter_id = id_converter(crafter_mention)
-                print(crafter_id, ctx.message.author.id)
                 crafter_user_object = utils.get(ctx.guild.members, id=crafter_id)
-                print(crafter_user_object.name)
                 crafter_role = discord.utils.get(ctx.guild.roles, name="Crafter")
-                print(crafter_role)
+
                 is_crafter = (
                     True if crafter_role in crafter_user_object.roles else False
                 )
@@ -128,14 +126,17 @@ class CadastroTransacao(commands.Cog):
                     transaction_dict["donor_id"] = donor_id
                     transaction_dict["donor_name"] = donor_name
 
-                    # remove os botões da pergunta depois de passada
+                    # muda a cor do embed ao responder corretamente
                     first_embed.color = discord.Color.green()
                     await message_sent.edit(embed=first_embed)
 
-                    # Log da operação
-                    logger.info(
-                        f"{crafter_name}(ID: {crafter_id}) iniciou um cadastro de doação para {donor_name}(ID: {donor_id})."
-                    )
+                    # Log da operação (terminal)
+                    log_message_terminal = f"{donor_name}(ID: {donor_id}) iniciou um processo de doação. Crafter: {donor_name}(ID: {donor_id})."
+                    log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{ctx.author.mention}` iniciou um processo de doação. Crafter: `{crafter_user_object.mention}"
+
+                    logger.info(log_message_terminal)
+                    channel = utils.get(ctx.guild.text_channels, name="logs")
+                    await channel.send(log_message_ch)
 
                     run = 0
                     break
@@ -373,27 +374,41 @@ class CadastroTransacao(commands.Cog):
                     run = 1
 
             # Embed de Confirmação
-            manager_user = self.bot.get_user(transaction_dict.get("crafter_id"))
-            requester_user = self.bot.get_user(transaction_dict.get("donor_id"))
-            # operation_type = transaction_dict.get("operation_type")
+            crafter_user_object = utils.get(
+                ctx.guild.members, id=transaction_dict.get("crafter_id")
+            )
+            print(type(crafter_user_object), "\n", crafter_user_object)
+            crafter_name = (
+                crafter_user_object.nick
+                if crafter_user_object.nick != None
+                else crafter_user_object.name
+            )
+
+            donor_user_object = utils.get(
+                ctx.guild.members, id=transaction_dict.get("donor_id")
+            )
+            donor_name = (
+                donor_user_object.nick
+                if donor_user_object.nick != None
+                else donor_user_object.name
+            )
+            print(donor_name)
 
             embed_confirm = discord.Embed(
-                title=f"**Recibo: {transaction_dict.get('donor_name')}**",
-                description=f"{transaction_dict.get('donor_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
+                title=f"**Recibo: {donor_name}**",
+                description=f"{donor_name} ajudou a guilda a tornar-se mais forte. ajude você também!",
                 color=discord.Color.brand_green(),
                 timestamp=datetime.fromtimestamp(
                     int(transaction_dict.get("timestamp"))
                 ),
             )
             embed_confirm.set_author(
-                name=f'Crafter {transaction_dict.get("crafter_name")}',
-                icon_url=manager_user.display_avatar,
+                name=f"Crafter {crafter_name}",
+                icon_url=crafter_user_object.display_avatar,
             )
-            embed_confirm.set_footer(
-                text="Recibo de doação"
-            )
+            embed_confirm.set_footer(text="Recibo de doação")
             embed_confirm.set_image(url=transaction_dict.get("print"))
-            embed_confirm.set_thumbnail(url=requester_user.display_avatar)
+            embed_confirm.set_thumbnail(url=donor_user_object.display_avatar)
 
             embed_confirm.add_field(
                 name="Item Doado", value=f'> {transaction_dict.get("item").title()}'

@@ -290,6 +290,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         logger.info(
             f"{interactor_name}(ID: {interaction.user.id}) consultou o perfil da guilda"
         )
+        
 
     @app_commands.command(
         name="ver", description="Envia no chat o perfil de outro usuário"
