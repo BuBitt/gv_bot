@@ -2,7 +2,7 @@
 
 Usado na Guilda Good Vibes para o gerenciamento de doaçẽos, retiradas e caft no jogo ravendawn.
 
-Esse bot precisa do programa **[podman](https://podman.io/)** para funcionar corretamente.
+Esse bot precisa do programa **[Docker](https://docker.io/)** para funcionar corretamente.
 
 ### Como usar:
 1 - Renomeie o arquivo `.env_EXAMPLE` para `.env`;
