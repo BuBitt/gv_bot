@@ -285,91 +285,91 @@ class CadastroTransacao(commands.Cog):
 
                     run = 1
 
-            # market price input
-            while True:
-                if run == 0:
-                    embed_price = discord.Embed(
-                        title="**Preço no Market**",
-                        description="O preço precisa ser maior ou igual a 20 e um valor inteiro.",
-                        color=discord.Color.dark_blue(),
-                    )
-                    message_sent = await ctx.send(embed=embed_price)
+            # # market price input
+            # while True:
+            #     if run == 0:
+            #         embed_price = discord.Embed(
+            #             title="**Preço no Market**",
+            #             description="O preço precisa ser maior ou igual a 20 e um valor inteiro.",
+            #             color=discord.Color.dark_blue(),
+            #         )
+            #         message_sent = await ctx.send(embed=embed_price)
 
-                response = await self.bot.wait_for(
-                    "message",
-                    check=lambda msg: msg.channel == ctx.channel
-                    and msg.author == ctx.author,
-                )
-                market_price = response.content
+            #     response = await self.bot.wait_for(
+            #         "message",
+            #         check=lambda msg: msg.channel == ctx.channel
+            #         and msg.author == ctx.author,
+            #     )
+            #     market_price = response.content
 
-                # deleta mensagem de erro
-                if run == 1:
-                    await message_send_error.delete()
+            #     # deleta mensagem de erro
+            #     if run == 1:
+            #         await message_send_error.delete()
 
-                try:
-                    market_price = int(market_price)
+            #     try:
+            #         market_price = int(market_price)
 
-                    if market_price < 20:
-                        raise IsNegativeError
-                    else:
-                        transaction_dict["market_price"] = market_price
+            #         if market_price < 20:
+            #             raise IsNegativeError
+            #         else:
+            #             transaction_dict["market_price"] = market_price
 
-                        # remove os botões da pergunta depois de passada
-                        embed_price.color = discord.Color.green()
-                        await message_sent.edit(embed=embed_price, view=None)
+            #             # remove os botões da pergunta depois de passada
+            #             embed_price.color = discord.Color.green()
+            #             await message_sent.edit(embed=embed_price, view=None)
 
-                        run = 0
-                        break
+            #             run = 0
+            #             break
 
-                except IsNegativeError:
-                    if input_item == "!break":
-                        embed = discord.Embed(
-                            title="**Cadastro cancelado**",
-                            color=discord.Color.dark_red(),
-                        )
-                        return await ctx.send(embed=embed)
+            #     except IsNegativeError:
+            #         if input_item == "!break":
+            #             embed = discord.Embed(
+            #                 title="**Cadastro cancelado**",
+            #                 color=discord.Color.dark_red(),
+            #             )
+            #             return await ctx.send(embed=embed)
 
-                    embed_item_error = discord.Embed(
-                        title="**O preço fornecido não é válido.**",
-                        description=f"{response.content} é menor que 20",
-                        color=discord.Color.dark_red(),
-                    )
-                    message_send_error = await ctx.send(embed=embed_item_error)
+            #         embed_item_error = discord.Embed(
+            #             title="**O preço fornecido não é válido.**",
+            #             description=f"{response.content} é menor que 20",
+            #             color=discord.Color.dark_red(),
+            #         )
+            #         message_send_error = await ctx.send(embed=embed_item_error)
 
-                    # remove os botões da pergunta depois de passada
-                    embed_price.color = discord.Color.red()
-                    await message_sent.edit(embed=embed_price, view=None)
+            #         # remove os botões da pergunta depois de passada
+            #         embed_price.color = discord.Color.red()
+            #         await message_sent.edit(embed=embed_price, view=None)
 
-                    run = 1
+            #         run = 1
 
-                except ValueError:
-                    if input_item == "!break":
-                        embed = discord.Embed(
-                            title="**Cadastro cancelado**",
-                            color=discord.Color.dark_red(),
-                        )
-                        return await ctx.send(embed=embed)
+            #     except ValueError:
+            #         if input_item == "!break":
+            #             embed = discord.Embed(
+            #                 title="**Cadastro cancelado**",
+            #                 color=discord.Color.dark_red(),
+            #             )
+            #             return await ctx.send(embed=embed)
 
-                    embed_item_error = discord.Embed(
-                        title="**O preço fornecido é inválido.**",
-                        description=f"{response.content} não é um número inteiro.",
-                        color=discord.Color.dark_red(),
-                    )
-                    message_send_error = await ctx.send(embed=embed_item_error)
+            #         embed_item_error = discord.Embed(
+            #             title="**O preço fornecido é inválido.**",
+            #             description=f"{response.content} não é um número inteiro.",
+            #             color=discord.Color.dark_red(),
+            #         )
+            #         message_send_error = await ctx.send(embed=embed_item_error)
 
-                    # remove os botões da pergunta depois de passada
-                    embed_price.color = discord.Color.red()
-                    await message_sent.edit(embed=embed_price, view=None)
+            #         # remove os botões da pergunta depois de passada
+            #         embed_price.color = discord.Color.red()
+            #         await message_sent.edit(embed=embed_price, view=None)
 
-                    run = 1
+            #         run = 1
 
-            # menu de seleção da natureza da operação
-            view = ActionNature()
-            await ctx.send(view=view)
-            await view.wait()
-            transaction_dict["operation_type"] = view.answer1[0]
-            if view.answer1[0] == "P":
-                transaction_dict["quantity"] -= 2 * transaction_dict["quantity"]
+            # # menu de seleção da natureza da operação
+            # view = ActionNature()
+            # await ctx.send(view=view)
+            # await view.wait()
+            # transaction_dict["operation_type"] = view.answer1[0]
+            # if view.answer1[0] == "P":
+            #     transaction_dict["quantity"] -= 2 * transaction_dict["quantity"]
 
             # Print
             while True:
@@ -439,7 +439,7 @@ class CadastroTransacao(commands.Cog):
             # Embed de Confirmação
             manager_user = self.bot.get_user(transaction_dict.get("manager_id"))
             requester_user = self.bot.get_user(transaction_dict.get("requester_id"))
-            operation_type = transaction_dict.get("operation_type")
+            # operation_type = transaction_dict.get("operation_type")
 
             embed_confirm = discord.Embed(
                 title=f"**Recibo: {transaction_dict.get('requester_name')}**",
@@ -459,23 +459,26 @@ class CadastroTransacao(commands.Cog):
             embed_confirm.set_image(url=transaction_dict.get("print"))
             embed_confirm.set_thumbnail(url=requester_user.display_avatar)
 
-            if operation_type == "D":
-                embed_confirm.add_field(
-                    name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
-                )
-            else:
-                embed_confirm.add_field(
-                    name="Item Retirado", value=f'> {transaction_dict.get("item")}'
-                )
+            embed_confirm.add_field(
+                name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
+            )
+            # if operation_type == "D":
+            #     embed_confirm.add_field(
+            #         name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
+            #     )
+            # else:
+            #     embed_confirm.add_field(
+            #         name="Item Retirado", value=f'> {transaction_dict.get("item")}'
+            #     )
             embed_confirm.add_field(
                 name="Quantidade",
                 value=f'> {abs(transaction_dict.get("quantity"))}',
                 inline=True,
             )
-            embed_confirm.add_field(
-                name="Preço no Market",
-                value=f'> {transaction_dict.get("market_price")}',
-            )
+            # embed_confirm.add_field(
+            #     name="Preço no Market",
+            #     value=f'> {transaction_dict.get("market_price")}',
+            # )
 
             # encontra o canal chamado "doações"
             channel = utils.get(ctx.guild.text_channels, name="doações")
@@ -500,10 +503,7 @@ class CadastroTransacao(commands.Cog):
                 title=f"**Novo pedido de confirmação de transação enviado por `{transaction_dict.get('manager_name')}`**",
                 color=discord.Color.yellow(),
             )
-            embed_warning_new_confirmation.set_thumbnail(
-                url="https://www.freeiconspng.com/img/2749"
-            )
-
+            
             await user_pm.send(embed=embed_warning_new_confirmation)
             await user_pm.send(
                 embed=embed_confirm,

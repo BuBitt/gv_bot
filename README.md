@@ -5,15 +5,15 @@ Usado na Guilda Good Vibes para o gerenciamento de doaçẽos, retiradas e caft 
 Esse bot precisa do programa **[podman](https://podman.io/)** para funcionar corretamente.
 
 ### Como usar:
-1 - Crie um arquivo com o nome `.env`:
-```env
-DISCORD_API_TOKEN="token do seu bot"
+1 - Renomeie o arquivo `.env_EXAMPLE` para `.env`;
 
-GUILD="id da sua guild"
-```
+2 - Preencha o arquivo `.env` com as informações necessárias;
 
-2 - Execute o seguinte comando no terminal:
+3 - Execute o arquivo `docker-compose.yml` no Docker;
+
+3 - Execute o arquivo `populate_items.py`;
+
+4 - Execute o seguinte comando no terminal:
 ```bash
-python run.py
-
+python3 main.py
 ```

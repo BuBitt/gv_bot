@@ -33,8 +33,8 @@ class Transaction(peewee.Model):
                 requester_name=transaction_dict.get("requester_name"),
                 item=transaction_dict.get("item"),
                 quantity=transaction_dict.get("quantity"),
-                market_price=transaction_dict.get("market_price"),
-                operation_type=transaction_dict.get("operation_type"),
+                # market_price=transaction_dict.get("market_price"),
+                # operation_type=transaction_dict.get("operation_type"),
                 print_proof=transaction_dict.get("print"),
                 timestamp=transaction_dict.get("timestamp"),
             )
@@ -47,8 +47,8 @@ class Transaction(peewee.Model):
                 requester_name=transaction_dict.get("requester_name"),
                 item=transaction_dict.get("item"),
                 quantity=transaction_dict.get("quantity"),
-                market_price=transaction_dict.get("market_price"),
-                operation_type=transaction_dict.get("operation_type"),
+                # market_price=transaction_dict.get("market_price"),
+                # operation_type=transaction_dict.get("operation_type"),
                 print_proof=transaction_dict.get("print"),
                 timestamp=transaction_dict.get("timestamp"),
             )

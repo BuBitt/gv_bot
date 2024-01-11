@@ -73,20 +73,20 @@ def run():
             await ctx.send(f"cog: {cog} reloaded")
 
     # slashcommands errorhandling
-    async def on_tree_error(
-        interaction: discord.Interaction, error: app_commands.AppCommandError
-    ):
-        if isinstance(error, app_commands.CommandOnCooldown):
-            return await interaction.response.send_message(
-                f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
-                ephemeral=True,
-            )
-        elif isinstance(error, app_commands.MissingPermissions):
-            return await interaction.response.send_message(
-                f"Você não tem permissão para usar esse comando.", ephemeral=True
-            )
-        else:
-            raise error
+    # async def on_tree_error(
+    #     interaction: discord.Interaction, error: app_commands.AppCommandError
+    # ):
+    #     if isinstance(error, app_commands.CommandOnCooldown):
+    #         return await interaction.response.send_message(
+    #             f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
+    #             ephemeral=True,
+    #         )
+    #     elif isinstance(error, app_commands.MissingPermissions):
+    #         return await interaction.response.send_message(
+    #             f"Você não tem permissão para usar esse comando.", ephemeral=True
+    #         )
+    #     else:
+    #         raise error
 
     @bot.tree.context_menu(name="Informações Gerais")
     @app_commands.checks.has_role("Guild Banker")
@@ -98,7 +98,7 @@ def run():
             ephemeral=True,
         )
 
-    bot.tree.on_error = on_tree_error
+    # bot.tree.on_error = on_tree_error
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 

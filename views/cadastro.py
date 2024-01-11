@@ -31,8 +31,13 @@ class ConfirmNewItem(discord.ui.View):
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
+        gb_name = (
+            interaction.user.nick
+            if interaction.user.nick is not None
+            else interaction.user.name
+        )
         logger.info(
-            f"{interaction.user.nick if interaction.user.nick is not None else interaction.user.name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
+            f"{gb_name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
         )
 
 
@@ -230,9 +235,7 @@ class ConfirmTransactionPm(discord.ui.View):
             id=self.transaction_dict.get("requester_id"),
         )
         account = Account.fetch(user_to_add)
-        account.points += (
-            self.transaction_dict["market_price"] * self.transaction_dict["quantity"]
-        )
+        account.points += self.transaction_dict["quantity"]
         account.save()
         logger.info(
             f'Transação Nº {transaction} criada por {self.transaction_dict.get("manager_name")} para {self.transaction_dict.get("requester_name")} foi gravada com sucesso'
@@ -257,7 +260,7 @@ class ConfirmTransactionPm(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ):
-        # atualiza a mensagem para desligar os notões
+        # atualiza a mensagem para desligar os botões
         press_count = 1
         press_type = "C"
         self.update_buttons(press_count, press_type)

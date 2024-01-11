@@ -27,7 +27,6 @@ class Profile(app_commands.Group):
     @staticmethod
     def embed_me(interaction):
         account = Account.fetch(interaction)
-        transactions = Transaction
 
         user = (
             interaction.user
@@ -66,6 +65,35 @@ class Profile(app_commands.Group):
             ]
             table.rows.append(row)
 
+        # Balance
+        table_balance = BeautifulTable()
+        table_balance.set_style(BeautifulTable.STYLE_COMPACT)
+
+        headers = ["ITEM", "QUANTIDADE"]
+        table_balance.columns.header = headers
+
+        table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+
+        user_query = (
+            Transaction.select(
+                Transaction.requester_id,
+                Transaction.item,
+                fn.SUM(Transaction.quantity).alias("total_quantity"),
+            )
+            .where(Transaction.requester_id == user.id)
+            .group_by(Transaction.requester_id, Transaction.item)
+            .order_by(fn.SUM(Transaction.quantity).desc())
+        )
+
+        balance_data = list(user_query)
+        items = [truncar_string(transaction.item) for transaction in balance_data]
+
+        for transaction in balance_data:
+            row = [truncar_string(transaction.item), int(transaction.total_quantity)]
+            table_balance.rows.append(row)
+
+        # embed
         embed_me = discord.Embed(color=discord.Color.dark_green())
         embed_me.set_author(
             name=f"Perfil de {user.name if user.nick == None else user.nick}",
@@ -74,11 +102,14 @@ class Profile(app_commands.Group):
         embed_me.add_field(name="**Level**", value=account.level)
         embed_me.add_field(name="**Pontuação**", value=account.points)
         embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(name="_**Últimas Transações:**_", value=f"""```{table}```""")
+        embed_me.add_field(name="_**Últimas Transações**_", value=f"""```{table}```""")
+        embed_me.add_field(
+            name="_**Balance**_", value=f"```{table_balance}```", inline=False
+        )
         return embed_me
 
     @app_commands.command(description="Gerencie seu perfil")
-    async def me(self, interaction: discord.Interaction):
+    async def meu(self, interaction: discord.Interaction):
         account = Account.fetch(interaction)
 
         # primeira interação com o comando (registro de lvl e role)
@@ -87,7 +118,7 @@ class Profile(app_commands.Group):
                 title="**🔒 Você não concluiu o seu cadastro**",
                 color=discord.Color.yellow(),
                 description=f"\n\n\
-1 - Edite seu Perfil com o comando:  `/profile edit`\n\n\
+1 - Edite seu Perfil com o comando:  `/perfil edit`\n\n\
 _**Após feito o cadastro seu perfil estará disponível para consulta. Caso deseje editar essas informações novamente execute o mesmo comando**_.",
             )
             await interaction.response.send_message(
@@ -95,9 +126,12 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
 
         else:
-            logger.info(
-                f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o próprio perfil"
+            interactor_name = (
+                interaction.user.name
+                if interaction.user.nick == None
+                else interaction.user.nick
             )
+            logger.info(f"{interactor_name} consultou o próprio perfil")
             await interaction.response.send_message(embed=self.embed_me(interaction))
 
     @app_commands.command(description="Perfil da guilda")
@@ -156,7 +190,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             value=Account.select().where(Account.role == "Damage").count(),
         )
         embed_guild.add_field(
-            name="_**Últimas Transações:**_",
+            name="_**Últimas Transações**_",
             value=f"```{table}```",
             inline=False,
         )
@@ -187,7 +221,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         # Greatest Donators
         items = [truncated.get(item, item) for item in items]
 
-        # Translate query to Peewee
         subquery = (
             Transaction.select(
                 Transaction.requester_name,
@@ -241,7 +274,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         table.columns.alignment["QTE DOADA"] = BeautifulTable.ALIGN_RIGHT
 
         embed_guild.add_field(
-            name="_**Balanço de Itens:**_",
+            name="_**Balanço de Itens**_",
             value=f"```{table}```",
             inline=False,
         )
@@ -252,20 +285,34 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
                 g_profile_embed=embed_guild,
             ),
         )
+        interactor_name = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
         logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o perfil da guilda"
+            f"{interactor_name}(ID: {interaction.user.id}) consultou o perfil da guilda"
         )
 
     @app_commands.command(
-        name="see", description="Envia no chat o perfil de outro usuário"
+        name="ver", description="Envia no chat o perfil de outro usuário"
     )
     @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
     @app_commands.checks.cooldown(5, 120.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
-        logger.info(
-            f"{interaction.user.name if interaction.user.nick == None else interaction.user.nick} consultou o perfil do membro {user.name if user.nick == None else user.nick}"
+        interactor_name = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
         )
-        await interaction.response.send_message(embed=self.embed_me(user))
+        user_name = user.name if user.nick == None else user.nick
+        logger.info(
+            f"{interactor_name}(ID: {interaction.user.id}) consultou o perfil do membro {user_name}(ID: {user.id})"
+        )
+
+        embed = self.embed_me(user)
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
         name="edit", description="Edita o role principal do seu perfil"
@@ -280,4 +327,4 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
 
 async def setup(bot):
-    bot.tree.add_command(Profile(name="profile", description="Comandos do perfil"))
+    bot.tree.add_command(Profile(name="perfil", description="Comandos do perfil"))

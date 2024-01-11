@@ -42,20 +42,23 @@ class PlayerGeneralIfo(discord.ui.View):
             else self.ctx_menu_interaction.nick
         )
 
-        with open(csv_filename, "w", newline="") as csvfile:
+        # check if teh user has transactions
+        try:
+            t_history = [field.name for field in results[0]._meta.sorted_fields]
+        except IndexError:
+            os.remove(csv_filename)
+            return await interaction.response.send_message(
+                f"{capibara_pulled_user} não possui transações",
+                ephemeral=True,
+            )
+
+        # write file
+        with open(csv_filename, "w", encoding="utf-8", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
 
             # Write header
-            try:
-                csv_writer.writerow(
-                    [field.name for field in results[0]._meta.sorted_fields]
-                )
-            except IndexError:
-                os.remove(csv_filename)
-                return await interaction.response.send_message(
-                    f"{capibara_pulled_user} não possui transações",
-                    ephemeral=True,
-                )
+
+            csv_writer.writerow(t_history)
 
             # Write rows
             for result in results:
@@ -270,6 +273,7 @@ class GuildProfileView(discord.ui.View):
     async def guild_download_transactions(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        # Cooldown checker
         interaction.message.author = interaction.user
         bucket = self.cooldown.get_bucket(interaction.message)
         retry = bucket.update_rate_limit()
@@ -288,7 +292,7 @@ class GuildProfileView(discord.ui.View):
         # Write data to CSV file
         csv_filename = f"data-transactions-{interaction.message.id}.csv"
 
-        with open(csv_filename, "w", newline="") as csvfile:
+        with open(csv_filename, "w", newline="", encoding="utf-8") as csvfile:
             csv_writer = csv.writer(csvfile)
 
             # Write header
