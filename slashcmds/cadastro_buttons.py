@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-from views.cadastro import TransactionLauncher, Confirm
+from views.cadastro import DonationLauncher, Confirm
 
 
 class CadastroButtons(app_commands.Group):
@@ -10,19 +10,23 @@ class CadastroButtons(app_commands.Group):
     @app_commands.checks.has_role("Admin")
     async def transactioning(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title=f"Painel de gerenciamento do Guild Bank.",
+            title=f"Para doar clique no botão abaixo",
+            description="Após isso vá até a nova sala marcada e siga as instruções.",
             color=discord.Color.blue(),
         )
-        await interaction.channel.send(embed=embed, view=TransactionLauncher())
+        await interaction.channel.send(embed=embed, view=DonationLauncher())
         await interaction.response.send_message(
             f"{interaction.user.mention} Botão criado.",
             ephemeral=True,
         )
 
     @app_commands.command(name="close", description="Fecha o canal de cadastro")
-    @app_commands.checks.has_role("Guild Banker")
+    @app_commands.checks.has_role("Crafter")
     async def close_command(self, interaction: discord.Interaction):
-        if interaction.user.name in interaction.channel.name or interaction.user.nick in interaction.channel.name:
+        if (
+            interaction.user.name in interaction.channel.name
+            or interaction.user.nick in interaction.channel.name
+        ):
             embed = discord.Embed(
                 title=f"Você tem certeza que deseja cancelar o cadastro?",
                 color=discord.Color.red(),
@@ -32,7 +36,7 @@ class CadastroButtons(app_commands.Group):
             )
         else:
             await interaction.response.send_message(
-                f"{interaction.channel.mention} não é um canal de transação.",
+                f"{interaction.channel.mention} não é um canal de doação.",
                 ephemeral=True,
             )
 

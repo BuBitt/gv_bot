@@ -4,7 +4,7 @@ import traceback
 from discord import utils
 from models.items import Items
 from models.account import Account
-from models.transactions import Transaction
+from models.donation import Donation
 
 
 logger = settings.logging.getLogger(__name__)
@@ -72,19 +72,19 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
         traceback.print_tb(error.__traceback__)
 
 
-class TransactionLauncher(discord.ui.View):
+class DonationLauncher(discord.ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Novo Canal de Transação",
+        label="Abrir Canal de Doações",
         style=discord.ButtonStyle.success,
         custom_id="transaction_button",
     )
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f"💲| Transação | {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
+        global_thread_name = f"DOAÇÃO - {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
         transaction = utils.get(
             interaction.guild.threads,
             name=global_thread_name,
@@ -92,7 +92,7 @@ class TransactionLauncher(discord.ui.View):
 
         if transaction is not None:
             await interaction.response.send_message(
-                f"Você já possui um canal de transação aberto: {transaction.mention}",
+                f"Você já possui um canal de Doações aberto: {transaction.mention}",
                 ephemeral=True,
             )
         else:
@@ -100,15 +100,15 @@ class TransactionLauncher(discord.ui.View):
                 name=global_thread_name,
                 invitable=False,
                 auto_archive_duration=60,
-                reason=f"Canal de transação para {interaction.user}",
+                reason=f"Canal de doação para {interaction.user}",
             )
 
             instructions_embed = discord.Embed(
                 title=f"**Instruções de uso**",
                 description="\
-1 - Para iniciar um novo cadastro digite `!cadastro` no chat;\n\
+1 - Para iniciar um novo cadastro digite `!doar` no chat;\n\
 2 - Na parte `Item` o nome deve ser escrito em inglês;\n\
-3 - Para cancelar o cadastro a qualquer momento digite `!break`\n\
+3 - Para cancelar o cadastro a qualquer momento digite `!cancelar`\n\
 4 - Na parte `Print` envie uma imagem pelo discord ou por um link externo.",
                 color=discord.Color.yellow(),
             )
@@ -118,11 +118,16 @@ class TransactionLauncher(discord.ui.View):
                 view=Main(),
             )
             await interaction.response.send_message(
-                f"Canal de transação criado para {channel.mention}.", ephemeral=True
+                f"Canal de doação criado para {channel.mention}.", ephemeral=True
             )
             logger.info(
-                f"Canal de transação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
+                f"Canal de doação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
             )
+
+
+class CrafterLauncher(discord.ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=None)
 
     @discord.ui.button(
         label="Novo Item",
@@ -221,27 +226,27 @@ class ConfirmTransactionPm(discord.ui.View):
         # envia o feedback da confirmação para o manager
         embed_confirm_transaction = discord.Embed(
             title="**Transação Confirmada!**",
-            description=f"A transação de ` {self.transaction_dict.get('requester_name')} ` foi aceita e publicada no canal {donation_channel}",
+            description=f"A transação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada no canal {donation_channel}",
             color=discord.Color.green(),
         )
         await self.waiting_message.edit(embed=embed_confirm_transaction, view=Main())
 
         # escreve a tansação na tabela transactions no banco de dados
-        transaction = Transaction.new(self.transaction_dict)
+        transaction = Donation.new(self.transaction_dict)
 
         # escreve a pontuação na tabela accounts do banco de dados
         user_to_add = discord.utils.get(
             self.waiting_message.guild.members,
-            id=self.transaction_dict.get("requester_id"),
+            id=self.transaction_dict.get("donor_id"),
         )
         account = Account.fetch(user_to_add)
         account.points += self.transaction_dict["quantity"]
         account.save()
         logger.info(
-            f'Transação Nº {transaction} criada por {self.transaction_dict.get("manager_name")} para {self.transaction_dict.get("requester_name")} foi gravada com sucesso'
+            f'Transação Nº {transaction} criada por {self.transaction_dict.get("crafter_name")} para {self.transaction_dict.get("donor_name")} foi gravada com sucesso'
         )
 
-        # envia o feedback da confirmação para o requerente
+        # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
             title="**Transação Confirmada!**",
             description="Sua transação foi publicada no canal de doações.",
@@ -269,17 +274,17 @@ class ConfirmTransactionPm(discord.ui.View):
         # envia o feedback da confirmação para o manager
         transaction_denaied_embed = discord.Embed(
             title=f"**Transação Negada.**",
-            description=f"` {self.transaction_dict.get('requester_name')} ` negou o pedido de confirmação e a transação não será publicada.",
+            description=f"` {self.transaction_dict.get('donor_name')} ` negou o pedido de confirmação e a transação não será publicada.",
             color=discord.Color.red(),
         )
         await self.waiting_message.edit(embed=transaction_denaied_embed, view=Main())
 
         # log da operação
         logger.info(
-            f'`{self.transaction_dict.get("requester_name")}` negou a transação cirada por {self.transaction_dict.get("manager_name")}'
+            f'`{self.transaction_dict.get("donor_name")}` negou a transação cirada por {self.transaction_dict.get("crafter_name")}'
         )
 
-        # envia o feedback da confirmação para o requerente
+        # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
             title="**Transação Negada.**",
             description="Você negou a transação.",

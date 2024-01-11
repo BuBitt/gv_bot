@@ -47,12 +47,10 @@ class CadastroTransacao(commands.Cog):
     transaction_dict = {}
 
     @commands.command()
-    @commands.has_role("Guild Banker")
-    async def cadastro(self, ctx: commands.context.Context):
-        global loop_stop
-        loop_stop = True
+    @commands.has_any_role("Membro", "Membro Iniciante")
+    async def doar(self, ctx: commands.context.Context):
         logger.debug(f"context: {ctx}")
-        if ctx.channel.name.startswith("💲| Transação |"):
+        if ctx.channel.name.startswith("DOAÇÃO -"):
             transaction_dict = {}
             run = 0
 
@@ -73,11 +71,11 @@ class CadastroTransacao(commands.Cog):
                 else:
                     return False
 
-            # Loop do solicitante
+            # Loop do Crafter
             while True:
                 first_embed = discord.Embed(
-                    title="**Mencione abaixo o solicitante**",
-                    description="Uma menção usual (@NomeDoPlayer)",
+                    title="**Mencione o Crafter**",
+                    description="Uma menção usual do discord: @NomeDoCrafter",
                     color=discord.Color.dark_blue(),
                 )
                 if run == 0:
@@ -88,31 +86,47 @@ class CadastroTransacao(commands.Cog):
                     check=lambda msg: msg.channel == ctx.channel
                     and msg.author == ctx.author,
                 )
-                requester_mention = response.content
+                crafter_mention = response.content
 
                 # deleta mensagem de erro
                 if run == 1:
                     await message_send_error.delete()
 
+                # validador da menção
                 regex = "^<@[0-9]+>$"
-                if is_valid_regex(requester_mention, regex):
-                    # Variáveis auxiliares portando os ids e nomes dos envolvidos na transação.
-                    manager_name = ctx.message.author.nick
 
-                    # verifica se o manager possui um nick no server
-                    if manager_name is None:
-                        manager_name = ctx.message.author.name
+                # checa se o mencionado é crafter
+                crafter_id = id_converter(crafter_mention)
+                print(crafter_id, ctx.message.author.id)
+                crafter_user_object = utils.get(ctx.guild.members, id=crafter_id)
+                print(crafter_user_object.name)
+                crafter_role = discord.utils.get(ctx.guild.roles, name="Crafter")
+                print(crafter_role)
+                is_crafter = (
+                    True if crafter_role in crafter_user_object.roles else False
+                )
 
-                    manager_id = ctx.message.author.id
-                    requester_id = id_converter(requester_mention)
-                    requester = await self.bot.fetch_user(requester_id)
-                    requester_name = requester.display_name
+                if is_valid_regex(crafter_mention, regex) and is_crafter:
+                    # verifica se o doador possui um nick no server
+                    donor_name = (
+                        ctx.message.author.nick
+                        if ctx.message.author.nick != None
+                        else ctx.message.author.name
+                    )
+                    donor_id = ctx.message.author.id
+
+                    # informações do crafter
+                    crafter_name = (
+                        crafter_user_object.nick
+                        if crafter_user_object.nick != None
+                        else crafter_user_object.name
+                    )
 
                     # Adiciona ids e nomes ao dicionário auxiliar do banco de dados.
-                    transaction_dict["manager_id"] = manager_id
-                    transaction_dict["manager_name"] = manager_name
-                    transaction_dict["requester_id"] = requester_id
-                    transaction_dict["requester_name"] = requester_name
+                    transaction_dict["crafter_id"] = crafter_id
+                    transaction_dict["crafter_name"] = crafter_name
+                    transaction_dict["donor_id"] = donor_id
+                    transaction_dict["donor_name"] = donor_name
 
                     # remove os botões da pergunta depois de passada
                     first_embed.color = discord.Color.green()
@@ -120,13 +134,13 @@ class CadastroTransacao(commands.Cog):
 
                     # Log da operação
                     logger.info(
-                        f"{manager_name}(ID: {manager_id}) iniciou um cadastro de transação para {requester_name}(ID: {requester_id})."
+                        f"{crafter_name}(ID: {crafter_id}) iniciou um cadastro de doação para {donor_name}(ID: {donor_id})."
                     )
 
                     run = 0
                     break
                 else:
-                    if requester_mention == "!break":
+                    if crafter_mention == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -179,7 +193,7 @@ class CadastroTransacao(commands.Cog):
                     run = 0
                     break
                 else:
-                    if input_item == "!break":
+                    if input_item == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -239,7 +253,7 @@ class CadastroTransacao(commands.Cog):
                     qte_item = response.content
 
                     # break cadastro
-                    if qte_item == "!break":
+                    if qte_item == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -264,7 +278,7 @@ class CadastroTransacao(commands.Cog):
                     qte_item = response.content
 
                     # break cadastro
-                    if qte_item == "!break":
+                    if qte_item == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -284,84 +298,6 @@ class CadastroTransacao(commands.Cog):
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
                     run = 1
-
-            # # market price input
-            # while True:
-            #     if run == 0:
-            #         embed_price = discord.Embed(
-            #             title="**Preço no Market**",
-            #             description="O preço precisa ser maior ou igual a 20 e um valor inteiro.",
-            #             color=discord.Color.dark_blue(),
-            #         )
-            #         message_sent = await ctx.send(embed=embed_price)
-
-            #     response = await self.bot.wait_for(
-            #         "message",
-            #         check=lambda msg: msg.channel == ctx.channel
-            #         and msg.author == ctx.author,
-            #     )
-            #     market_price = response.content
-
-            #     # deleta mensagem de erro
-            #     if run == 1:
-            #         await message_send_error.delete()
-
-            #     try:
-            #         market_price = int(market_price)
-
-            #         if market_price < 20:
-            #             raise IsNegativeError
-            #         else:
-            #             transaction_dict["market_price"] = market_price
-
-            #             # remove os botões da pergunta depois de passada
-            #             embed_price.color = discord.Color.green()
-            #             await message_sent.edit(embed=embed_price, view=None)
-
-            #             run = 0
-            #             break
-
-            #     except IsNegativeError:
-            #         if input_item == "!break":
-            #             embed = discord.Embed(
-            #                 title="**Cadastro cancelado**",
-            #                 color=discord.Color.dark_red(),
-            #             )
-            #             return await ctx.send(embed=embed)
-
-            #         embed_item_error = discord.Embed(
-            #             title="**O preço fornecido não é válido.**",
-            #             description=f"{response.content} é menor que 20",
-            #             color=discord.Color.dark_red(),
-            #         )
-            #         message_send_error = await ctx.send(embed=embed_item_error)
-
-            #         # remove os botões da pergunta depois de passada
-            #         embed_price.color = discord.Color.red()
-            #         await message_sent.edit(embed=embed_price, view=None)
-
-            #         run = 1
-
-            #     except ValueError:
-            #         if input_item == "!break":
-            #             embed = discord.Embed(
-            #                 title="**Cadastro cancelado**",
-            #                 color=discord.Color.dark_red(),
-            #             )
-            #             return await ctx.send(embed=embed)
-
-            #         embed_item_error = discord.Embed(
-            #             title="**O preço fornecido é inválido.**",
-            #             description=f"{response.content} não é um número inteiro.",
-            #             color=discord.Color.dark_red(),
-            #         )
-            #         message_send_error = await ctx.send(embed=embed_item_error)
-
-            #         # remove os botões da pergunta depois de passada
-            #         embed_price.color = discord.Color.red()
-            #         await message_sent.edit(embed=embed_price, view=None)
-
-            #         run = 1
 
             # # menu de seleção da natureza da operação
             # view = ActionNature()
@@ -416,7 +352,7 @@ class CadastroTransacao(commands.Cog):
                     break
                 else:
                     # break cadastro
-                    if print_proof == "!break":
+                    if print_proof == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
                             color=discord.Color.dark_red(),
@@ -437,24 +373,24 @@ class CadastroTransacao(commands.Cog):
                     run = 1
 
             # Embed de Confirmação
-            manager_user = self.bot.get_user(transaction_dict.get("manager_id"))
-            requester_user = self.bot.get_user(transaction_dict.get("requester_id"))
+            manager_user = self.bot.get_user(transaction_dict.get("crafter_id"))
+            requester_user = self.bot.get_user(transaction_dict.get("donor_id"))
             # operation_type = transaction_dict.get("operation_type")
 
             embed_confirm = discord.Embed(
-                title=f"**Recibo: {transaction_dict.get('requester_name')}**",
-                description=f"{transaction_dict.get('requester_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
+                title=f"**Recibo: {transaction_dict.get('donor_name')}**",
+                description=f"{transaction_dict.get('donor_name')} ajudou a guilda a tornar-se mais forte. ajude você também!",
                 color=discord.Color.brand_green(),
                 timestamp=datetime.fromtimestamp(
                     int(transaction_dict.get("timestamp"))
                 ),
             )
             embed_confirm.set_author(
-                name=f'Guild Banker {transaction_dict.get("manager_name")}',
+                name=f'Crafter {transaction_dict.get("crafter_name")}',
                 icon_url=manager_user.display_avatar,
             )
             embed_confirm.set_footer(
-                text="Recibo de doação/retirada de itens no Guild Bank."
+                text="Recibo de doação"
             )
             embed_confirm.set_image(url=transaction_dict.get("print"))
             embed_confirm.set_thumbnail(url=requester_user.display_avatar)
@@ -462,36 +398,24 @@ class CadastroTransacao(commands.Cog):
             embed_confirm.add_field(
                 name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
             )
-            # if operation_type == "D":
-            #     embed_confirm.add_field(
-            #         name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
-            #     )
-            # else:
-            #     embed_confirm.add_field(
-            #         name="Item Retirado", value=f'> {transaction_dict.get("item")}'
-            #     )
             embed_confirm.add_field(
                 name="Quantidade",
                 value=f'> {abs(transaction_dict.get("quantity"))}',
                 inline=True,
             )
-            # embed_confirm.add_field(
-            #     name="Preço no Market",
-            #     value=f'> {transaction_dict.get("market_price")}',
-            # )
 
             # encontra o canal chamado "doações"
             channel = utils.get(ctx.guild.text_channels, name="doações")
 
             # envia os embeds aos canais de interesse
             user_pm = discord.utils.get(
-                ctx.guild.members, id=transaction_dict.get("requester_id")
+                ctx.guild.members, id=transaction_dict.get("crafter_id")
             )
             await ctx.send(embed=embed_confirm)
 
             waiting_confirm_embed = discord.Embed(
                 title="Aguardando a confirmação da transação...",
-                description=f"Aguarde enquanto ` {transaction_dict.get('requester_name')} ` confirma a ação.",
+                description=f"Aguarde enquanto ` {transaction_dict.get('crafter_name')} ` confirma sua doação.",
                 color=discord.Color.yellow(),
             )
 
@@ -500,10 +424,10 @@ class CadastroTransacao(commands.Cog):
 
             # envia a mensagem privada de confirmação
             embed_warning_new_confirmation = discord.Embed(
-                title=f"**Novo pedido de confirmação de transação enviado por `{transaction_dict.get('manager_name')}`**",
+                title=f"**Novo pedido de confirmação de doação enviado por `{transaction_dict.get('crafter_name')}`**",
                 color=discord.Color.yellow(),
             )
-            
+
             await user_pm.send(embed=embed_warning_new_confirmation)
             await user_pm.send(
                 embed=embed_confirm,
@@ -520,7 +444,7 @@ class CadastroTransacao(commands.Cog):
                 f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {channel.mention}"
             )
 
-    @cadastro.error
+    @doar.error
     async def add_error(self, ctx, error):
         if isinstance(error, commands.errors.MissingRole):
             await ctx.send("Você não tem permissão para executar esse comando.")

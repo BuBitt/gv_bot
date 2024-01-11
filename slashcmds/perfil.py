@@ -5,7 +5,7 @@ from beautifultable import BeautifulTable
 
 import settings
 from models.account import Account
-from models.transactions import Transaction
+from models.donation import Donation
 from views.perfil import GuildProfileView, UserProfileEdit
 
 logger = settings.logging.getLogger(__name__)
@@ -35,31 +35,31 @@ class Profile(app_commands.Group):
         )
 
         user_query = (
-            Transaction.select(
-                Transaction.id,
-                Transaction.manager_name,
-                Transaction.item,
-                Transaction.quantity,
+            Donation.select(
+                Donation.id,
+                Donation.crafter_name,
+                Donation.item,
+                Donation.quantity,
             )
-            .where(Transaction.requester_id == user.id)
-            .order_by(Transaction.id.desc())
+            .where(Donation.donor_id == user.id)
+            .order_by(Donation.id.desc())
             .limit(5)
         )
 
         table = BeautifulTable()
         table.set_style(BeautifulTable.STYLE_COMPACT)
-        headers = ["Nº", "GUILD BANKER", "ITEM", "QUANTIDADE"]
+        headers = ["Nº", "CRAFTER", "ITEM", "QUANTIDADE"]
         table.columns.header = headers
 
         table.columns.alignment["Nº"] = BeautifulTable.ALIGN_RIGHT
         table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["GUILD BANKER"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["CRAFTER"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
         for transaction in list(user_query):
             row = [
                 transaction.id,
-                truncar_string(transaction.manager_name),
+                truncar_string(transaction.crafter_name),
                 truncar_string(transaction.item),
                 transaction.quantity,
             ]
@@ -76,14 +76,14 @@ class Profile(app_commands.Group):
         table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
         user_query = (
-            Transaction.select(
-                Transaction.requester_id,
-                Transaction.item,
-                fn.SUM(Transaction.quantity).alias("total_quantity"),
+            Donation.select(
+                Donation.donor_id,
+                Donation.item,
+                fn.SUM(Donation.quantity).alias("total_quantity"),
             )
-            .where(Transaction.requester_id == user.id)
-            .group_by(Transaction.requester_id, Transaction.item)
-            .order_by(fn.SUM(Transaction.quantity).desc())
+            .where(Donation.donor_id == user.id)
+            .group_by(Donation.donor_id, Donation.item)
+            .order_by(fn.SUM(Donation.quantity).desc())
         )
 
         balance_data = list(user_query)
@@ -135,35 +135,36 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             await interaction.response.send_message(embed=self.embed_me(interaction))
 
     @app_commands.command(description="Perfil da guilda")
-    @app_commands.checks.cooldown(1, 300.0, key=lambda i: i.user.id)
+    # TODO concertar cd
+    @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)
     async def guilda(self, interaction: discord.Interaction):
         last_transactions_query = (
-            Transaction.select(
-                Transaction.id,
-                Transaction.manager_name,
-                Transaction.requester_name,
-                Transaction.item,
-                Transaction.quantity,
+            Donation.select(
+                Donation.id,
+                Donation.crafter_name,
+                Donation.donor_name,
+                Donation.item,
+                Donation.quantity,
             )
-            .order_by(Transaction.id.desc())
+            .order_by(Donation.id.desc())
             .limit(10)
         )
 
         table = BeautifulTable()
         table.set_style(BeautifulTable.STYLE_COMPACT)
 
-        headers = ["GUILD BANKER", "REQUERENTE", "ITEM", "QUANTIDADE"]
+        headers = ["CRAFTER", "REQUERENTE", "ITEM", "QUANTIDADE"]
         table.columns.header = headers
 
         table.columns.alignment["REQUERENTE"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["GUILD BANKER"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["CRAFTER"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
         for transaction in last_transactions_query:
             row = [
-                truncar_string(transaction.manager_name),
-                truncar_string(transaction.requester_name),
+                truncar_string(transaction.crafter_name),
+                truncar_string(transaction.donor_name),
                 truncar_string(transaction.item),
                 transaction.quantity,
             ]
@@ -197,11 +198,11 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
         # Balance
         balance_query = (
-            Transaction.select(
-                Transaction.item, fn.SUM(Transaction.quantity).alias("total_quantity")
+            Donation.select(
+                Donation.item, fn.SUM(Donation.quantity).alias("total_quantity")
             )
-            .group_by(Transaction.item)
-            .order_by(fn.SUM(Transaction.quantity).desc())
+            .group_by(Donation.item)
+            .order_by(fn.SUM(Donation.quantity).desc())
         )
 
         table = BeautifulTable()
@@ -222,28 +223,24 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         items = [truncated.get(item, item) for item in items]
 
         subquery = (
-            Transaction.select(
-                Transaction.requester_name,
-                Transaction.item,
-                fn.SUM(Transaction.quantity).alias("quantity"),
+            Donation.select(
+                Donation.donor_name,
+                Donation.item,
+                fn.SUM(Donation.quantity).alias("quantity"),
                 fn.ROW_NUMBER()
                 .over(
-                    partition_by=[Transaction.item],
-                    order_by=[fn.SUM(Transaction.quantity).desc()],
+                    partition_by=[Donation.item],
+                    order_by=[fn.SUM(Donation.quantity).desc()],
                 )
                 .alias("row_num"),
             )
-            .where(
-                Transaction.item.in_(Transaction.select(Transaction.item).distinct())
-            )
-            .group_by(Transaction.requester_name, Transaction.item)
+            .where(Donation.item.in_(Donation.select(Donation.item).distinct()))
+            .group_by(Donation.donor_name, Donation.item)
             .alias("ranked")
         )
 
         query = (
-            Transaction.select(
-                subquery.c.requester_name, subquery.c.item, subquery.c.quantity
-            )
+            Donation.select(subquery.c.donor_name, subquery.c.item, subquery.c.quantity)
             .from_(subquery)
             .where(subquery.c.row_num == 1)
             .limit(10)
@@ -257,7 +254,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
         # Iterate over the results and populate the dictionary
         for result in results:
-            raw[result.item] = [result.requester_name, result.quantity]
+            raw[result.item] = [result.donor_name, result.quantity]
 
         # Populate the lists using a single loop
         column_name = [truncar_string(raw[item][0]) for item in items if item in raw]
@@ -298,7 +295,8 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         name="ver", description="Envia no chat o perfil de outro usuário"
     )
     @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
-    @app_commands.checks.cooldown(5, 120.0, key=lambda i: i.user.id)
+    # TODO concertar cd
+    @app_commands.checks.cooldown(5, 1.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
         interactor_name = (
             interaction.user.name
@@ -317,7 +315,8 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
     @app_commands.command(
         name="edit", description="Edita o role principal do seu perfil"
     )
-    @app_commands.checks.cooldown(1, 21600.0, key=lambda i: i.user.id)
+    # TODO concertar cd
+    @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)
     async def edit(self, interaction: discord.Interaction):
         await interaction.response.send_message(
             embed=self.embed_me(interaction),

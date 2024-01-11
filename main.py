@@ -8,8 +8,8 @@ from discord import app_commands
 from discord.ext import commands
 from models.account import Account
 from views.perfil import PlayerGeneralIfo
-from models.transactions import Transaction
-from views.cadastro import TransactionLauncher, Main
+from models.donation import Donation
+from views.cadastro import DonationLauncher, Main
 
 
 logger = settings.logging.getLogger(__name__)
@@ -17,7 +17,7 @@ logger = settings.logging.getLogger(__name__)
 
 def run():
     # Cria tabela no banco de dados
-    database.db.create_tables([Account, Transaction, Items])
+    database.db.create_tables([Account, Donation, Items])
 
     # Regula as permissões do BOT no servidor
     intents = discord.Intents.default()
@@ -34,7 +34,7 @@ def run():
         bot.added = False
 
         if not bot.added:
-            bot.add_view(TransactionLauncher())
+            bot.add_view(DonationLauncher())
             bot.add_view(Main())
             bot.added = True
 
@@ -89,7 +89,7 @@ def run():
     #         raise error
 
     @bot.tree.context_menu(name="Informações Gerais")
-    @app_commands.checks.has_role("Guild Banker")
+    @app_commands.checks.has_role("Crafter")
     async def general_info(interaction: discord.Interaction, member: discord.Member):
         embed = discord.Embed(title=f"Informações do player: **{member.name}**")
         await interaction.response.send_message(

@@ -13,7 +13,7 @@ class CadastroCrafting(commands.Cog):
 
     @commands.command()
     @commands.has_role("Crafter")
-    @commands.has_role("Guild Banker")
+    @commands.has_role("Crafter")
     async def craft(self, ctx: commands.context.Context):
         if ctx.channel.name.startswith("Craft"):
             await ctx.channel.send("test")

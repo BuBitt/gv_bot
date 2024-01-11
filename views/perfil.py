@@ -6,7 +6,7 @@ from discord.ext import commands
 
 import settings
 from models.account import Account
-from models.transactions import Transaction
+from models.donation import Donation
 
 logger = settings.logging.getLogger(__name__)
 
@@ -26,9 +26,9 @@ class PlayerGeneralIfo(discord.ui.View):
     ):
         # query all transactions
         query = (
-            Transaction.select()
-            .where(Transaction.requester_id == self.ctx_menu_interaction.id)
-            .order_by(Transaction.id.desc())
+            Donation.select()
+            .where(Donation.donor_id == self.ctx_menu_interaction.id)
+            .order_by(Donation.id.desc())
         )
         csv_filename = f"data-user-{self.ctx_menu_interaction.name}-{self.ctx_menu_interaction.id}.csv"
 
@@ -251,7 +251,6 @@ class UserProfileEdit(discord.ui.View):
     async def profile_edit_role(
         self, interaction: discord.Interaction, button: discord.Button
     ):
-        account = Account.fetch(interaction)
         view = UserProfileRoles()
         await interaction.response.send_message(view=view, ephemeral=True)
 
@@ -261,8 +260,9 @@ class GuildProfileView(discord.ui.View):
         self.g_profile_embed = g_profile_embed
         # self.balance_all = balance_all
         super().__init__(timeout=None)
+        # TODO concertar Cooldown
         self.cooldown = commands.CooldownMapping.from_cooldown(
-            1, 300, commands.BucketType.member
+            1, 1, commands.BucketType.member
         )
 
     @discord.ui.button(
@@ -284,7 +284,7 @@ class GuildProfileView(discord.ui.View):
             )
 
         # query all transactions
-        query = Transaction.select().order_by(Transaction.id.desc())
+        query = Donation.select().order_by(Donation.id.desc())
 
         # Fetch all rows as tuples
         results = list(query)
@@ -324,7 +324,7 @@ class GuildProfileView(discord.ui.View):
             if interaction.user.nick == None
             else interaction.user.nick
         )
-        logger.info(f"{interaction_name_check} baixou os dados de transação da guilda")
+        logger.info(f"{interaction_name_check} baixou os dados de doação da guilda")
         os.remove(csv_filename)
 
     # @discord.ui.button(
