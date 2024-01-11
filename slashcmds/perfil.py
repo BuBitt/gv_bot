@@ -6,7 +6,7 @@ from beautifultable import BeautifulTable
 import settings
 from models.account import Account
 from models.transactions import Transaction
-from views.profile import GuildProfileView, UserProfileEdit
+from views.perfil import GuildProfileView, UserProfileEdit
 
 logger = settings.logging.getLogger(__name__)
 

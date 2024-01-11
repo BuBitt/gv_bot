@@ -7,7 +7,7 @@ from models.items import Items
 from discord import app_commands
 from discord.ext import commands
 from models.account import Account
-from views.profile import PlayerGeneralIfo
+from views.perfil import PlayerGeneralIfo
 from models.transactions import Transaction
 from views.cadastro import TransactionLauncher, Main
 
