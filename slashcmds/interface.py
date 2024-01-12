@@ -4,7 +4,7 @@ from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher
 
 
 # TODO adicionar has_any_roles para vice_lider
-class CadastroButtons(app_commands.Group):
+class InterfaceLaunchers(app_commands.Group):
     @app_commands.command(
         name="criar_controles_de_administrador",
         description="Inicia os botões para controle do administrador",
@@ -14,6 +14,16 @@ class CadastroButtons(app_commands.Group):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO ADMINISTADOR**",
             color=discord.Color.red(),
+            description="""\
+BOTÕES:
+    ` Novo Item `               - Abre o formulário para a adição de um novo item
+    ` Editar item `             - Abre o formulário para a edição de pontos de um item
+    ` Zerar Pontuação de Todos` - Zera os pontos de todas as pessoas na guilda
+
+COMANDOS:
+    `/pontos add @usuário quantidade`     - Adiciona pontos ao Player
+    `/pontos remover @usuário quantidade` - Remove pontos do Player
+""",
         )
         await interaction.channel.send(embed=embed, view=AdminLauncher())
         await interaction.response.send_message(
@@ -77,5 +87,5 @@ class CadastroButtons(app_commands.Group):
 
 async def setup(bot):
     bot.tree.add_command(
-        CadastroButtons(name="interface", description="Comandos do perfil")
+        InterfaceLaunchers(name="interface", description="Comandos do perfil")
     )
