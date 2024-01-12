@@ -13,25 +13,10 @@ import settings
 from models.items import Items
 from views.doar import ConfirmTransactionPm
 
+from errors.errors import IsNegativeError, IsNotCrafter, IsNotMention
+
+
 logger = settings.logging.getLogger(__name__)
-
-
-class IsNegativeError(Exception):
-    def __init__(self, message=None):
-        self.message = message
-        super().__init__(message)
-
-
-class IsNotCrafter(Exception):
-    def __init__(self, message=None):
-        self.message = message
-        super().__init__(message)
-
-
-class IsNotMention(Exception):
-    def __init__(self, message=None):
-        self.message = message
-        super().__init__(message)
 
 
 class ActionNature(discord.ui.View):

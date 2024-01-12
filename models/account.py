@@ -17,13 +17,10 @@ class Account(peewee.Model):
 
     @staticmethod
     def fetch(interaction):
-        if type(interaction) == discord.message.Message:
-            user_object = interaction.author
 
-        elif type(interaction) == discord.interactions.Interaction:
-            user_object = interaction.user
-
-        elif type(interaction) == discord.member.Member:
+        if isinstance(interaction, (discord.Message, discord.Interaction)):
+            user_object = interaction.author if isinstance(interaction, discord.Message) else interaction.user
+        elif isinstance(interaction, (discord.Member, discord.User)):
             user_object = interaction
 
         try:

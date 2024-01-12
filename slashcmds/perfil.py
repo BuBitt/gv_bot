@@ -290,12 +290,11 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         logger.info(
             f"{interactor_name}(ID: {interaction.user.id}) consultou o perfil da guilda"
         )
-        
 
     @app_commands.command(
-        name="ver", description="Envia no chat o perfil de outro usuário"
+        name="ver", description="Envia no chat o perfil de outro player"
     )
-    @app_commands.describe(user="O usuário que terá o perfil enviado no chat")
+    @app_commands.describe(user="O player que terá o perfil enviado no chat")
     # TODO concertar cd
     @app_commands.checks.cooldown(5, 1.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
