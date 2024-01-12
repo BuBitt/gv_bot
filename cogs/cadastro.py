@@ -20,6 +20,18 @@ class IsNegativeError(Exception):
         super().__init__(message)
 
 
+class IsNotCrafter(Exception):
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__(message)
+
+
+class IsNotMention(Exception):
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__(message)
+
+
 class ActionNature(discord.ui.View):
     answer1 = None
 
@@ -57,19 +69,9 @@ class CadastroTransacao(commands.Cog):
             def id_converter(raw_id: str):
                 return int(raw_id[2:-1])
 
-            def is_valid_regex(url, regex):
-                # Compile the ReGex
-                p = re.compile(regex)
-
-                # If the string is empty reutn False
-                if url == None:
-                    return False
-
-                # Return if the string matched the ReGex
-                if re.search(p, url):
-                    return True
-                else:
-                    return False
+            def is_valid_regex(message, regex_pattern):
+                match = re.match(regex_pattern, message)
+                return bool(match)
 
             # Loop do Crafter
             while True:
@@ -87,60 +89,69 @@ class CadastroTransacao(commands.Cog):
                     and msg.author == ctx.author,
                 )
                 crafter_mention = response.content
-
                 # deleta mensagem de erro
                 if run == 1:
                     await message_send_error.delete()
 
                 # validador da menção
                 regex = "^<@[0-9]+>$"
+                
+                try:
+                    if not is_valid_regex(crafter_mention, regex):
+                        raise IsNotMention("")
 
-                # checa se o mencionado é crafter
-                crafter_id = id_converter(crafter_mention)
-                crafter_user_object = utils.get(ctx.guild.members, id=crafter_id)
-                crafter_role = discord.utils.get(ctx.guild.roles, name="Crafter")
+                    # checa se o mencionado é crafter
+                    crafter_id = id_converter(crafter_mention)
+                    crafter_user_object = utils.get(ctx.guild.members, id=crafter_id)
+                    crafter_role = discord.utils.get(ctx.guild.roles, name="Crafter")
 
-                is_crafter = (
-                    True if crafter_role in crafter_user_object.roles else False
-                )
-
-                if is_valid_regex(crafter_mention, regex) and is_crafter:
-                    # verifica se o doador possui um nick no server
-                    donor_name = (
-                        ctx.message.author.nick
-                        if ctx.message.author.nick != None
-                        else ctx.message.author.name
+                    is_crafter = (
+                        True if crafter_role in crafter_user_object.roles else False
                     )
-                    donor_id = ctx.message.author.id
+                    
+                    if is_crafter:
+                        # verifica se o doador possui um nick no server
+                        donor_name = (
+                            ctx.message.author.nick
+                            if ctx.message.author.nick != None
+                            else ctx.message.author.name
+                        )
+                        
+                        donor_id = ctx.message.author.id
+                        
+                        # informações do crafter
+                        crafter_name = (
+                            crafter_user_object.nick
+                            if crafter_user_object.nick != None
+                            else crafter_user_object.name
+                        )
+                        
+                        # Adiciona ids e nomes ao dicionário auxiliar do banco de dados.
+                        transaction_dict["crafter_id"] = crafter_id
+                        transaction_dict["crafter_name"] = crafter_name
+                        transaction_dict["donor_id"] = donor_id
+                        transaction_dict["donor_name"] = donor_name
+                        
+                        # muda a cor do embed ao responder corretamente
+                        first_embed.color = discord.Color.green()
+                        await message_sent.edit(embed=first_embed)
+                        
+                        # Log da operação (terminal)
+                        log_message_terminal = f"{donor_name}(ID: {donor_id}) iniciou um processo de doação. Crafter: {donor_name}(ID: {donor_id})."
+                        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{ctx.author.mention}` iniciou um processo de doação. Crafter: `{crafter_user_object.mention}"
+                        
+                        logger.info(log_message_terminal)
+                        channel = utils.get(ctx.guild.text_channels, name="logs")
+                        
+                        await channel.send(log_message_ch)
+                        run = 0
+                        
+                        break
 
-                    # informações do crafter
-                    crafter_name = (
-                        crafter_user_object.nick
-                        if crafter_user_object.nick != None
-                        else crafter_user_object.name
-                    )
+                    else:
+                        raise IsNotCrafter("Erro: o player não é um crafter")
 
-                    # Adiciona ids e nomes ao dicionário auxiliar do banco de dados.
-                    transaction_dict["crafter_id"] = crafter_id
-                    transaction_dict["crafter_name"] = crafter_name
-                    transaction_dict["donor_id"] = donor_id
-                    transaction_dict["donor_name"] = donor_name
-
-                    # muda a cor do embed ao responder corretamente
-                    first_embed.color = discord.Color.green()
-                    await message_sent.edit(embed=first_embed)
-
-                    # Log da operação (terminal)
-                    log_message_terminal = f"{donor_name}(ID: {donor_id}) iniciou um processo de doação. Crafter: {donor_name}(ID: {donor_id})."
-                    log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{ctx.author.mention}` iniciou um processo de doação. Crafter: `{crafter_user_object.mention}"
-
-                    logger.info(log_message_terminal)
-                    channel = utils.get(ctx.guild.text_channels, name="logs")
-                    await channel.send(log_message_ch)
-
-                    run = 0
-                    break
-                else:
+                except IsNotCrafter:
                     if crafter_mention == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
@@ -148,7 +159,27 @@ class CadastroTransacao(commands.Cog):
                         )
                         return await ctx.send(embed=embed)
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
+                    first_embed.color = discord.Color.red()
+
+                    first_embed_error = discord.Embed(
+                        title="**Não é Crafter**",
+                        description="Você mencionou um player que não é Crafter da guilda.",
+                        color=discord.Color.dark_red(),
+                    )
+
+                    message_send_error = await ctx.send(embed=first_embed_error)
+                    run = 1
+
+                except IsNotMention:
+                    if crafter_mention == "!cancelar":
+                        embed = discord.Embed(
+                            title="**Cadastro cancelado**",
+                            color=discord.Color.dark_red(),
+                        )
+                        return await ctx.send(embed=embed)
+
+                    # Muda a cor do embed para vermelho (erro)
                     first_embed.color = discord.Color.red()
 
                     first_embed_error = discord.Embed(
@@ -187,7 +218,7 @@ class CadastroTransacao(commands.Cog):
                 if item_check:
                     transaction_dict["item"] = input_item.title()
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_item.color = discord.Color.green()
                     await message_sent.edit(embed=embed_item, view=None)
 
@@ -208,7 +239,7 @@ class CadastroTransacao(commands.Cog):
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_item.color = discord.Color.red()
                     await message_sent.edit(embed=embed_item, view=None)
 
@@ -243,7 +274,7 @@ class CadastroTransacao(commands.Cog):
                     else:
                         transaction_dict["quantity"] = int(qte_item)
 
-                        # remove os botões da pergunta depois de passada
+                        # Muda a cor do embed para vermelho (erro)
                         embed_qte_item.color = discord.Color.green()
                         await message_sent.edit(embed=embed_qte_item, view=None)
 
@@ -269,7 +300,7 @@ class CadastroTransacao(commands.Cog):
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_qte_item.color = discord.Color.red()
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
@@ -294,7 +325,7 @@ class CadastroTransacao(commands.Cog):
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_qte_item.color = discord.Color.red()
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
@@ -345,7 +376,7 @@ class CadastroTransacao(commands.Cog):
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_print.color = discord.Color.green()
                     await message_sent.edit(embed=embed_print, view=None)
 
@@ -360,7 +391,7 @@ class CadastroTransacao(commands.Cog):
                         )
                         return await ctx.send(embed=embed)
 
-                    # remove os botões da pergunta depois de passada
+                    # Muda a cor do embed para vermelho (erro)
                     embed_print.color = discord.Color.red()
                     await message_sent.edit(embed=embed_print, view=None)
 
