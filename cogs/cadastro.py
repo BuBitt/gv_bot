@@ -460,8 +460,8 @@ class CadastroTransacao(commands.Cog):
             await ctx.send(embed=embed_confirm)
 
             waiting_confirm_embed = discord.Embed(
-                title="Aguardando a confirmação da transação...",
-                description=f"Aguarde enquanto ` {transaction_dict.get('crafter_name')} ` confirma sua doação.",
+                title="Aguardando a confirmação da doação...",
+                description=f"Aguarde enquanto o Crafter ` {transaction_dict.get('crafter_name')} ` confirma sua doação.",
                 color=discord.Color.yellow(),
             )
 
