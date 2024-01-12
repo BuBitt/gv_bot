@@ -6,6 +6,7 @@ from discord import utils
 from models.items import Items
 from models.account import Account
 from models.donation import Donation
+from views.interface import Main
 
 
 logger = settings.logging.getLogger(__name__)
