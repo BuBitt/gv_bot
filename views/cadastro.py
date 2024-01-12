@@ -83,7 +83,7 @@ class NewItemModal(discord.ui.Modal, title="Adicione um novo item"):
         except:
             embed = discord.Embed(
                 title=f"**` {points} ` não é um número válido**",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -107,7 +107,7 @@ class NewItemModal(discord.ui.Modal, title="Adicione um novo item"):
         else:
             embed = discord.Embed(
                 title=f"**O Item ` {new_item} ` já está cadastrado na base de dados**",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -189,7 +189,7 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
         except:
             embed = discord.Embed(
                 title=f"**` {points} ` não é um número válido**",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -213,7 +213,7 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
         else:
             embed = discord.Embed(
                 title=f"**O Item ` {item} ` não está cadastrado na base de dados**",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -398,10 +398,10 @@ class ConfirmTransactionPm(discord.ui.View):
             self.waiting_message.guild.members,
             id=self.transaction_dict.get("donor_id"),
         )
-        
+
         # encontra no banco de dados o item para usar sua pontuação
         item = Items.fetch(self.transaction_dict["item"].lower())
-        
+
         account = Account.fetch(user_to_add)
         account.points += self.transaction_dict["quantity"] * item.points
         account.save()
@@ -452,7 +452,7 @@ class ConfirmTransactionPm(discord.ui.View):
         transaction_denaied_embed = discord.Embed(
             title=f"**Doação Negada.**",
             description=f"` {self.transaction_dict.get('donor_name')} ` negou o pedido de confirmação e a doação não será publicada.",
-            color=discord.Color.red(),
+            color=discord.Color.dark_red(),
         )
         await self.waiting_message.edit(embed=transaction_denaied_embed, view=Main())
 

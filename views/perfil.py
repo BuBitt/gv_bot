@@ -231,7 +231,7 @@ class LvlModal(discord.ui.Modal, title="Escreva seu lvl"):
         except:
             embed = discord.Embed(
                 title=f"**` {lvl} ` não é um número inteiro**",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -329,9 +329,11 @@ class GuildProfileView(discord.ui.View):
             else interaction.user.nick
         )
         os.remove(csv_filename)
-        
+
         # log da operação
-        log_message_terminal = f"{interaction_name_check} baixou os dados de doação da guilda"
+        log_message_terminal = (
+            f"{interaction_name_check} baixou os dados de doação da guilda"
+        )
         logger.info(log_message_terminal)
 
         log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.mention}` baixou os dados de doação da guilda `"

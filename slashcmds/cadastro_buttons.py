@@ -46,7 +46,7 @@ class CadastroButtons(app_commands.Group):
         ):
             embed = discord.Embed(
                 title=f"Você tem certeza que deseja cancelar o cadastro?",
-                color=discord.Color.red(),
+                color=discord.Color.dark_red(),
             )
             await interaction.response.send_message(
                 embed=embed, view=Confirm(), ephemeral=True

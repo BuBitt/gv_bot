@@ -1,7 +1,9 @@
+import difflib
 import re
 import time
 import datetime
 from datetime import datetime
+from beautifultable import BeautifulTable
 
 import discord
 from discord import utils
@@ -67,11 +69,34 @@ class CadastroTransacao(commands.Cog):
             run = 0
 
             def id_converter(raw_id: str):
+                """### Converte uma menção para um formato de id"""
                 return int(raw_id[2:-1])
 
             def is_valid_regex(message, regex_pattern):
+                """### Validação de padrão regex"""
+
                 match = re.match(regex_pattern, message)
                 return bool(match)
+
+            def search_or_similar(termo_de_pesquisa, all_items, limiar=0.5):
+                """
+                Busca pelo termo fornecido na lista de strings do modelo Peewee.
+                Retorna uma lista de strings similares usando o difflib.
+                """
+
+                # Percorre os itens no modelo Peewee
+                for item in all_items:
+                    # Verifica se o termo de pesquisa está no item ou se o item é similar
+                    if termo_de_pesquisa.lower() == item:
+                        return (True, 1)
+
+                # Usa o difflib para obter correspondências próximas
+                correspondencias = difflib.get_close_matches(
+                    termo_de_pesquisa, all_items, n=10, cutoff=limiar
+                )
+                if correspondencias:
+                    return (False, correspondencias)
+                return (False, 0)
 
             # Loop do Crafter
             while True:
@@ -161,7 +186,7 @@ class CadastroTransacao(commands.Cog):
                         return await ctx.send(embed=embed)
 
                     # Muda a cor do embed para vermelho (erro)
-                    first_embed.color = discord.Color.red()
+                    first_embed.color = discord.Color.dark_red()
 
                     first_embed_error = discord.Embed(
                         title="**Não é Crafter**",
@@ -181,7 +206,7 @@ class CadastroTransacao(commands.Cog):
                         return await ctx.send(embed=embed)
 
                     # Muda a cor do embed para vermelho (erro)
-                    first_embed.color = discord.Color.red()
+                    first_embed.color = discord.Color.dark_red()
 
                     first_embed_error = discord.Embed(
                         title="**Formato não aceito**",
@@ -213,13 +238,16 @@ class CadastroTransacao(commands.Cog):
                 if run == 1:
                     await message_send_error.delete()
 
-                # Verifica se o imput existe na tabela de items no banco de dados.
-                item_check = Items.is_in_db(input_item)
+                # Verifica se o imput existe na tabela de items do banco de dados.
+                item_list = [item.item for item in list(Items.select(Items.item))]
 
-                if item_check:
+                search_result = search_or_similar(input_item, item_list)
+                search_result_is_valid = search_result[0]
+
+                if search_result_is_valid:
                     transaction_dict["item"] = input_item.lower()
 
-                    # Muda a cor do embed para vermelho (erro)
+                    # Muda a cor do embed para verde (sucesso)
                     embed_item.color = discord.Color.green()
                     await message_sent.edit(embed=embed_item, view=None)
 
@@ -233,15 +261,30 @@ class CadastroTransacao(commands.Cog):
                         )
                         return await ctx.send(embed=embed)
 
+                    # verifica se há sugrestoẽs
+                    if search_result[1] == 0:
+                        table = "Não há sugestões..."
+                    else:
+                        table = BeautifulTable()
+                        table.set_style(BeautifulTable.STYLE_COMPACT)
+
+                        table.columns.append(search_result[1], header=None)
+                        table.columns.alignment = BeautifulTable.ALIGN_LEFT
+
+                    
+                    # cria embed
                     embed_item_error = discord.Embed(
-                        title="**O item não existe, digite novamente**",
-                        description=f"{response.content} não é um item do jogo.",
+                        title="**O item não existe**",
+                        description=f"` {response.content.title()} ` não é um item do jogo;\nDigite novamente.",
                         color=discord.Color.dark_red(),
+                    )
+                    embed_item_error.add_field(
+                        name="Sugestões", value=f"```{table}```"
                     )
                     message_send_error = await ctx.send(embed=embed_item_error)
 
                     # Muda a cor do embed para vermelho (erro)
-                    embed_item.color = discord.Color.red()
+                    embed_item.color = discord.Color.dark_red()
                     await message_sent.edit(embed=embed_item, view=None)
 
                     run = 1
@@ -303,7 +346,7 @@ class CadastroTransacao(commands.Cog):
                     message_send_error = await ctx.send(embed=embed_item_error)
 
                     # Muda a cor do embed para vermelho (erro)
-                    embed_qte_item.color = discord.Color.red()
+                    embed_qte_item.color = discord.Color.dark_red()
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
                     run = 1
@@ -328,7 +371,7 @@ class CadastroTransacao(commands.Cog):
                     message_send_error = await ctx.send(embed=embed_item_error)
 
                     # Muda a cor do embed para vermelho (erro)
-                    embed_qte_item.color = discord.Color.red()
+                    embed_qte_item.color = discord.Color.dark_red()
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
                     run = 1
@@ -394,7 +437,7 @@ class CadastroTransacao(commands.Cog):
                         return await ctx.send(embed=embed)
 
                     # Muda a cor do embed para vermelho (erro)
-                    embed_print.color = discord.Color.red()
+                    embed_print.color = discord.Color.dark_red()
                     await message_sent.edit(embed=embed_print, view=None)
 
                     # error message
