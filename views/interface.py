@@ -55,7 +55,7 @@ class NewItemConfirm(discord.ui.View):
         await channel.send(log_message_ch)
 
 
-class NewItemModal(discord.ui.Modal, title="Adicione um novo item"):
+class NewItemModalAdmin(discord.ui.Modal, title="Adicione um novo item"):
     new_item = discord.ui.TextInput(
         style=discord.TextStyle.short,
         label="Item",
@@ -91,6 +91,48 @@ class NewItemModal(discord.ui.Modal, title="Adicione um novo item"):
         embed = discord.Embed(
             title=f"**Confirmação de novo Item:**",
             color=discord.Color.yellow(),
+        )
+        embed.add_field(name=f"**Item:**", value=f"` {new_item} `")
+        embed.add_field(name=f"**Pontuação:**", value=f"` {points} `")
+
+        # verifica se new_item já existe na base de dados
+        item_check = Items.is_in_db(new_item.lower())
+
+        if not item_check:
+            await interaction.response.send_message(
+                embed=embed,
+                view=NewItemConfirm(new_item, points, changer_id),
+                ephemeral=True,
+            )
+        else:
+            embed = discord.Embed(
+                title=f"**O Item ` {new_item} ` já está cadastrado na base de dados**",
+                color=discord.Color.dark_red(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        traceback.print_tb(error.__traceback__)
+
+
+class NewItemModalCrafter(discord.ui.Modal, title="Adicione um novo item"):
+    new_item = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Item",
+        required=True,
+        placeholder="Digite o nome do item",
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        new_item = self.new_item.value.title()
+        points = 1
+        changer_id = interaction.user.id
+
+        # mensagem
+        embed = discord.Embed(
+            title=f"**Confirmação de novo Item:**",
+            color=discord.Color.yellow(),
+            description="Quando um crafter cria um item a pontuação é automaticamente setada como 1,\npeça a um Vice Lider ou administrados para mudar a pontuação caso necessário.",
         )
         embed.add_field(name=f"**Item:**", value=f"` {new_item} `")
         embed.add_field(name=f"**Pontuação:**", value=f"` {points} `")
@@ -281,19 +323,34 @@ class CrafterLauncher(discord.ui.View):
     @discord.ui.button(
         label="Novo Item",
         style=discord.ButtonStyle.success,
-        custom_id="new_item_button",
+        custom_id="crafter_new_item_button",
     )
-    async def new_item(
+    async def new_crafter_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_modal(NewItemModal())
+        await interaction.response.send_modal(NewItemModalCrafter())
+
+
+class AdminLauncher(discord.ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Novo Item",
+        style=discord.ButtonStyle.success,
+        custom_id="admin_new_item_button",
+    )
+    async def new_admin_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(NewItemModalAdmin())
 
     @discord.ui.button(
         label="Editar Item",
         style=discord.ButtonStyle.success,
-        custom_id="edit_item_button",
+        custom_id="admin_edit_item_button",
     )
-    async def edit_item(
+    async def edit_admin_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_modal(EditItemModal())
@@ -337,4 +394,3 @@ class Main(discord.ui.View):
         await interaction.response.send_message(
             embed=embed, ephemeral=True, view=Confirm()
         )
-
