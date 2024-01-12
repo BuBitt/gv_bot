@@ -4,8 +4,7 @@ import settings
 import traceback
 from discord import utils
 from models.items import Items
-from models.account import Account
-from models.donation import Donation
+from views.admin import AdminToZeroPointsConfirm, EditItemConfirm, NewItemModalAdmin
 
 
 logger = settings.logging.getLogger(__name__)
@@ -55,66 +54,6 @@ class NewItemConfirm(discord.ui.View):
         await channel.send(log_message_ch)
 
 
-class NewItemModalAdmin(discord.ui.Modal, title="Adicione um novo item"):
-    new_item = discord.ui.TextInput(
-        style=discord.TextStyle.short,
-        label="Item",
-        required=True,
-        placeholder="Digite o nome do item",
-    )
-
-    points = discord.ui.TextInput(
-        style=discord.TextStyle.short,
-        label="Pontuação",
-        required=True,
-        placeholder="Digite a pontuação do item",
-    )
-
-    async def on_submit(self, interaction: discord.Interaction):
-        new_item = self.new_item.value.title()
-        points = self.points.value
-        changer_id = interaction.user.id
-
-        # tenta converter points para um número inteiro
-        try:
-            points = int(points)
-            if points < 1:
-                raise TypeError
-        except:
-            embed = discord.Embed(
-                title=f"**` {points} ` não é um número válido**",
-                color=discord.Color.dark_red(),
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-
-        # mensagem
-        embed = discord.Embed(
-            title=f"**Confirmação de novo Item:**",
-            color=discord.Color.yellow(),
-        )
-        embed.add_field(name=f"**Item:**", value=f"` {new_item} `")
-        embed.add_field(name=f"**Pontuação:**", value=f"` {points} `")
-
-        # verifica se new_item já existe na base de dados
-        item_check = Items.is_in_db(new_item.lower())
-
-        if not item_check:
-            await interaction.response.send_message(
-                embed=embed,
-                view=NewItemConfirm(new_item, points, changer_id),
-                ephemeral=True,
-            )
-        else:
-            embed = discord.Embed(
-                title=f"**O Item ` {new_item} ` já está cadastrado na base de dados**",
-                color=discord.Color.dark_red(),
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    async def on_error(self, interaction: discord.Interaction, error: Exception):
-        traceback.print_tb(error.__traceback__)
-
-
 class NewItemModalCrafter(discord.ui.Modal, title="Adicione um novo item"):
     new_item = discord.ui.TextInput(
         style=discord.TextStyle.short,
@@ -155,52 +94,6 @@ class NewItemModalCrafter(discord.ui.Modal, title="Adicione um novo item"):
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
-
-
-class EditItemConfirm(discord.ui.View):
-    def __init__(self, item, points, changer_id) -> None:
-        self.item = item
-        self.points = points
-        self.changer_id = changer_id
-        super().__init__(timeout=None)
-
-    @discord.ui.button(
-        label="Confirmar",
-        style=discord.ButtonStyle.success,
-        custom_id="confirm_new_item_button",
-    )
-    async def confirm_edit_item(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        item_instance = Items.fetch(item=self.item.lower())
-
-        item_instance.points = self.points
-        item_instance.add_by_id = self.changer_id
-
-        item_instance.save()
-
-        embed_new_item = discord.Embed(
-            title=f"Item: **` {self.item} ` **",
-            color=discord.Color.green(),
-            description=f"**Nova Pontuação:** `{self.points}` ",
-        )
-
-        await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
-        gb_name = (
-            interaction.user.nick
-            if interaction.user.nick is not None
-            else interaction.user.name
-        )
-
-        # Log da operação (terminal)
-        log_message_terminal = f"{gb_name}(ID: {interaction.user.id} editou a pontuação do item {item_instance.item} para: {self.points} pontos"
-        logger.info(log_message_terminal)
-
-        timestamp = str(time.time()).split(".")[0]
-        log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou a pontuação do item: {item_instance.item} para: {self.points} pontos `"
-
-        channel = utils.get(interaction.guild.text_channels, name="logs")
-        await channel.send(log_message_ch)
 
 
 class EditItemModal(discord.ui.Modal, title="Edite um item"):
@@ -263,6 +156,7 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
         traceback.print_tb(error.__traceback__)
 
 
+# Botões das interfaces
 class DonationLauncher(discord.ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
@@ -355,7 +249,26 @@ class AdminLauncher(discord.ui.View):
     ):
         await interaction.response.send_modal(EditItemModal())
 
+    @discord.ui.button(
+        label="Zerar a Pontuação de Todos",
+        style=discord.ButtonStyle.danger,
+        custom_id="admin_to_zero_points_button",
+    )
+    async def zero_admin_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        embed = discord.Embed(
+            title="**⚠️  ESSA AÇÃO É EXTREMAMENTE PERIGOSA!  ⚠️\n\nTODOS OS PONTOS DE TODOS OS USUÁRIOS DO DISCORD VOLTARÃO A 0!\n\nUSE APENAS EM CASOS EXTREMOS!**",
+            color=discord.Color.brand_red(),
+            description="VOCÊ TEM CERTEZA QUE DESEJA EXECUTAR ESSA AÇÃO?\nCASO NÃO APENAS NÃO, APERTE EM IGNORAR MENSAGEM\n\nEsse botão só é válido por 30 segundos.",
+        )
 
+        await interaction.response.send_message(
+            embed=embed, view=AdminToZeroPointsConfirm(), ephemeral=True
+        )
+
+
+# Confirmação para deletas canais
 class Confirm(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
