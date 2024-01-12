@@ -95,7 +95,7 @@ class AdminCommands(app_commands.Group):
 
         except NotEnoughtPoints:
             return await interaction.response.send_message(
-                f"{player.mention} possui apenas ` {account.points} `, portanto é impossível remover ` {pontos} ` pontos",
+                f"{player.mention} possui apenas ` {account.points} ` pontos, portanto é impossível remover ` {pontos} ` pontos",
                 ephemeral=True,
             )
 
