@@ -3,9 +3,9 @@ from database import db
 
 
 class Items(peewee.Model):
-    item: str = peewee.CharField(max_length=255)
-    add_by_id: int = peewee.IntegerField()
-    points: int = peewee.IntegerField()
+    item = peewee.CharField(primary_key=True, max_length=255)
+    add_by_id = peewee.IntegerField()
+    points = peewee.IntegerField()
 
     class Meta:
         database = db
