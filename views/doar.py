@@ -1,7 +1,6 @@
 import time
 import discord
 import settings
-import traceback
 from discord import utils
 from models.items import Items
 from models.account import Account
