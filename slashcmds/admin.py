@@ -28,15 +28,14 @@ class AdminCommands(app_commands.Group):
             pontos = int(pontos)
             if pontos < 1:
                 raise IsNegativeError
-            
-            
+
         except ValueError:
-            await interaction.response.send_message(
+            return await interaction.response.send_message(
                 f"` {pontos} ` não é um número válido", ephemeral=True
             )
-            
-        except:
-            await interaction.response.send_message(
+
+        except IsNegativeError:
+            return await interaction.response.send_message(
                 f"` {pontos} ` não é maior que zero", ephemeral=True
             )
 
@@ -66,7 +65,7 @@ class AdminCommands(app_commands.Group):
 
         channel = utils.get(interaction.guild.text_channels, name="logs")
         await channel.send(log_message_ch)
-        
+
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
 
@@ -80,23 +79,24 @@ class AdminCommands(app_commands.Group):
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
         account = Account.fetch(player)
-        
+
         try:
             pontos = int(pontos)
             if pontos < 1:
                 raise IsNegativeError
-            
+
             elif pontos > account.points:
                 raise NotEnoughtPoints
-            
+
         except ValueError:
-            await interaction.response.send_message(
+            return await interaction.response.send_message(
                 f"` {pontos} ` não é um número válido", ephemeral=True
             )
 
         except NotEnoughtPoints:
-            await interaction.response.send_message(
-                f"{player.mention} possui apenas ` {account.points} `, portanto é impossível remover ` {pontos} ` pontos", ephemeral=True
+            return await interaction.response.send_message(
+                f"{player.mention} possui apenas ` {account.points} `, portanto é impossível remover ` {pontos} ` pontos",
+                ephemeral=True,
             )
 
         interactor_name = (
@@ -106,7 +106,6 @@ class AdminCommands(app_commands.Group):
         )
         user_name = player.name if player.nick == None else player.nick
 
-        
         account.points -= pontos
         account.save()
 
@@ -125,7 +124,7 @@ class AdminCommands(app_commands.Group):
 
         channel = utils.get(interaction.guild.text_channels, name="logs")
         await channel.send(log_message_ch)
-        
+
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
 
