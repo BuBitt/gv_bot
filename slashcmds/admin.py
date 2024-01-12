@@ -67,7 +67,7 @@ class AdminCommands(app_commands.Group):
 
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
-
+    
     @app_commands.command(name="remover", description="Remove pontos a um player")
     @app_commands.describe(
         player="O player que perderá pontos",

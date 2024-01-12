@@ -2,6 +2,7 @@ import difflib
 import re
 import time
 import datetime
+
 from datetime import datetime
 from beautifultable import BeautifulTable
 
@@ -17,6 +18,14 @@ from errors.errors import IsNegativeError, IsNotCrafter, IsNotMention
 
 
 logger = settings.logging.getLogger(__name__)
+
+
+def truncar_string(input_string, max_length=13):
+    if len(input_string) > max_length:
+        result = input_string[: max_length - 3] + "…"
+        return result
+    else:
+        return input_string
 
 
 class ActionNature(discord.ui.View):
@@ -83,13 +92,44 @@ class CadastroTransacao(commands.Cog):
                     return (False, correspondencias)
                 return (False, 0)
 
+            def controi_tabela(list, header=None):
+                table = BeautifulTable()
+                table.set_style(BeautifulTable.STYLE_COMPACT)
+
+                table.columns.append(list, header)
+                table.columns.alignment = BeautifulTable.ALIGN_LEFT
+                return table
+
+            # Encontra todos os crafters de cada categoria pelo Role
+            cooking = discord.utils.get(ctx.guild.roles, name="Cooking").members
+            blacksmith = discord.utils.get(ctx.guild.roles, name="Blacksmith").members
+            weaving = discord.utils.get(ctx.guild.roles, name="Weaving").members
+            carpentry = discord.utils.get(ctx.guild.roles, name="Carpentry").members
+            moa = discord.utils.get(ctx.guild.roles, name="Moa").members
+
             # Loop do Crafter
             while True:
+                # embed da menção do crafter
                 first_embed = discord.Embed(
-                    title="**Mencione o Crafter**",
-                    description="Uma menção usual do discord: @NomeDoCrafter",
+                    title="**Crafter**",
+                    description="` Marque o crafter aqui com @NomeDoCrafter `",
                     color=discord.Color.dark_blue(),
                 )
+                first_embed.add_field(
+                    name="> Cooking", value=f"{controi_tabela(cooking)}"
+                )
+                first_embed.add_field(
+                    name="> Blacksmith", value=f"{controi_tabela(blacksmith)}"
+                )
+                first_embed.add_field(
+                    name="> Weaving", value=f"{controi_tabela(weaving)}"
+                )
+                first_embed.add_field(
+                    name="> Carpentry", value=f"{controi_tabela(carpentry)}"
+                )
+                first_embed.add_field(name="> Moa", value=f"{controi_tabela(moa)}")
+
+                # envia o embed se está iniciando o formulário
                 if run == 0:
                     message_sent = await ctx.send(embed=first_embed)
 
@@ -256,16 +296,13 @@ class CadastroTransacao(commands.Cog):
                         table.columns.append(search_result[1], header=None)
                         table.columns.alignment = BeautifulTable.ALIGN_LEFT
 
-                    
                     # cria embed
                     embed_item_error = discord.Embed(
                         title="**O item não existe**",
                         description=f"` {response.content.title()} ` não é um item do jogo;\nDigite novamente.",
                         color=discord.Color.dark_red(),
                     )
-                    embed_item_error.add_field(
-                        name="Sugestões", value=f"```{table}```"
-                    )
+                    embed_item_error.add_field(name="Sugestões", value=f"```{table}```")
                     message_send_error = await ctx.send(embed=embed_item_error)
 
                     # Muda a cor do embed para vermelho (erro)

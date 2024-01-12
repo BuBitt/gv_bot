@@ -79,17 +79,27 @@ def run():
     #     interaction: discord.Interaction, error: app_commands.AppCommandError
     # ):
     #     if isinstance(error, app_commands.CommandOnCooldown):
+    #         logger.info(f"Erro de cooldown {interaction.user.name}")
     #         return await interaction.response.send_message(
     #             f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
     #             ephemeral=True,
     #         )
+
     #     elif isinstance(error, app_commands.MissingPermissions):
+    #         logger.info(f"Erro de permissão {interaction.user.name}")
     #         return await interaction.response.send_message(
     #             f"Você não tem permissão para usar esse comando.", ephemeral=True
+    #         )
+
+    #     elif isinstance(error, app_commands.errors.MissingAnyRole):
+    #         logger.info(f"Erro de permissão {interaction.user.name}")
+    #         await interaction.response.send_message(
+    #             "Você não tem permissão para executar esse comando", ephemeral=True
     #         )
     #     else:
     #         raise error
 
+    # Interaction Menus
     @bot.tree.context_menu(name="Informações Gerais")
     @app_commands.checks.has_role("Crafter")
     async def general_info(interaction: discord.Interaction, member: discord.Member):
@@ -101,7 +111,6 @@ def run():
         )
 
     # bot.tree.on_error = on_tree_error
-
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 
 
