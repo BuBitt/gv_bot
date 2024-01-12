@@ -105,7 +105,7 @@ class CadastroTransacao(commands.Cog):
             blacksmith = discord.utils.get(ctx.guild.roles, name="Blacksmith").members
             weaving = discord.utils.get(ctx.guild.roles, name="Weaving").members
             carpentry = discord.utils.get(ctx.guild.roles, name="Carpentry").members
-            moa = discord.utils.get(ctx.guild.roles, name="Moa").members
+            breeding = discord.utils.get(ctx.guild.roles, name="Moa").members
 
             # Loop do Crafter
             while True:
@@ -127,7 +127,7 @@ class CadastroTransacao(commands.Cog):
                 first_embed.add_field(
                     name="> Carpentry", value=f"{controi_tabela(carpentry)}"
                 )
-                first_embed.add_field(name="> Moa", value=f"{controi_tabela(moa)}")
+                first_embed.add_field(name="> Breeding", value=f"{controi_tabela(breeding)}")
 
                 # envia o embed se está iniciando o formulário
                 if run == 0:
