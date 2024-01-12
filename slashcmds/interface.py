@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-from views.cadastro import CrafterLauncher, DonationLauncher, Confirm, NewItemConfirm
+from views.interface import CrafterLauncher, DonationLauncher, Confirm, NewItemConfirm
 
 
 class CadastroButtons(app_commands.Group):

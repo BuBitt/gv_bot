@@ -6,7 +6,7 @@ import discord
 from discord import utils
 from discord.ext import commands
 
-import cogs.cadastro as cd
+import cogs.doar as cd
 
 import settings
 from models.account import Account

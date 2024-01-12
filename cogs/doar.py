@@ -11,7 +11,7 @@ from discord.ext import commands
 
 import settings
 from models.items import Items
-from views.cadastro import ConfirmTransactionPm
+from views.doar import ConfirmTransactionPm
 
 logger = settings.logging.getLogger(__name__)
 

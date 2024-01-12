@@ -9,7 +9,7 @@ from discord.ext import commands
 from models.account import Account
 from views.perfil import PlayerGeneralIfo
 from models.donation import Donation
-from views.cadastro import CrafterLauncher, DonationLauncher, Main
+from views.interface import CrafterLauncher, DonationLauncher, Main
 
 
 logger = settings.logging.getLogger(__name__)
