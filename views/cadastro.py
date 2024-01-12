@@ -2,7 +2,6 @@ import time
 import discord
 import settings
 import traceback
-import cogs.cadastro as cd
 from discord import utils
 from models.items import Items
 from models.account import Account
@@ -12,9 +11,11 @@ from models.donation import Donation
 logger = settings.logging.getLogger(__name__)
 
 
-class NewItemLauncher(discord.ui.View):
-    def __init__(self, new_item) -> None:
+class NewItemConfirm(discord.ui.View):
+    def __init__(self, new_item, points, changer_id) -> None:
         self.new_item = new_item
+        self.points = points
+        self.changer_id = changer_id
         super().__init__(timeout=None)
 
     @discord.ui.button(
@@ -25,13 +26,17 @@ class NewItemLauncher(discord.ui.View):
     async def confirm_new_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        item_instance = Items.create(item=self.new_item)
+        item_instance = Items.create(
+            item=self.new_item.lower(), add_by_id=self.changer_id, points=self.points
+        )
         item_instance.save()
 
         embed_new_item = discord.Embed(
-            title=f"**` {self.new_item} ` - Foi adicionado a base de dados**",
+            title=f"**Um novo item adicionado**",
             color=discord.Color.green(),
+            description=f"**Item: ` {self.new_item} `, Pontos:** `{self.points}` ",
         )
+
         await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
         gb_name = (
             interaction.user.nick
@@ -42,12 +47,15 @@ class NewItemLauncher(discord.ui.View):
         # Log da operação (terminal)
         log_message_terminal = f"{gb_name}(ID: {interaction.user.id}) adicionou o item {self.new_item} a base de dados"
         logger.info(log_message_terminal)
-        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.id}` adicionou um novo item a base de dados: {self.new_item} `"
+
+        timestamp = str(time.time()).split(".")[0]
+        log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` adicionou um novo item a base de dados: {self.new_item}, Pontos: {self.points}`"
+
         channel = utils.get(interaction.guild.text_channels, name="logs")
         await channel.send(log_message_ch)
 
 
-class NewItem(discord.ui.Modal, title="Adicione um novo item"):
+class NewItemModal(discord.ui.Modal, title="Adicione um novo item"):
     new_item = discord.ui.TextInput(
         style=discord.TextStyle.short,
         label="Item",
@@ -55,21 +63,156 @@ class NewItem(discord.ui.Modal, title="Adicione um novo item"):
         placeholder="Digite o nome do item",
     )
 
+    points = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Pontuação",
+        required=True,
+        placeholder="Digite a pontuação do item",
+    )
+
     async def on_submit(self, interaction: discord.Interaction):
         new_item = self.new_item.value.title()
+        points = self.points.value
+        changer_id = interaction.user.id
+
+        # tenta converter points para um número inteiro
+        try:
+            points = int(points)
+            if points < 1:
+                raise TypeError
+        except:
+            embed = discord.Embed(
+                title=f"**` {points} ` não é um número válido**",
+                color=discord.Color.red(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        # mensagem
         embed = discord.Embed(
-            title=f"**Confirme o nome do novo item:** ` {new_item} `",
+            title=f"**Confirmação de novo Item:**",
             color=discord.Color.yellow(),
         )
+        embed.add_field(name=f"**Item:**", value=f"` {new_item} `")
+        embed.add_field(name=f"**Pontuação:**", value=f"` {points} `")
+
         # verifica se new_item já existe na base de dados
-        item_check = Items.fetch(new_item.title())
+        item_check = Items.is_in_db(new_item.lower())
+
         if not item_check:
             await interaction.response.send_message(
-                embed=embed, view=NewItemLauncher(new_item.title()), ephemeral=True
+                embed=embed,
+                view=NewItemConfirm(new_item, points, changer_id),
+                ephemeral=True,
             )
         else:
             embed = discord.Embed(
                 title=f"**O Item ` {new_item} ` já está cadastrado na base de dados**",
+                color=discord.Color.red(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        traceback.print_tb(error.__traceback__)
+
+
+class EditItemConfirm(discord.ui.View):
+    def __init__(self, item, points, changer_id) -> None:
+        self.item = item
+        self.points = points
+        self.changer_id = changer_id
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Confirmar",
+        style=discord.ButtonStyle.success,
+        custom_id="confirm_new_item_button",
+    )
+    async def confirm_edit_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        item_instance = Items.fetch(item=self.item.lower())
+
+        item_instance.points = self.points
+        item_instance.add_by_id = self.changer_id
+
+        item_instance.save()
+
+        embed_new_item = discord.Embed(
+            title=f"Item: **` {self.item} ` **",
+            color=discord.Color.green(),
+            description=f"**Nova Pontuação:** `{self.points}` ",
+        )
+
+        await interaction.response.send_message(embed=embed_new_item, ephemeral=True)
+        gb_name = (
+            interaction.user.nick
+            if interaction.user.nick is not None
+            else interaction.user.name
+        )
+
+        # Log da operação (terminal)
+        log_message_terminal = f"{gb_name}(ID: {interaction.user.id} editou a pontuação do item {item_instance.item} para: {self.points} pontos"
+        logger.info(log_message_terminal)
+
+        timestamp = str(time.time()).split(".")[0]
+        log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou a pontuação do item: {item_instance.item} para: {self.points} pontos `"
+
+        channel = utils.get(interaction.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
+
+
+class EditItemModal(discord.ui.Modal, title="Edite um item"):
+    item = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Item",
+        required=True,
+        placeholder="Digite o nome do item",
+    )
+
+    points = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Nova Pontuação",
+        required=True,
+        placeholder="Digite a nova pontuação do item",
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        item = self.item.value.title()
+        points = self.points.value
+        changer_id = interaction.user.id
+
+        # tenta converter points para um número inteiro
+        try:
+            points = int(points)
+            if points < 1:
+                raise TypeError
+        except:
+            embed = discord.Embed(
+                title=f"**` {points} ` não é um número válido**",
+                color=discord.Color.red(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        # mensagem
+        embed = discord.Embed(
+            title=f"**Confirmação de edição Item:**",
+            color=discord.Color.yellow(),
+        )
+        embed.add_field(name=f"Item:", value=f"` {item} `")
+        embed.add_field(name=f"**Nova Pontuação:**", value=f"` {points} `")
+
+        # verifica se new_item já existe na base de dados
+        item_check = Items.is_in_db(item.lower())
+
+        if item_check:
+            await interaction.response.send_message(
+                embed=embed,
+                view=EditItemConfirm(item, points, changer_id),
+                ephemeral=True,
+            )
+        else:
+            embed = discord.Embed(
+                title=f"**O Item ` {item} ` não está cadastrado na base de dados**",
                 color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -143,7 +286,17 @@ class CrafterLauncher(discord.ui.View):
     async def new_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_modal(NewItem())
+        await interaction.response.send_modal(NewItemModal())
+
+    @discord.ui.button(
+        label="Editar Item",
+        style=discord.ButtonStyle.success,
+        custom_id="edit_item_button",
+    )
+    async def edit_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(EditItemModal())
 
 
 class Confirm(discord.ui.View):
@@ -245,8 +398,12 @@ class ConfirmTransactionPm(discord.ui.View):
             self.waiting_message.guild.members,
             id=self.transaction_dict.get("donor_id"),
         )
+        
+        # encontra no banco de dados o item para usar sua pontuação
+        item = Items.fetch(self.transaction_dict["item"].lower())
+        
         account = Account.fetch(user_to_add)
-        account.points += self.transaction_dict["quantity"]
+        account.points += self.transaction_dict["quantity"] * item.points
         account.save()
 
         # Log da operação (terminal)
@@ -260,7 +417,9 @@ class ConfirmTransactionPm(discord.ui.View):
         log_message_terminal = f'Doação Nº {transaction} foi efetuada com sucesso. {self.transaction_dict["donor_name"]} doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]}, Crafter {self.transaction_dict.get("crafter_name")}'
         logger.info(log_message_terminal)
 
-        log_message_ch = f'<t:{str(time.time()).split(".")[0]}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
+        timestamp = str(time.time()).split(".")[0]
+        log_message_ch = f'<t:{timestamp}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
+
         channel = utils.get(donation_channel.guild.text_channels, name="logs")
         await channel.send(log_message_ch)
 

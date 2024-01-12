@@ -84,7 +84,7 @@ class Rankings(app_commands.Group):
             table.rows.append(row, header=str(rank))
             rank += 1
 
-        # print(table)
+
         embed_position = discord.Embed(
             title=f"**Sua posição é a: `{general_rank_position}` com `{points}` pontos**",
             color=discord.Color.green(),

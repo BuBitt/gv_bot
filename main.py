@@ -9,7 +9,7 @@ from discord.ext import commands
 from models.account import Account
 from views.perfil import PlayerGeneralIfo
 from models.donation import Donation
-from views.cadastro import DonationLauncher, Main
+from views.cadastro import CrafterLauncher, DonationLauncher, Main
 
 
 logger = settings.logging.getLogger(__name__)
@@ -30,11 +30,12 @@ def run():
     @bot.event
     async def on_ready():
         logger.info(f"Good Vibes Crafter's Bot Started")
-        # persistent views
         bot.added = False
 
+        # persistent views
         if not bot.added:
             bot.add_view(DonationLauncher())
+            bot.add_view(CrafterLauncher())
             bot.add_view(Main())
             bot.added = True
 

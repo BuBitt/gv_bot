@@ -95,7 +95,7 @@ class CadastroTransacao(commands.Cog):
 
                 # validador da menção
                 regex = "^<@[0-9]+>$"
-                
+
                 try:
                     if not is_valid_regex(crafter_mention, regex):
                         raise IsNotMention("")
@@ -108,7 +108,7 @@ class CadastroTransacao(commands.Cog):
                     is_crafter = (
                         True if crafter_role in crafter_user_object.roles else False
                     )
-                    
+
                     if is_crafter:
                         # verifica se o doador possui um nick no server
                         donor_name = (
@@ -116,36 +116,37 @@ class CadastroTransacao(commands.Cog):
                             if ctx.message.author.nick != None
                             else ctx.message.author.name
                         )
-                        
+
                         donor_id = ctx.message.author.id
-                        
+
                         # informações do crafter
                         crafter_name = (
                             crafter_user_object.nick
                             if crafter_user_object.nick != None
                             else crafter_user_object.name
                         )
-                        
+
                         # Adiciona ids e nomes ao dicionário auxiliar do banco de dados.
                         transaction_dict["crafter_id"] = crafter_id
                         transaction_dict["crafter_name"] = crafter_name
                         transaction_dict["donor_id"] = donor_id
                         transaction_dict["donor_name"] = donor_name
-                        
+
                         # muda a cor do embed ao responder corretamente
                         first_embed.color = discord.Color.green()
                         await message_sent.edit(embed=first_embed)
-                        
+
                         # Log da operação (terminal)
-                        log_message_terminal = f"{donor_name}(ID: {donor_id}) iniciou um processo de doação. Crafter: {donor_name}(ID: {donor_id})."
-                        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{ctx.author.mention}` iniciou um processo de doação. Crafter: `{crafter_user_object.mention}"
-                        
-                        logger.info(log_message_terminal)
-                        channel = utils.get(ctx.guild.text_channels, name="logs")
-                        
-                        await channel.send(log_message_ch)
+                        # log_message_terminal = f"{donor_name}(ID: {donor_id}) iniciou um processo de doação. Crafter: {donor_name}(ID: {donor_id})."
+                        # logger.info(log_message_terminal)
+
+                        # timestamp = str(time.time()).split('.')[0]
+                        # log_message_ch = f"<t:{timestamp}:F>` - `{ctx.author.mention}` iniciou um processo de doação. Crafter: `{crafter_user_object.mention}"
+                        # channel = utils.get(ctx.guild.text_channels, name="logs")
+
+                        # await channel.send(log_message_ch)
                         run = 0
-                        
+
                         break
 
                     else:
@@ -213,10 +214,10 @@ class CadastroTransacao(commands.Cog):
                     await message_send_error.delete()
 
                 # Verifica se o imput existe na tabela de items no banco de dados.
-                item_check = Items.fetch(input_item)
+                item_check = Items.is_in_db(input_item)
 
                 if item_check:
-                    transaction_dict["item"] = input_item.title()
+                    transaction_dict["item"] = input_item.lower()
 
                     # Muda a cor do embed para vermelho (erro)
                     embed_item.color = discord.Color.green()
@@ -272,6 +273,7 @@ class CadastroTransacao(commands.Cog):
                     if qte_item < 1:
                         raise IsNegativeError
                     else:
+                        # Gera a pontuação
                         transaction_dict["quantity"] = int(qte_item)
 
                         # Muda a cor do embed para vermelho (erro)
@@ -408,7 +410,6 @@ class CadastroTransacao(commands.Cog):
             crafter_user_object = utils.get(
                 ctx.guild.members, id=transaction_dict.get("crafter_id")
             )
-            print(type(crafter_user_object), "\n", crafter_user_object)
             crafter_name = (
                 crafter_user_object.nick
                 if crafter_user_object.nick != None
@@ -423,7 +424,6 @@ class CadastroTransacao(commands.Cog):
                 if donor_user_object.nick != None
                 else donor_user_object.name
             )
-            print(donor_name)
 
             embed_confirm = discord.Embed(
                 title=f"**Recibo: {donor_name}**",
