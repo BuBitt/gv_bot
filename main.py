@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 from models.account import Account
 from models.donation import Donation
+from views.mercado import MarketOfferInterest
 from views.perfil import PlayerGeneralIfo
 from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher, Main
 
@@ -34,6 +35,7 @@ def run():
 
         # persistent views
         if not bot.added:
+            bot.add_view(MarketOfferInterest())
             bot.add_view(DonationLauncher())
             bot.add_view(CrafterLauncher())
             bot.add_view(AdminLauncher())
@@ -58,17 +60,17 @@ def run():
 
         # comandos de load
         @bot.command()
-        @commands.has_role("Admin")
+        @commands.has_any_role("Admin", "Vice Lider")
         async def load(ctx, cog: str):
             await bot.load_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_role("Admin")
+        @commands.has_any_role("Admin", "Vice Lider")
         async def unload(ctx, cog: str):
             await bot.unload_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_role("Admin")
+        @commands.has_any_role("Admin", "Vice Lider")
         async def reload(ctx, cog: str):
             await bot.reload_extension(f"cogs.{cog.lower()}")
             logger.info(f"cog {cog} reloaded.")
@@ -101,7 +103,7 @@ def run():
 
     # Interaction Menus
     @bot.tree.context_menu(name="Informações Gerais")
-    @app_commands.checks.has_role("Crafter")
+    @app_commands.checks.has_any_role("Crafter", "Vice Lider")
     async def general_info(interaction: discord.Interaction, member: discord.Member):
         embed = discord.Embed(title=f"Informações do player: **{member.name}**")
         await interaction.response.send_message(

@@ -5,7 +5,7 @@ from discord import utils
 from discord import app_commands
 from models.account import Account
 from cogs.doar import IsNegativeError
-from errors.errors import NotEnoughtPoints
+from errors.errors import NotEnoughtPointsError
 
 
 logger = settings.logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class AdminCommands(app_commands.Group):
 
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
-    
+
     @app_commands.command(name="remover", description="Remove pontos a um player")
     @app_commands.describe(
         player="O player que perderá pontos",
@@ -85,14 +85,14 @@ class AdminCommands(app_commands.Group):
                 raise IsNegativeError
 
             elif pontos > account.points:
-                raise NotEnoughtPoints
+                raise NotEnoughtPointsError
 
         except ValueError:
             return await interaction.response.send_message(
                 f"` {pontos} ` não é um número válido", ephemeral=True
             )
 
-        except NotEnoughtPoints:
+        except NotEnoughtPointsError:
             return await interaction.response.send_message(
                 f"{player.mention} possui apenas ` {account.points} ` pontos, portanto é impossível remover ` {pontos} ` pontos",
                 ephemeral=True,

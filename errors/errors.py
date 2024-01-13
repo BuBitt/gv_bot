@@ -4,19 +4,25 @@ class IsNegativeError(Exception):
         super().__init__(message)
 
 
-class IsNotCrafter(Exception):
+class IsNotCrafterError(Exception):
     def __init__(self, message=None):
         self.message = message
         super().__init__(message)
 
 
-class IsNotMention(Exception):
+class IsNotMentionError(Exception):
     def __init__(self, message=None):
         self.message = message
         super().__init__(message)
 
 
-class NotEnoughtPoints(Exception):
+class NotEnoughtPointsError(Exception):
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__(message)
+
+
+class IsNotLinkError(Exception):
     def __init__(self, message=None):
         self.message = message
         super().__init__(message)

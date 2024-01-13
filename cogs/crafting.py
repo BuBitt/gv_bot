@@ -12,8 +12,8 @@ class CadastroCrafting(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.has_role("Crafter")
-    @commands.has_role("Crafter")
+    @commands.has_any_role("Crafter")
+    @commands.has_any_role("Crafter")
     async def craft(self, ctx: commands.context.Context):
         if ctx.channel.name.startswith("Craft"):
             await ctx.channel.send("test")

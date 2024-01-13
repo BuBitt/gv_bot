@@ -9,7 +9,7 @@ class InterfaceLaunchers(app_commands.Group):
         name="criar_controles_de_administrador",
         description="Inicia os botões para controle do administrador",
     )
-    @app_commands.checks.has_any_role("Admin")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider")
     async def admin_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO ADMINISTADOR**",
@@ -35,7 +35,7 @@ COMANDOS:
         name="criar_controles_de_craft",
         description="Inicia os botões do sistema de craft",
     )
-    @app_commands.checks.has_any_role("Admin")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider")
     async def craft_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
@@ -51,7 +51,7 @@ COMANDOS:
         name="criar_controles_de_doação",
         description="Inicia os botões do sistema de cadastro",
     )
-    @app_commands.checks.has_any_role("Admin")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider")
     async def donation_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"**Para doar clique no botão abaixo**",
@@ -65,7 +65,7 @@ COMANDOS:
         )
 
     # @app_commands.command(name="close", description="Fecha um canal")
-    # @app_commands.checks.has_role("Crafter")
+    # @app_commands.checks.has_any_role("Crafter")
     # async def close_command(self, interaction: discord.Interaction):
     #     if (
     #         interaction.user.name in interaction.channel.name

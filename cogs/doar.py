@@ -1,6 +1,6 @@
-import difflib
 import re
 import time
+import difflib
 import datetime
 
 from datetime import datetime
@@ -14,7 +14,14 @@ import settings
 from models.items import Items
 from views.doar import ConfirmTransactionPm
 
-from errors.errors import IsNegativeError, IsNotCrafter, IsNotMention
+from errors.errors import IsNegativeError, IsNotCrafterError, IsNotMentionError
+
+from utils.utilities import (
+    id_converter,
+    is_valid_regex,
+    search_or_similar,
+    constroi_tabela,
+)
 
 
 logger = settings.logging.getLogger(__name__)
@@ -62,72 +69,39 @@ class CadastroTransacao(commands.Cog):
             transaction_dict = {}
             run = 0
 
-            def id_converter(raw_id: str):
-                """### Converte uma menção para um formato de id"""
-                return int(raw_id[2:-1])
-
-            def is_valid_regex(message, regex_pattern):
-                """### Validação de padrão regex"""
-
-                match = re.match(regex_pattern, message)
-                return bool(match)
-
-            def search_or_similar(termo_de_pesquisa, all_items, limiar=0.5):
-                """
-                Busca pelo termo fornecido na lista de strings do modelo Peewee.
-                Retorna uma lista de strings similares usando o difflib.
-                """
-
-                # Percorre os itens no modelo Peewee
-                for item in all_items:
-                    # Verifica se o termo de pesquisa está no item ou se o item é similar
-                    if termo_de_pesquisa.lower() == item:
-                        return (True, 1)
-
-                # Usa o difflib para obter correspondências próximas
-                correspondencias = difflib.get_close_matches(
-                    termo_de_pesquisa, all_items, n=10, cutoff=limiar
-                )
-                if correspondencias:
-                    return (False, correspondencias)
-                return (False, 0)
-
-            def controi_tabela(list, header=None):
-                table = BeautifulTable()
-                table.set_style(BeautifulTable.STYLE_COMPACT)
-
-                table.columns.append(list, header)
-                table.columns.alignment = BeautifulTable.ALIGN_LEFT
-                return table
-
             # Encontra todos os crafters de cada categoria pelo Role
+
             cooking = discord.utils.get(ctx.guild.roles, name="Cooking").members
             blacksmith = discord.utils.get(ctx.guild.roles, name="Blacksmith").members
             weaving = discord.utils.get(ctx.guild.roles, name="Weaving").members
             carpentry = discord.utils.get(ctx.guild.roles, name="Carpentry").members
-            breeding = discord.utils.get(ctx.guild.roles, name="Moa").members
+            breeding = discord.utils.get(ctx.guild.roles, name="Breeding").members
 
             # Loop do Crafter
+
             while True:
                 # embed da menção do crafter
+
                 first_embed = discord.Embed(
                     title="**Crafter**",
                     description="` Marque o crafter aqui com @NomeDoCrafter `",
                     color=discord.Color.dark_blue(),
                 )
                 first_embed.add_field(
-                    name="> Cooking", value=f"{controi_tabela(cooking)}"
+                    name="> Cooking", value=f"{constroi_tabela(cooking)}"
                 )
                 first_embed.add_field(
-                    name="> Blacksmith", value=f"{controi_tabela(blacksmith)}"
+                    name="> Blacksmith", value=f"{constroi_tabela(blacksmith)}"
                 )
                 first_embed.add_field(
-                    name="> Weaving", value=f"{controi_tabela(weaving)}"
+                    name="> Weaving", value=f"{constroi_tabela(weaving)}"
                 )
                 first_embed.add_field(
-                    name="> Carpentry", value=f"{controi_tabela(carpentry)}"
+                    name="> Carpentry", value=f"{constroi_tabela(carpentry)}"
                 )
-                first_embed.add_field(name="> Breeding", value=f"{controi_tabela(breeding)}")
+                first_embed.add_field(
+                    name="> Breeding", value=f"{constroi_tabela(breeding)}"
+                )
 
                 # envia o embed se está iniciando o formulário
                 if run == 0:
@@ -146,9 +120,10 @@ class CadastroTransacao(commands.Cog):
                 # validador da menção
                 regex = "^<@[0-9]+>$"
 
+                print("3")
                 try:
                     if not is_valid_regex(crafter_mention, regex):
-                        raise IsNotMention("")
+                        raise IsNotMentionError("")
 
                     # checa se o mencionado é crafter
                     crafter_id = id_converter(crafter_mention)
@@ -200,9 +175,9 @@ class CadastroTransacao(commands.Cog):
                         break
 
                     else:
-                        raise IsNotCrafter("Erro: o player não é um crafter")
+                        raise IsNotCrafterError("Erro: o player não é um crafter")
 
-                except IsNotCrafter:
+                except IsNotCrafterError:
                     if crafter_mention == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
@@ -222,7 +197,7 @@ class CadastroTransacao(commands.Cog):
                     message_send_error = await ctx.send(embed=first_embed_error)
                     run = 1
 
-                except IsNotMention:
+                except IsNotMentionError:
                     if crafter_mention == "!cancelar":
                         embed = discord.Embed(
                             title="**Cadastro cancelado**",
@@ -270,7 +245,7 @@ class CadastroTransacao(commands.Cog):
                 search_result_is_valid = search_result[0]
 
                 if search_result_is_valid:
-                    transaction_dict["item"] = input_item.lower()
+                    transaction_dict["item"] = input_item.title()
 
                     # Muda a cor do embed para verde (sucesso)
                     embed_item.color = discord.Color.green()
