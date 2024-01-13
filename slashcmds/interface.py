@@ -3,7 +3,6 @@ from discord import app_commands
 from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher
 
 
-# TODO adicionar has_any_roles para vice_lider
 class InterfaceLaunchers(app_commands.Group):
     @app_commands.command(
         name="criar_controles_de_administrador",

@@ -3,7 +3,6 @@ import difflib
 import time
 
 from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
-from models.account import Account
 
 from models.mercado import MarketOffer
 import settings
@@ -20,11 +19,6 @@ from database import db
 logger = settings.logging.getLogger(__name__)
 
 
-# TODO adicionar has_any_roles para vice_lider e remover crafter
-# TODO selfcheck para não dar pontos a si mesmo
-
-
-# TODO Validador de link
 class MercadoCommands(app_commands.Group):
     @app_commands.command(name="oferecer", description="Cria uma oferta no market")
     @app_commands.describe(
@@ -53,9 +47,11 @@ class MercadoCommands(app_commands.Group):
         try:
             if preço < 1 or quantidade < 1:
                 raise IsNegativeError
-            # TODO add LINK CHECKER
-            # if not is_valid_regex(imagem, regex):
-            #     raise IsNotLinkError
+
+            elif not is_valid_regex(imagem, regex):
+                print(is_valid_regex(imagem, regex))
+                raise IsNotLinkError
+
             else:
                 vendor_name = (
                     interaction.user.nick

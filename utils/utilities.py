@@ -14,7 +14,7 @@ def mention_by_id(id):
 
 def is_valid_regex(message, regex_pattern):
     """### Validação de padrão regex"""
-    match = re.match(regex_pattern, message)
+    match = re.match(pattern=regex_pattern, string=message)
     return bool(match)
 
 

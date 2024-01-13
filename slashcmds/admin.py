@@ -5,21 +5,19 @@ from discord import utils
 from discord import app_commands
 from models.account import Account
 from cogs.doar import IsNegativeError
-from errors.errors import NotEnoughtPointsError
+from errors.errors import IsYourselfError, NotEnoughtPointsError
 
 
 logger = settings.logging.getLogger(__name__)
 
 
-# TODO adicionar has_any_roles para vice_lider e remover crafter
-# TODO selfcheck para não dar pontos a si mesmo
 class AdminCommands(app_commands.Group):
     @app_commands.command(name="add", description="Adiciona pontos a um player")
     @app_commands.describe(
         player="O player que receberá pontos",
         pontos="A quantidade de pontos a ser adicionada",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Crafter")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider")
     async def admin_add_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -28,6 +26,12 @@ class AdminCommands(app_commands.Group):
             if pontos < 1:
                 raise IsNegativeError
 
+            if interaction.user.id == player.id:
+                raise IsYourselfError
+        except IsYourselfError:
+            return await interaction.response.send_message(
+                f"` {pontos} ` não é um número válido", ephemeral=True
+            )
         except ValueError:
             return await interaction.response.send_message(
                 f"` {pontos} ` não é um número válido", ephemeral=True
@@ -49,7 +53,7 @@ class AdminCommands(app_commands.Group):
         account.points += pontos
         account.save()
 
-        # envia mensagem de confirmação
+        # envia mensagem de feedback
         await interaction.response.send_message(
             f"` {pontos} ` pontos foram concedidos a {player.mention}",
             ephemeral=True,

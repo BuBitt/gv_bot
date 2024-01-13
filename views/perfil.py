@@ -264,7 +264,7 @@ class GuildProfileView(discord.ui.View):
         self.g_profile_embed = g_profile_embed
         # self.balance_all = balance_all
         super().__init__(timeout=None)
-        # TODO concertar Cooldown
+        # TODO concertar cd
         self.cooldown = commands.CooldownMapping.from_cooldown(
             1, 1, commands.BucketType.member
         )
