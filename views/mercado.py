@@ -120,15 +120,19 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
         )
         await interaction.message.delete()
 
-        # update offer status on db
-        self.offer.is_active = False
+        # update offer on db
         self.offer.buyer_id = interaction.user.id
-        self.offer.quantity -= self.quantity_to_buy
-        self.offer.save()
+
+        # calculate remainig quantity
+        remain = self.offer.quantity - self.quantity_to_buy
+        self.offer.quantity = remain
 
         # deleta mensagem de confirmação de venda
-        if self.offer.quantity == 0:
+        if remain == 0:
+            # update offer status on db
+            self.offer.is_active = False
             await self.message.delete()
+
         else:
             offer = self.offer
             embed_offer = discord.Embed(
@@ -148,13 +152,14 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
             embed_offer.set_image(url=offer.image)
 
             await self.message.edit(embed=embed_offer, view=MarketOfferInterest())
+        self.offer.save()
 
         # log da operação
         log_message_terminal = f"Oferta N° {self.offer.id}: O vendedor {self.vendor.name} finalizou a oferta do item {self.offer.item}. Comprador: {self.buyer.name}"
         logger.info(log_message_terminal)
 
         timestamp = str(time.time()).split(".")[0]
-        log_message_ch = f"<t:{timestamp}:F>` - Oferta N° {self.offer.id} foi finalizada. Vendedor:`{self.vendor.mention}` - `{self.buyer.mention}` comprou o item: {self.offer.item} ao preço de {self.offer.price} `"
+        log_message_ch = f"<t:{timestamp}:F>` - Oferta N° {self.offer.id} foi finalizada. - `{self.buyer.mention}` comprou o item: {self.offer.item} ao preço de {self.offer.price} do vendedor:`{self.vendor.mention}"
 
         log_channel = utils.get(self.message.guild.text_channels, name="logs")
         log_mkt_channel = utils.get(
