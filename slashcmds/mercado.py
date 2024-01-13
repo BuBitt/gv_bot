@@ -30,6 +30,7 @@ class MercadoCommands(app_commands.Group):
     @app_commands.describe(
         item="Nome do item oferecido ex: Cloth T4",
         preço="Preço do item",
+        quantidade="quantidade de itens",
         imagem="Imagem do item com os atributos",
     )
     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
@@ -38,6 +39,7 @@ class MercadoCommands(app_commands.Group):
         interaction: discord.Interaction,
         item: str,
         preço: int,
+        quantidade: int,
         imagem: str,
     ):
         regex = (
@@ -49,9 +51,10 @@ class MercadoCommands(app_commands.Group):
         )
 
         try:
-            if preço < 1:
+            if preço < 1 or quantidade < 1:
                 raise IsNegativeError
-            # elif not is_valid_regex(imagem, regex):
+            # TODO add LINK CHECKER
+            # if not is_valid_regex(imagem, regex):
             #     raise IsNotLinkError
             else:
                 vendor_name = (
@@ -66,6 +69,7 @@ class MercadoCommands(app_commands.Group):
                 offer_dict["member_id"] = interaction.user.id
                 offer_dict["member_name"] = vendor_name
                 offer_dict["item"] = item
+                offer_dict["quantity"] = quantidade
                 offer_dict["price"] = preço
                 offer_dict["image"] = imagem
                 offer_dict["timestamp"] = timestamp
@@ -80,8 +84,11 @@ class MercadoCommands(app_commands.Group):
                     color=discord.Color.dark_green(),
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
-                embed_offer.add_field(name="", value=f"```{item.title()}```")
+                embed_offer.add_field(
+                    name="", value=f"```{item.title()}```", inline=False
+                )
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
+                embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
                     name=f"Vendedor: {vendor_name}",
                     icon_url=interaction.user.display_avatar,
@@ -92,7 +99,7 @@ class MercadoCommands(app_commands.Group):
                 message = await market_channel.send(
                     content=" ", embed=embed_offer, view=MarketOfferInterest()
                 )
-                print(message.id)
+
                 offer_dict["offer_message_id"] = message.id
                 offer_dict["offer_jump_url"] = message.jump_url
 

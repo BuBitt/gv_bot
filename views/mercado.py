@@ -1,19 +1,93 @@
 import time
 import discord
 import settings
+import traceback
 from discord import utils
+from datetime import datetime
 from models.mercado import MarketOffer
+from errors.errors import IsGreatherThanMaxError, IsNegativeError
 
 
 logger = settings.logging.getLogger(__name__)
 
 
+class QuantityModal(discord.ui.Modal, title="Quantos você deseja comprar?"):
+    def __init__(self, max_quantity, message, offer, vendor, embed_offer) -> None:
+        self.offer = offer
+        self.vendor = vendor
+        self.message = message
+        self.embed_offer = embed_offer
+        self.max_quantity = max_quantity
+        super().__init__(timeout=None)
+
+    quantity = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="Quantidade",
+        required=True,
+        placeholder=f"digite a quantidade",
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        quantity = self.quantity.value
+        max_quantity = self.max_quantity
+        vendor = utils.get(interaction.guild.members, id=self.offer.vendor_id)
+
+        try:
+            quantity = int(quantity)
+
+            if quantity < 1:
+                raise IsNegativeError
+
+            elif quantity > max_quantity:
+                raise IsGreatherThanMaxError
+
+            else:
+                # feedback
+                await interaction.response.send_message(
+                    f"Sua intenção de compra foi enviada para {vendor.mention}",
+                    ephemeral=True,
+                )
+
+                # envia a oferta ao canal do mercado
+                await vendor.send(
+                    content=f"{interaction.user.mention} está interessado na sua oferta {self.offer.jump_url}",
+                    embed=self.embed_offer,
+                    view=MarketOfferInterestVendorConfirmation(
+                        buyer=interaction.user,
+                        message=self.message,
+                        quantity_to_buy=quantity,
+                        offer=self.offer,
+                        vendor=vendor,
+                    ),
+                )
+
+        except IsNegativeError:
+            return await interaction.response.send_message(
+                f"O número precisa ser maior que 1.", ephemeral=True
+            )
+
+        except IsGreatherThanMaxError:
+            return await interaction.response.send_message(
+                f"A quantidade não pode ser maior que ` {max_quantity} `.",
+                ephemeral=True,
+            )
+
+        except ValueError:
+            return await interaction.response.send_message(
+                f"` {quantity} ` não é um número.", ephemeral=True
+            )
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        traceback.print_tb(error.__traceback__)
+
+
 class MarketOfferInterestVendorConfirmation(discord.ui.View):
-    def __init__(self, buyer, message, offer, vendor) -> None:
+    def __init__(self, buyer, message, offer, vendor, quantity_to_buy) -> None:
         self.buyer = buyer
         self.offer = offer
         self.vendor = vendor
         self.message = message
+        self.quantity_to_buy = quantity_to_buy
         super().__init__(timeout=None)
 
     @discord.ui.button(
@@ -24,17 +98,19 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
     async def vendor_confirmation_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        # edita a mensagem na loja
-        await self.message.delete()
-
         # embed de confirmação
         embed_offer = discord.Embed(
-            title=f"Item: {self.offer.item}. Preço: {self.offer.price}. Oferta: {self.offer.id}",
+            title=f"",
             color=discord.Color.brand_green(),
         )
-
-        # deleta mensagem de confirmação de venda
-        await interaction.message.delete()
+        embed_offer.add_field(
+            name="", value=f"```Item: {self.offer.item}```", inline=False
+        )
+        embed_offer.add_field(name="", value=f"```Oferta N°: {self.offer.id}```")
+        embed_offer.add_field(name="", value=f"```Preço: {self.offer.price}```")
+        embed_offer.add_field(
+            name="", value=f"```Qte vendida: {self.quantity_to_buy}```"
+        )
 
         # envia feedback
         await interaction.response.send_message(
@@ -42,11 +118,36 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
             embed=embed_offer,
             ephemeral=True,
         )
+        await interaction.message.delete()
 
         # update offer status on db
         self.offer.is_active = False
-        self.offer.buyer_id = self.buyer.id
+        self.offer.buyer_id = interaction.user.id
+        self.offer.quantity -= self.quantity_to_buy
         self.offer.save()
+
+        # deleta mensagem de confirmação de venda
+        if self.offer.quantity == 0:
+            await self.message.delete()
+        else:
+            offer = self.offer
+            embed_offer = discord.Embed(
+                title=f"",
+                color=discord.Color.dark_green(),
+                timestamp=datetime.fromtimestamp(int(self.offer.timestamp)),
+            )
+            embed_offer.add_field(
+                name="", value=f"```{offer.item.title()}```", inline=False
+            )
+            embed_offer.add_field(name="", value=f"```{offer.price} Silver```")
+            embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
+            embed_offer.set_author(
+                name=f"Vendedor: {offer.vendor_name}",
+                icon_url=interaction.user.display_avatar,
+            )
+            embed_offer.set_image(url=offer.image)
+
+            await self.message.edit(embed=embed_offer, view=MarketOfferInterest())
 
         # log da operação
         log_message_terminal = f"Oferta N° {self.offer.id}: O vendedor {self.vendor.name} finalizou a oferta do item {self.offer.item}. Comprador: {self.buyer.name}"
@@ -83,24 +184,43 @@ class MarketOfferInterest(discord.ui.View):
 
         # checa se o autor da oferta tentou comprá-la
         if interaction.user.id == vendor.id:
-            return await interaction.response.send_message("Você não pode comprar seu prório item!", ephemeral=True)
+            return await interaction.response.send_message(
+                "Você não pode comprar seu prório item!", ephemeral=True
+            )
 
         # informações superficiais da oferta de interesse
         embed_offer = discord.Embed(title=f"Item: {offer.item}. Preço: {offer.price}")
 
-        # feedback
-        await interaction.response.send_message(
-            f"Sua intenção de compra foi enviada para {vendor.mention}", ephemeral=True
-        )
+        # inserir quantidade de compra desejada
+        if offer.quantity > 1:
+            quantity_to_buy = await interaction.response.send_modal(
+                QuantityModal(
+                    embed_offer=embed_offer,
+                    max_quantity=offer.quantity,
+                    offer=offer,
+                    vendor=vendor,
+                    message=interaction.message,
+                )
+            )
+        else:
+            quantity_to_buy = 1
 
-        # envia a oferta ao canal do mercado
-        await vendor.send(
-            content=f"{interaction.user.mention} está interessado na sua oferta {offer.jump_url}",
-            embed=embed_offer,
-            view=MarketOfferInterestVendorConfirmation(
-                buyer=interaction.user,
-                message=interaction.message,
-                offer=offer,
-                vendor=vendor,
-            ),
-        )
+            # feedback
+            await interaction.response.send_message(
+                f"Sua intenção de compra foi enviada para {vendor.mention}",
+                ephemeral=True,
+            )
+
+            # envia a oferta ao canal do mercado
+            await vendor.send(
+                content=f"{interaction.user.mention} está interessado na sua oferta {offer.jump_url}",
+                embed=embed_offer,
+                view=MarketOfferInterestVendorConfirmation(
+                    embed_offer=embed_offer,
+                    buyer=interaction.user,
+                    message=interaction.message,
+                    quantity_to_buy=quantity_to_buy,
+                    offer=offer,
+                    vendor=vendor,
+                ),
+            )

@@ -120,7 +120,6 @@ class CadastroTransacao(commands.Cog):
                 # validador da menção
                 regex = "^<@[0-9]+>$"
 
-                print("3")
                 try:
                     if not is_valid_regex(crafter_mention, regex):
                         raise IsNotMentionError("")
