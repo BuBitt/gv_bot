@@ -1,15 +1,18 @@
-import time
 from datetime import datetime
-from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
+import difflib
+import time
 
-import settings
+from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
+from models.account import Account
+
 from models.mercado import MarketOffer
+import settings
 
 import discord
 from discord import app_commands
 from discord import utils
 
-from utils.utilities import is_valid_regex
+from utils.utilities import is_valid_regex, mention_by_id, search_offer_table_construct
 from views.mercado import MarketOfferInterest
 from database import db
 
@@ -101,8 +104,6 @@ class MercadoCommands(app_commands.Group):
                     f"` Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
 
-                print(interaction.message)
-
                 # log da operação
                 log_message_terminal = f"{interaction.user.name} cirou uma nova oferta"
                 logger.info(log_message_terminal)
@@ -125,10 +126,38 @@ class MercadoCommands(app_commands.Group):
         name="procurar",
         description="procura ofertas por item",
     )
-    @app_commands.describe(item="item que deseja buscar")
+    @app_commands.describe(item="busca por item")
     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
     async def market_search(self, interaction: discord.Interaction, item: str):
-        await interaction.response.send_message("test", ephemeral=True)
+        # Fetch active market offers from the database
+        query_search_for = MarketOffer.select().where(MarketOffer.is_active)
+
+        # Consulta ofertas ativas no mercado no banco de dados
+        search_results = [
+            (
+                offer,
+                difflib.SequenceMatcher(None, item.lower(), offer.item.lower()).ratio(),
+            )
+            for offer in query_search_for
+        ]
+
+        # Calcula as taxas de similaridade usando list comprehension
+        filtered_results = [offer for offer, ratio in search_results if ratio > 0.46]
+
+        if not filtered_results:
+            return await interaction.response.send_message(
+                f"Não foram encontradas ofertas com `{item.title()}`.", ephemeral=True
+            )
+
+        # Exibe os resultados
+        offers = [
+            f"{my_offer.jump_url}` → Item: {my_offer.item}. Preço: {my_offer.price}. Vendedor:`{mention_by_id(my_offer.vendor_id)}"
+            for my_offer in filtered_results
+        ]
+        offers_table = search_offer_table_construct(offers)
+        await interaction.response.send_message(
+            content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+        )
 
     @app_commands.command(
         name="minhas-ofertas",
@@ -136,7 +165,31 @@ class MercadoCommands(app_commands.Group):
     )
     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
     async def my_offers(self, interaction: discord.Interaction):
-        await interaction.response.send_message("test", ephemeral=True)
+        # Consulta ofertas ativas no mercado no banco de dados
+        query_search_for = MarketOffer.select().where(
+            (MarketOffer.vendor_id == interaction.user.id)
+            & (MarketOffer.is_active == True)
+        )
+
+        if not query_search_for:
+            # Se nenhum resultado for enquantrado envia uma menságem
+            return await interaction.response.send_message(
+                "Você não possui ofertas ativas", ephemeral=True
+            )
+
+        # Exibe os resultados
+        offers = [
+            f"{my_offer.jump_url}` → Item: {my_offer.item}. Preço: {my_offer.price} `"
+            for my_offer in query_search_for
+        ]
+
+        # Constroi uma tabela com as ofertas ativas
+        offers_table = search_offer_table_construct(offers)
+
+        # Envia a tabela contruida
+        await interaction.response.send_message(
+            content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+        )
 
 
 async def setup(bot):

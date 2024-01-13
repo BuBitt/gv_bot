@@ -81,7 +81,6 @@ class MarketOfferInterest(discord.ui.View):
         offer = MarketOffer.fetch(interaction.message.id)
         vendor = utils.get(interaction.guild.members, id=offer.vendor_id)
 
-        # TODO habilitar check
         # checa se o autor da oferta tentou comprá-la
         if interaction.user.id == vendor.id:
             return await interaction.response.send_message("Você não pode comprar seu prório item!", ephemeral=True)

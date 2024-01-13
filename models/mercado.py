@@ -16,6 +16,7 @@ class MarketOffer(peewee.Model):
     jump_url: int = peewee.CharField(max_length=1024)
     item: str = peewee.CharField(max_length=255)
     price: int = peewee.IntegerField()
+    quantity: int = peewee.IntegerField(default=1)
     image: str = peewee.CharField(max_length=1024)
     is_active: bool = peewee.BooleanField(default=True)
     timestamp: str = peewee.CharField(max_length=255)
@@ -34,6 +35,7 @@ class MarketOffer(peewee.Model):
                 jump_url=market_offer.get("offer_jump_url"),
                 item=market_offer.get("item"),
                 price=market_offer.get("price"),
+                quantity=market_offer.get("quantity"),
                 image=market_offer.get("image"),
                 timestamp=market_offer.get("timestamp"),
             )
@@ -46,6 +48,7 @@ class MarketOffer(peewee.Model):
                 jump_url=market_offer.get("offer_jump_url"),
                 item=market_offer.get("item"),
                 price=market_offer.get("price"),
+                quantity=market_offer.get("quantity"),
                 image=market_offer.get("image"),
                 timestamp=market_offer.get("timestamp"),
             )
