@@ -158,7 +158,7 @@ class MercadoCommands(app_commands.Group):
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}. Preço: {my_offer.price}. Vendedor:`{mention_by_id(my_offer.vendor_id)}"
+            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity}; Vendedor:`{mention_by_id(my_offer.vendor_id)}"
             for my_offer in filtered_results
         ]
         offers_table = search_offer_table_construct(offers)
@@ -186,7 +186,7 @@ class MercadoCommands(app_commands.Group):
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}. Preço: {my_offer.price} `"
+            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
             for my_offer in query_search_for
         ]
 
