@@ -51,7 +51,7 @@ class MercadoCommands(app_commands.Group):
             # elif not is_valid_regex(imagem, regex):
             #     raise IsNotLinkError
             else:
-                user_name = (
+                vendor_name = (
                     interaction.user.nick
                     if interaction.user.nick != None
                     else interaction.user.name
@@ -61,7 +61,7 @@ class MercadoCommands(app_commands.Group):
                 # controi oferta
                 offer_dict = {}
                 offer_dict["member_id"] = interaction.user.id
-                offer_dict["member_name"] = user_name
+                offer_dict["member_name"] = vendor_name
                 offer_dict["item"] = item
                 offer_dict["price"] = preço
                 offer_dict["image"] = imagem
@@ -80,7 +80,7 @@ class MercadoCommands(app_commands.Group):
                 embed_offer.add_field(name="", value=f"```{item.title()}```")
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
                 embed_offer.set_author(
-                    name=f"Vendedor: {user_name}",
+                    name=f"Vendedor: {vendor_name}",
                     icon_url=interaction.user.display_avatar,
                 )
                 embed_offer.set_image(url=imagem)
@@ -98,7 +98,7 @@ class MercadoCommands(app_commands.Group):
                 MarketOffer.new(offer_dict)
 
                 await interaction.response.send_message(
-                    f"`Sua oferta foi criada: `{message.jump_url}", ephemeral=True
+                    f"` Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
 
                 print(interaction.message)

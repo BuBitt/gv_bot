@@ -7,6 +7,9 @@ def id_converter(raw_id: str):
     """### Converte uma menção para um formato de id"""
     return int(raw_id[2:-1])
 
+def mention_by_id(id):
+    return f"<@{id}>"
+
 
 def is_valid_regex(message, regex_pattern):
     """### Validação de padrão regex"""

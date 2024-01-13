@@ -27,7 +27,7 @@ def run():
 
     # Define o prefixo dos comandos
     bot = commands.Bot(command_prefix="!", intents=intents)
-
+    
     @bot.event
     async def on_ready():
         logger.info(f"Bot {bot.user.name} id:{bot.user.id} has Started")
@@ -75,7 +75,8 @@ def run():
             await bot.reload_extension(f"cogs.{cog.lower()}")
             logger.info(f"cog {cog} reloaded.")
             await ctx.send(f"cog: {cog} reloaded")
-
+    
+    # TODO Error Handling
     # slashcommands errorhandling
     # async def on_tree_error(
     #     interaction: discord.Interaction, error: app_commands.AppCommandError
