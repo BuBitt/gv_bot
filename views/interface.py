@@ -255,10 +255,9 @@ class AdminLauncher(discord.ui.View):
         await interaction.response.send_modal(EditItemModal())
 
     @discord.ui.button(
-        label="Transferir Silver da Guilda",
+        label="Transferir Silver",
         style=discord.ButtonStyle.danger,
         custom_id="admin_transfer_silver_button",
-        row=2,
     )
     async def admin_transfer_silver(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -266,10 +265,10 @@ class AdminLauncher(discord.ui.View):
         embed = discord.Embed(
             title="**Instruções de Transferencia de Silver**",
             description="Para registrar uma transferencia de silver da gulda para um player use o comando:\n\
-``",
+```/admin doar-silver [@player] [quantidade]```",
             color=discord.Color.yellow(),
         )
-        await interaction.response.send_message()
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @discord.ui.button(
         label="Editar Valores de Tier",
@@ -285,6 +284,7 @@ class AdminLauncher(discord.ui.View):
         label="Zerar a Pontuação de Todos",
         style=discord.ButtonStyle.danger,
         custom_id="admin_to_zero_points_button",
+        row=2,
     )
     async def zero_admin_item(
         self, interaction: discord.Interaction, button: discord.ui.Button

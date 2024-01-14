@@ -17,12 +17,14 @@ class InterfaceLaunchers(app_commands.Group):
 BOTÕES:
     ` Novo Item `                   - Abre o formulário para a adição de um novo item
     ` Editar item `                 - Abre o formulário para a edição de pontos de um item
+    ` Transferir Silver `           - Instruções para a transferencia de silver à players
     ` Zerar Pontuação de Todos`     - Zera os pontos de todas as pessoas na guilda
-    ` Transferir Silver da Guilda ` - Abre as instruções para a transferencia de silver da guil p/ player
 
 COMANDOS:
-    `/pontos add @usuário quantidade`     - Adiciona pontos ao Player
-    `/pontos remover @usuário quantidade` - Remove pontos do Player
+- **Adiciona pontos ao Player**
+    - ```/admin adicionar-pontos [@player] [quantidade]```
+- **Remove pontos do Player**
+    - ```/admin remover-pontos [@player] [quantidade]```
 """,
         )
         await interaction.channel.send(embed=embed, view=AdminLauncher())

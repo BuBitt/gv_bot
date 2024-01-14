@@ -144,7 +144,7 @@ class AdminCommands(app_commands.Group):
         quantidade="A quantidade de silver a ser transferida",
     )
     @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
-    async def admin_remove_points(
+    async def admin_donate_silver(
         self, interaction: discord.Interaction, player: discord.Member, quantidade: int
     ):
         account = Account.fetch(player)
@@ -174,7 +174,7 @@ class AdminCommands(app_commands.Group):
             else interaction.user.nick
         )
         user_name = player.name if player.nick == None else player.nick
-        
+
         guild.guild_silver -= quantidade
         account.silver += quantidade
         guild.save()
