@@ -76,3 +76,14 @@ class MarketOffer(peewee.Model):
         except peewee.DoesNotExist:
             return None
         return market_offer
+    
+    @staticmethod
+    def fetch_by_id(offer_id):
+        MarketOffer.create_table()
+        try:
+            market_offer = MarketOffer.get(
+                MarketOffer.id == offer_id,
+            )
+        except peewee.DoesNotExist:
+            return None
+        return market_offer

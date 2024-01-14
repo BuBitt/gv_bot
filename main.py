@@ -11,7 +11,13 @@ from models.donation import Donation
 from views.mercado import MarketOfferInterest
 from views.mercado_bis import BisMarketOfferInterest
 from views.perfil import PlayerGeneralIfo
-from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher, Main, MarketLauncher
+from views.interface import (
+    AdminLauncher,
+    CrafterLauncher,
+    DonationLauncher,
+    Main,
+    MarketLauncher,
+)
 
 
 logger = settings.logging.getLogger(__name__)
@@ -63,17 +69,17 @@ def run():
 
         # comandos de load
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider", "Lider")
+        @commands.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
         async def load(ctx, cog: str):
             await bot.load_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider", "Lider")
+        @commands.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
         async def unload(ctx, cog: str):
             await bot.unload_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider", "Lider")
+        @commands.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
         async def reload(ctx, cog: str):
             await bot.reload_extension(f"cogs.{cog.lower()}")
             logger.info(f"cog {cog} reloaded.")
@@ -107,7 +113,11 @@ def run():
 
     # Interaction Menus
     @bot.tree.context_menu(name="Informações Gerais")
-    @app_commands.checks.has_any_role("Crafter", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(
+        settings.CRAFTER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     async def general_info(interaction: discord.Interaction, member: discord.Member):
         embed = discord.Embed(title=f"Informações do player: **{member.name}**")
         await interaction.response.send_message(

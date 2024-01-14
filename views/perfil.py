@@ -337,7 +337,7 @@ class GuildProfileView(discord.ui.View):
         logger.info(log_message_terminal)
 
         log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.mention}` baixou os dados de doação da guilda `"
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
     # @discord.ui.button(

@@ -1,14 +1,21 @@
 import time
 import discord
+from models.mercado import MarketOffer
 import settings
 import traceback
 from discord import utils
 from models.items import Items
+from utils.utilities import search_offer_table_construct
 from views.admin import (
     AdminToZeroPointsConfirm,
     EditItemConfirm,
     EditTierMinimalRequeirementsAdmin,
     NewItemModalAdmin,
+)
+from views.market_interface import (
+    MarketDeleteMyOffersModal,
+    MarketSearchModal,
+    MarketVerifyMyOffersModal,
 )
 
 
@@ -55,7 +62,7 @@ class NewItemConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` adicionou um novo item a base de dados: {self.new_item}, Pontos: {self.points}`"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
 
@@ -214,6 +221,7 @@ class DonationLauncher(discord.ui.View):
                 f"Canal de doação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
             )
 
+
 # crafter
 class CrafterLauncher(discord.ui.View):
     def __init__(self) -> None:
@@ -305,7 +313,7 @@ Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
 class MarketLauncher(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-    
+
     @discord.ui.button(
         label="Buscar Item",
         style=discord.ButtonStyle.success,
@@ -314,9 +322,34 @@ class MarketLauncher(discord.ui.View):
     async def search_market_item(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_message("buscar item")
-        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
-    
+        await interaction.response.send_modal(MarketSearchModal())
+
+    @discord.ui.button(
+        label="Buscar Player",
+        style=discord.ButtonStyle.success,
+        custom_id="show_market_player_offers",
+    )
+    async def show_market_player_offers(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        embed = discord.Embed(
+            title="**ESSA AÇÃO USA UM COMANDO**",
+            description="```/mercado ver-loja [@Player]```\n Use esse comando para ver a lojnha de um player",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @discord.ui.button(
+        label="Deletar Oferta",
+        style=discord.ButtonStyle.danger,
+        custom_id="delet_my_market_offer",
+        row=1,
+    )
+    async def delet_my_market_offer(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketDeleteMyOffersModal())
+
     @discord.ui.button(
         label="Minhas Ofertas",
         style=discord.ButtonStyle.success,
@@ -325,30 +358,42 @@ class MarketLauncher(discord.ui.View):
     async def show_market_my_offers(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_message("minhas ofertas")
-    
+        # Consulta ofertas ativas no mercado no banco de dados
+        query_search_for = MarketOffer.select().where(
+            (MarketOffer.vendor_id == interaction.user.id)
+            & (MarketOffer.is_active == True)
+        )
+
+        if not query_search_for:
+            # Se nenhum resultado for enquantrado envia uma menságem
+            return await interaction.response.send_message(
+                "Você não possui ofertas ativas", ephemeral=True
+            )
+
+        # Exibe os resultados
+        offers = [
+            f"{my_offer.jump_url}` N° {my_offer.id} → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
+            for my_offer in query_search_for
+        ]
+
+        # Constroi uma tabela com as ofertas ativas
+        offers_table = search_offer_table_construct(offers)
+
+        # Envia a tabela contruida
+        await interaction.response.send_message(
+            content=f"`Suas Ofertas`\n{offers_table}", ephemeral=True
+        )
+
     @discord.ui.button(
-        label="Ver loja",
+        label="Verificar Compra",
         style=discord.ButtonStyle.success,
-        custom_id="show_market_player_offers",
+        custom_id="verify_hash_market_offer",
     )
-    async def show_market_player_offers(
+    async def verify_hash_market_offer(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_message("ver loja")
-        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
-    
-    @discord.ui.button(
-        label="Deletar Oferta",
-        style=discord.ButtonStyle.danger,
-        custom_id="delet_my_market_offer",
-    )
-    async def delet_my_market_offer(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        await interaction.response.send_message("deletar item")
-        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
-        
+        await interaction.response.send_modal(MarketVerifyMyOffersModal())
+
 
 # Confirmação para deletas canais
 class Confirm(discord.ui.View):

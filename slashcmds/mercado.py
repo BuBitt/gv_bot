@@ -27,7 +27,9 @@ class MercadoCommands(app_commands.Group):
         quantidade="quantidade de itens",
         imagem="Imagem do item com os atributos",
     )
-    @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+    )
     async def market_new_offer(
         self,
         interaction: discord.Interaction,
@@ -72,7 +74,7 @@ class MercadoCommands(app_commands.Group):
 
                 # encontra o canal mercado
                 market_channel = utils.get(
-                    interaction.guild.text_channels, name="ofertas"
+                    interaction.guild.text_channels, id=settings.MARKET_OFFER_CHANNEL
                 )
 
                 embed_offer = discord.Embed(
@@ -112,7 +114,9 @@ class MercadoCommands(app_commands.Group):
                 logger.info(log_message_terminal)
 
                 log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.mention}` criou uma nova oferta `{message.jump_url}"
-                channel = utils.get(interaction.guild.text_channels, name="logs")
+                channel = utils.get(
+                    interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+                )
                 await channel.send(log_message_ch)
 
         except IsNotLinkError:
@@ -130,7 +134,9 @@ class MercadoCommands(app_commands.Group):
         description="procura ofertas por item",
     )
     @app_commands.describe(item="busca por item")
-    @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+    )
     async def market_search(self, interaction: discord.Interaction, item: str):
         # Fetch active market offers from the database
         query_search_for = MarketOffer.select().where(MarketOffer.is_active)
@@ -166,7 +172,9 @@ class MercadoCommands(app_commands.Group):
         name="minhas-ofertas",
         description="mostra suas ofertas abertas",
     )
-    @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+    )
     async def my_offers(self, interaction: discord.Interaction):
         # Consulta ofertas ativas no mercado no banco de dados
         query_search_for = MarketOffer.select().where(
@@ -182,7 +190,7 @@ class MercadoCommands(app_commands.Group):
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
+            f"{my_offer.jump_url}` N° {my_offer.id} → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
             for my_offer in query_search_for
         ]
 
@@ -199,7 +207,9 @@ class MercadoCommands(app_commands.Group):
         description="mostra as ofertas de um player específico",
     )
     @app_commands.describe(player="Player dono da loja")
-    @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+    )
     async def player_offers(
         self, interaction: discord.Interaction, player: discord.User
     ):
@@ -213,7 +223,7 @@ class MercadoCommands(app_commands.Group):
         if not query_search_for:
             # Se nenhum resultado for enquantrado envia uma menságem
             return await interaction.response.send_message(
-                f"{player_name}` não possui ofertas ativas. `", ephemeral=True
+                f"{player.mention}` não possui ofertas ativas. `", ephemeral=True
             )
 
         # Exibe os resultados

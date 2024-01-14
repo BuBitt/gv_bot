@@ -20,7 +20,7 @@ class AdminCommands(app_commands.Group):
         player="O player que receberá pontos",
         pontos="A quantidade de pontos a ser adicionada",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def admin_add_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -69,7 +69,9 @@ class AdminCommands(app_commands.Group):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` adicionou {pontos} pontos ao player `{player.mention}"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
         # Envia PM do log ao player afetado
@@ -82,7 +84,7 @@ class AdminCommands(app_commands.Group):
         player="O player que perderá pontos",
         pontos="A quantidade de pontos a ser removida",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def admin_remove_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -130,7 +132,9 @@ class AdminCommands(app_commands.Group):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` removeu {pontos} pontos do player `{player.mention}"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
         # Envia PM do log ao player afetado
@@ -143,7 +147,7 @@ class AdminCommands(app_commands.Group):
         player="O player que receberá silver",
         quantidade="A quantidade de silver a ser transferida",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def admin_donate_silver(
         self, interaction: discord.Interaction, player: discord.Member, quantidade: int
     ):
@@ -193,7 +197,9 @@ class AdminCommands(app_commands.Group):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` transferiu {quantidade} silver da Guilda para o player `{player.mention}"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
         # Envia PM do log ao player afetado

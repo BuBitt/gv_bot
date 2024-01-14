@@ -163,3 +163,4 @@ cython_debug/
 
 *.db
 populate_account.py
+.env_main

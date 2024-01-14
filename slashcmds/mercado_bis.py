@@ -45,7 +45,7 @@ class MercadoBisCommands(app_commands.Group):
 #         quantidade="quantidade de itens",
 #         imagem="Imagem do item com os atributos",
 #     )
-#     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+#     @app_commands.checks.has_any_role(settings.MEMBRO_ROLE ,settings.MEMBRO_INICIANTE_ROLE)
 #     async def market_new_offer(
 #         self,
 #         interaction: discord.Interaction,
@@ -143,7 +143,7 @@ class MercadoBisCommands(app_commands.Group):
 #         description="procura ofertas por item",
 #     )
 #     @app_commands.describe(item="busca por item")
-#     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+#     @app_commands.checks.has_any_role(settings.MEMBRO_ROLE ,settings.MEMBRO_INICIANTE_ROLE)
 #     async def market_search(self, interaction: discord.Interaction, item: str):
 #         # Fetch active market offers from the database
 #         query_search_for = MarketOffer.select().where(MarketOffer.is_active)
@@ -179,7 +179,7 @@ class MercadoBisCommands(app_commands.Group):
 #         name="minhas-ofertas",
 #         description="mostra suas ofertas abertas",
 #     )
-#     @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+#     @app_commands.checks.has_any_role(settings.MEMBRO_ROLE ,settings.MEMBRO_INICIANTE_ROLE)
 #     async def my_offers(self, interaction: discord.Interaction):
 #         # Consulta ofertas ativas no mercado no banco de dados
 #         query_search_for = MarketOffer.select().where(

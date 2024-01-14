@@ -6,6 +6,7 @@ from views.interface import (
     DonationLauncher,
     MarketLauncher,
 )
+import settings
 
 
 class InterfaceLaunchers(app_commands.Group):
@@ -13,7 +14,7 @@ class InterfaceLaunchers(app_commands.Group):
         name="criar-controles-de-administrador",
         description="Inicia os botões para controle do administrador",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def admin_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO ADMINISTADOR**",
@@ -42,7 +43,7 @@ COMANDOS:
         name="criar-controles-de-craft",
         description="Inicia os botões do sistema de craft",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def craft_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
@@ -58,7 +59,7 @@ COMANDOS:
         name="criar-controles-de-doação",
         description="Inicia os botões do sistema de cadastro",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def donation_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"**Para doar clique no botão abaixo**",
@@ -75,10 +76,10 @@ COMANDOS:
         name="criar-painel-do-mercado",
         description="Inicia o painel e botões do sistema de mercado",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
     async def market_panel(self, interaction: discord.Interaction):
         market_offers_channel = discord.utils.get(
-            interaction.guild.text_channels, name="imagens-dump"
+            interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP
         )
         embed = discord.Embed(
             title="**PAINEL DO MERCARDO**",
@@ -93,7 +94,7 @@ COMANDOS:
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
 ```/mercado oferecer [item] [preço] [quantidade] [imagem]```
-`[item]`→ Escreva um nome para o item. EX: `T4 Cloth Armor int`
+`[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
 `[preço]`→ Preço unitário
 `[quantidade]`→ Quantidade de itens a venda
 `[imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
@@ -109,7 +110,7 @@ COMANDOS:
         )
 
     # @app_commands.command(name="close", description="Fecha um canal")
-    # @app_commands.checks.has_any_role("Crafter")
+    # @app_commands.checks.has_any_role(settings.CRAFTER_ROLE)
     # async def close_command(self, interaction: discord.Interaction):
     #     if (
     #         interaction.user.name in interaction.channel.name

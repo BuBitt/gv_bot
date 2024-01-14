@@ -62,7 +62,7 @@ class CadastroTransacao(commands.Cog):
     transaction_dict = {}
 
     @commands.command()
-    @commands.has_any_role("Membro", "Membro Iniciante")
+    @commands.has_any_role(settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE)
     async def doar(self, ctx: commands.context.Context):
         logger.debug(f"context: {ctx}")
         if ctx.channel.name.startswith("DOAÇÃO -"):
@@ -127,7 +127,9 @@ class CadastroTransacao(commands.Cog):
                     # checa se o mencionado é crafter
                     crafter_id = id_converter(crafter_mention)
                     crafter_user_object = utils.get(ctx.guild.members, id=crafter_id)
-                    crafter_role = discord.utils.get(ctx.guild.roles, name="Crafter")
+                    crafter_role = discord.utils.get(
+                        ctx.guild.roles, id=settings.CRAFTER_ROLE
+                    )
 
                     is_crafter = (
                         True if crafter_role in crafter_user_object.roles else False
@@ -490,7 +492,7 @@ class CadastroTransacao(commands.Cog):
             )
 
             # encontra o canal chamado "doações"
-            channel = utils.get(ctx.guild.text_channels, name="doações")
+            channel = utils.get(ctx.guild.text_channels, id=settings.DONATION_CHANNEL)
 
             # envia os embeds aos canais de interesse
             user_pm = discord.utils.get(
@@ -524,7 +526,9 @@ class CadastroTransacao(commands.Cog):
             )
 
         else:
-            channel = utils.get(ctx.guild.text_channels, name="guild-bank")
+            channel = utils.get(
+                ctx.guild.text_channels, id=settings.DONATION_PANEL_CHANNEL
+            )
             await ctx.send(
                 f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {channel.mention}"
             )

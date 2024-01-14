@@ -43,7 +43,7 @@ class ConfirmTransactionPm(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         donation_channel = discord.utils.get(
-            self.waiting_message.guild.text_channels, name="doações"
+            self.waiting_message.guild.text_channels, id=settings.DONATION_CHANNEL
         )
         # atualiza a mensagem para desligar os botões
         press_count = 1
@@ -92,7 +92,7 @@ class ConfirmTransactionPm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f'<t:{timestamp}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
 
-        channel = utils.get(donation_channel.guild.text_channels, name="logs")
+        channel = utils.get(donation_channel.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
         # envia o feedback da confirmação para o doador
@@ -140,7 +140,7 @@ class ConfirmTransactionPm(discord.ui.View):
         logger.info(log_message_terminal)
 
         log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - Doação negada. Criada por `{donor.mention}`, negada por `{crafter.mention}"
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
         # envia o feedback da confirmação para o doador

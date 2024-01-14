@@ -102,9 +102,9 @@ class Profile(app_commands.Group):
         embed_me.add_field(name="**Level**", value=account.level)
         embed_me.add_field(name="**Pontuação**", value=account.points)
         embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(name="_**Últimas Transações**_", value=f"""```{table}```""")
+        embed_me.add_field(name="_**Últimas Doações**_", value=f"""```{table} ```""")
         embed_me.add_field(
-            name="_**Balance**_", value=f"```{table_balance}```", inline=False
+            name="_**Histórico**_", value=f"```{table_balance} ```", inline=False
         )
         return embed_me
 
@@ -191,8 +191,8 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             value=Account.select().where(Account.role == "Damage").count(),
         )
         embed_guild.add_field(
-            name="_**Últimas Transações**_",
-            value=f"```{table}```",
+            name="_**Últimas Doações**_",
+            value=f"```{table} ```",
             inline=False,
         )
 
@@ -271,7 +271,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         table.columns.alignment["QTE DOADA"] = BeautifulTable.ALIGN_RIGHT
 
         embed_guild.add_field(
-            name="_**Balanço de Itens**_",
+            name="_**Histórico de Itens**_",
             value=f"```{table}```",
             inline=False,
         )

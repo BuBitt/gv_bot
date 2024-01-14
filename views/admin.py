@@ -42,7 +42,7 @@ class AdminToZeroPointsConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` Zerou a pontuação de todos os players da guilda `"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
 
@@ -148,7 +148,7 @@ class EditItemConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou a pontuação do item: {item_instance.item} para: {self.points} pontos `"
 
-        channel = utils.get(interaction.guild.text_channels, name="logs")
+        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
         await channel.send(log_message_ch)
 
 
@@ -251,7 +251,7 @@ class EditTierMinimalRequeirementsAdmin(
             timestamp = str(time.time()).split(".")[0]
             log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou as pontuações de tier: {int_dict} `"
 
-            channel = utils.get(interaction.guild.text_channels, name="logs")
+            channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
             await channel.send(log_message_ch)
 
         except NoChangeError:
