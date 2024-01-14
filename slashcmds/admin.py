@@ -164,7 +164,7 @@ class AdminCommands(app_commands.Group):
 
         except NotEnoughtPointsError:
             return await interaction.response.send_message(
-                f"A Guilda não possui silver suficiente ` {account.points} ` para transferir ` {quantidade} `",
+                f"A Guilda não possui silver suficiente ` {guild.guild_silver} ` para transferir ` {quantidade} `",
                 ephemeral=True,
             )
 
@@ -176,7 +176,7 @@ class AdminCommands(app_commands.Group):
         user_name = player.name if player.nick == None else player.nick
 
         guild.guild_silver -= quantidade
-        account.silver += quantidade
+        account.silver_quantity += quantidade
         guild.save()
         account.save()
 

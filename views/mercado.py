@@ -44,13 +44,13 @@ class QuantityModal(discord.ui.Modal, title="Quantos você deseja comprar?"):
             else:
                 # feedback
                 await interaction.response.send_message(
-                    f"Sua intenção de compra foi enviada para {vendor.mention}",
+                    f"` Sua intenção de compra foi enviada para `{vendor.mention}",
                     ephemeral=True,
                 )
 
                 # envia a oferta ao canal do mercado
                 await vendor.send(
-                    content=f"{interaction.user.mention} está interessado na sua oferta {self.offer.jump_url}",
+                    content=f"{interaction.user.mention}` está interessado na sua oferta `{self.offer.jump_url}",
                     embed=self.embed_offer,
                     view=MarketOfferInterestVendorConfirmation(
                         buyer=interaction.user,
@@ -102,6 +102,7 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
         embed_offer = discord.Embed(
             title=f"",
             color=discord.Color.brand_green(),
+            timestamp=datetime.fromtimestamp(int(time.time())),
         )
         embed_offer.add_field(
             name="", value=f"```Item: {self.offer.item}```", inline=False
@@ -114,9 +115,8 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
 
         # envia feedback
         await interaction.response.send_message(
-            content=f"Vendido para {self.buyer.mention}",
+            content=f"` Venda concluída. {self.quantity_to_buy} {self.offer.item} para `{self.buyer.mention}",
             embed=embed_offer,
-            ephemeral=True,
         )
         await interaction.message.delete()
 
@@ -194,7 +194,13 @@ class MarketOfferInterest(discord.ui.View):
             )
 
         # informações superficiais da oferta de interesse
-        embed_offer = discord.Embed(title=f"Item: {offer.item}. Preço: {offer.price}")
+        embed_offer = discord.Embed(
+            title="**NOVA ORDEM DE COMPRA**",
+            description="Caso deseje conversar sobre a venda, envie uma dm clicanco na menção.",
+            color=discord.Color.yellow(),
+        )
+        embed_offer.add_field(name="", value=f"```Item: {offer.item}```")
+        embed_offer.add_field(name="", value=f"```Item: {offer.price}```")
 
         # inserir quantidade de compra desejada
         if offer.quantity > 1:
@@ -212,16 +218,15 @@ class MarketOfferInterest(discord.ui.View):
 
             # feedback
             await interaction.response.send_message(
-                f"Sua intenção de compra foi enviada para {vendor.mention}",
+                f"` Sua intenção de compra foi enviada para `{vendor.mention}",
                 ephemeral=True,
             )
 
             # envia a oferta ao canal do mercado
             await vendor.send(
-                content=f"{interaction.user.mention} está interessado na sua oferta {offer.jump_url}",
+                content=f"{interaction.user.mention} está interessado nessa oferta {offer.jump_url}",
                 embed=embed_offer,
                 view=MarketOfferInterestVendorConfirmation(
-                    embed_offer=embed_offer,
                     buyer=interaction.user,
                     message=interaction.message,
                     quantity_to_buy=quantity_to_buy,

@@ -6,26 +6,27 @@
 # from models.account import Account
 
 # from models.mercado import MarketOffer
-# import settings
+import settings
 
-# import discord
-# from discord import app_commands
-# from discord import utils
+import discord
+from discord import app_commands
+from discord import utils
 
 # from utils.utilities import is_valid_regex, mention_by_id, search_offer_table_construct
 # from views.mercado import MarketOfferInterest
 # from database import db
 
 
-# logger = settings.logging.getLogger(__name__)
+logger = settings.logging.getLogger(__name__)
 
 
-# # TODO adicionar has_any_roles para vice_lider e remover crafter
-# # TODO selfcheck para não dar pontos a si mesmo
+# TODO adicionar has_any_roles para vice_lider e remover crafter
+# TODO selfcheck para não dar pontos a si mesmo
 
 
-# # TODO Validador de link
-# class MercadoCommands(app_commands.Group):
+# TODO Validador de link
+class MercadoBisCommands(app_commands.Group):
+    ...
 #     @app_commands.command(name="oferecer", description="Cria uma oferta no market")
 #     @app_commands.describe(
 #         item="Nome do item oferecido ex: Cloth T4",
@@ -196,7 +197,7 @@
 #         )
 
 
-# async def setup(bot):
-#     bot.tree.add_command(
-#         MercadoCommands(name="mercado", description="Comandospara o mercado")
-#     )
+async def setup(bot):
+    bot.tree.add_command(
+        MercadoBisCommands(name="bis", description="Comandospara o mercado")
+    )

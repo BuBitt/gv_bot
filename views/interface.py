@@ -265,6 +265,7 @@ class AdminLauncher(discord.ui.View):
         embed = discord.Embed(
             title="**Instruções de Transferencia de Silver**",
             description="Para registrar uma transferencia de silver da gulda para um player use o comando:\n\
+Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
 ```/admin doar-silver [@player] [quantidade]```",
             color=discord.Color.yellow(),
         )

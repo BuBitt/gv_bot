@@ -1,13 +1,15 @@
 import discord
 import peewee
+
 from database import db
 
 
 class Account(peewee.Model):
     user_id: str = peewee.CharField(max_length=255)
     user_name: str = peewee.CharField(max_length=255)
-    points: int = peewee.IntegerField()
-    level: int = peewee.IntegerField()
+    points: int = peewee.IntegerField(default=0)
+    silver_quantity: int = peewee.BigIntegerField(default=0)
+    level: int = peewee.IntegerField(default=1)
     role: str = peewee.CharField(max_length=255)
     got_boots: bool = peewee.BooleanField(default=False, null=False)
     got_helmt: bool = peewee.BooleanField(default=False, null=False)
@@ -20,9 +22,12 @@ class Account(peewee.Model):
 
     @staticmethod
     def fetch(interaction):
-
         if isinstance(interaction, (discord.Message, discord.Interaction)):
-            user_object = interaction.author if isinstance(interaction, discord.Message) else interaction.user
+            user_object = (
+                interaction.author
+                if isinstance(interaction, discord.Message)
+                else interaction.user
+            )
         elif isinstance(interaction, (discord.Member, discord.User)):
             user_object = interaction
 
@@ -35,8 +40,6 @@ class Account(peewee.Model):
             account = Account.create(
                 user_id=user_object.id,
                 user_name=user_object.name,
-                level=1,
                 role="No Role",
-                points=0,
             )
         return account
