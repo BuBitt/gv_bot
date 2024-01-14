@@ -1,6 +1,11 @@
 import discord
 from discord import app_commands
-from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher
+from views.interface import (
+    AdminLauncher,
+    CrafterLauncher,
+    DonationLauncher,
+    MarketLauncher,
+)
 
 
 class InterfaceLaunchers(app_commands.Group):
@@ -61,6 +66,43 @@ COMANDOS:
             color=discord.Color.blue(),
         )
         await interaction.channel.send(embed=embed, view=DonationLauncher())
+        await interaction.response.send_message(
+            f"{interaction.user.mention} Botão criado.",
+            ephemeral=True,
+        )
+
+    @app_commands.command(
+        name="criar-painel-do-mercado",
+        description="Inicia o painel e botões do sistema de mercado",
+    )
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    async def market_panel(self, interaction: discord.Interaction):
+        market_offers_channel = discord.utils.get(
+            interaction.guild.text_channels, name="imagens-dump"
+        )
+        embed = discord.Embed(
+            title="**PAINEL DO MERCARDO**",
+            color=discord.Color.dark_green(),
+            description=f"""\
+**BOTÕES**:
+    ` Minhas Ofertas `-→ Mostra todas as suas ofertas abertas e seus números
+    ` Buscar Item    `-→ Procura por um item no mercado
+    ` Ver loja       `-→ Mostra todas as ofertas de um determinado player
+    ` Deletar Oferta `-→ Deleta uma oferta pelo seu número 
+
+**CRIAR OFERTA:**
+- **Para criar um oferta use o comando:**
+```/mercado oferecer [item] [preço] [quantidade] [imagem]```
+`[item]`→ Escreva um nome para o item. EX: `T4 Cloth Armor int`
+`[preço]`→ Preço unitário
+`[quantidade]`→ Quantidade de itens a venda
+`[imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
+
+- _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
+
+""",
+        )
+        await interaction.channel.send(embed=embed, view=MarketLauncher())
         await interaction.response.send_message(
             f"{interaction.user.mention} Botão criado.",
             ephemeral=True,

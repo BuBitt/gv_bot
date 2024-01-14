@@ -72,7 +72,7 @@ class MercadoCommands(app_commands.Group):
 
                 # encontra o canal mercado
                 market_channel = utils.get(
-                    interaction.guild.text_channels, name="mercado"
+                    interaction.guild.text_channels, name="ofertas"
                 )
 
                 embed_offer = discord.Embed(
@@ -86,7 +86,7 @@ class MercadoCommands(app_commands.Group):
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
-                    name=f"Vendedor: {vendor_name}",
+                    name=f"{vendor_name} está vendendo:",
                     icon_url=interaction.user.display_avatar,
                 )
                 embed_offer.set_image(url=imagem)
@@ -104,7 +104,7 @@ class MercadoCommands(app_commands.Group):
                 MarketOffer.new(offer_dict)
 
                 await interaction.response.send_message(
-                    f"` Sua oferta foi criada: `{message.jump_url}", ephemeral=True
+                    f"`► Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
 
                 # log da operação
@@ -117,12 +117,12 @@ class MercadoCommands(app_commands.Group):
 
         except IsNotLinkError:
             await interaction.response.send_message(
-                f"` {imagem} ` não é um link válido.", ephemeral=True
+                f"`► {imagem} ` não é um link válido.", ephemeral=True
             )
 
         except IsNegativeError:
             await interaction.response.send_message(
-                f"` {item} ` não é um link válido.", ephemeral=True
+                f"`► {item} ` não é um link válido.", ephemeral=True
             )
 
     @app_commands.command(
@@ -192,6 +192,42 @@ class MercadoCommands(app_commands.Group):
         # Envia a tabela contruida
         await interaction.response.send_message(
             content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+        )
+
+    @app_commands.command(
+        name="ver-loja",
+        description="mostra as ofertas de um player específico",
+    )
+    @app_commands.describe(player="Player dono da loja")
+    @app_commands.checks.has_any_role("Membro", "Membro Iniciante")
+    async def player_offers(
+        self, interaction: discord.Interaction, player: discord.User
+    ):
+        # Consulta ofertas ativas no mercado no banco de dados
+        query_search_for = MarketOffer.select().where(
+            (MarketOffer.vendor_id == player.id) & (MarketOffer.is_active == True)
+        )
+
+        player_name = player.nick if player.nick != None else player.name
+
+        if not query_search_for:
+            # Se nenhum resultado for enquantrado envia uma menságem
+            return await interaction.response.send_message(
+                f"{player_name}` não possui ofertas ativas. `", ephemeral=True
+            )
+
+        # Exibe os resultados
+        offers = [
+            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
+            for my_offer in query_search_for
+        ]
+
+        # Constroi uma tabela com as ofertas ativas
+        offers_table = search_offer_table_construct(offers)
+
+        # Envia a tabela contruida
+        await interaction.response.send_message(
+            content=f"` Loja de {player_name}: `\n{offers_table}", ephemeral=True
         )
 
 

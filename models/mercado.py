@@ -1,4 +1,3 @@
-from email import message
 from database import db
 from ast import Dict
 import settings
@@ -20,6 +19,7 @@ class MarketOffer(peewee.Model):
     image: str = peewee.CharField(max_length=1024)
     is_active: bool = peewee.BooleanField(default=True, null=False)
     timestamp: str = peewee.CharField(max_length=255)
+    # hash_proof: str = peewee.CharField(max_length=15, default="not yet")
 
     class Meta:
         database = db
@@ -61,6 +61,17 @@ class MarketOffer(peewee.Model):
         try:
             market_offer = MarketOffer.get(
                 MarketOffer.message_id == message_id,
+            )
+        except peewee.DoesNotExist:
+            return None
+        return market_offer
+
+    @staticmethod
+    def fetch_by_jump_url(jump_url):
+        MarketOffer.create_table()
+        try:
+            market_offer = MarketOffer.get(
+                MarketOffer.jump_url == jump_url,
             )
         except peewee.DoesNotExist:
             return None

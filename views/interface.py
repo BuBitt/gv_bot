@@ -214,7 +214,7 @@ class DonationLauncher(discord.ui.View):
                 f"Canal de doação {channel.name} criado para {interaction.user.nick}(ID: {interaction.user.id})."
             )
 
-
+# crafter
 class CrafterLauncher(discord.ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
@@ -300,6 +300,55 @@ Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
             embed=embed, view=AdminToZeroPointsConfirm(), ephemeral=True
         )
 
+
+# MERCADO
+class MarketLauncher(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    
+    @discord.ui.button(
+        label="Buscar Item",
+        style=discord.ButtonStyle.success,
+        custom_id="search_market_item",
+    )
+    async def search_market_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("buscar item")
+        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
+    
+    @discord.ui.button(
+        label="Minhas Ofertas",
+        style=discord.ButtonStyle.success,
+        custom_id="show_market_my_offers",
+    )
+    async def show_market_my_offers(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("minhas ofertas")
+    
+    @discord.ui.button(
+        label="Ver loja",
+        style=discord.ButtonStyle.success,
+        custom_id="show_market_player_offers",
+    )
+    async def show_market_player_offers(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("ver loja")
+        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
+    
+    @discord.ui.button(
+        label="Deletar Oferta",
+        style=discord.ButtonStyle.danger,
+        custom_id="delet_my_market_offer",
+    )
+    async def delet_my_market_offer(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("deletar item")
+        # await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
+        
 
 # Confirmação para deletas canais
 class Confirm(discord.ui.View):

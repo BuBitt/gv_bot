@@ -1,21 +1,23 @@
-# from datetime import datetime
-# import difflib
-# import time
+from datetime import datetime
+import difflib
+import enum
+import time
+import typing
 
-# from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
-# from models.account import Account
+from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
+from models.account import Account
 
-# from models.mercado import MarketOffer
+from models.mercado import MarketOffer
 import settings
 
 import discord
 from discord import app_commands
 from discord import utils
 
-# from utils.utilities import is_valid_regex, mention_by_id, search_offer_table_construct
-# from views.mercado import MarketOfferInterest
-# from database import db
-
+from utils.utilities import is_valid_regex, mention_by_id, search_offer_table_construct
+from views.mercado_bis import BisMarketOfferInterest
+from database import db
+from discord.ext import commands
 
 logger = settings.logging.getLogger(__name__)
 
@@ -26,7 +28,16 @@ logger = settings.logging.getLogger(__name__)
 
 # TODO Validador de link
 class MercadoBisCommands(app_commands.Group):
-    ...
+    @app_commands.command()
+    @app_commands.describe(fruits="fruits to choose from")
+    async def fruit(
+        self,
+        interaction: discord.Interaction,
+        fruits: typing.Literal["apple", "banana", "cherry"],
+    ):
+        await interaction.response.send_message(f"Your favourite fruit is {fruits}.")
+
+
 #     @app_commands.command(name="oferecer", description="Cria uma oferta no market")
 #     @app_commands.describe(
 #         item="Nome do item oferecido ex: Cloth T4",
@@ -199,5 +210,5 @@ class MercadoBisCommands(app_commands.Group):
 
 async def setup(bot):
     bot.tree.add_command(
-        MercadoBisCommands(name="bis", description="Comandospara o mercado")
+        MercadoBisCommands(name="bis", description="Comandos para o mercado")
     )

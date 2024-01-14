@@ -9,8 +9,9 @@ from discord.ext import commands
 from models.account import Account
 from models.donation import Donation
 from views.mercado import MarketOfferInterest
+from views.mercado_bis import BisMarketOfferInterest
 from views.perfil import PlayerGeneralIfo
-from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher, Main
+from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher, Main, MarketLauncher
 
 
 logger = settings.logging.getLogger(__name__)
@@ -35,9 +36,11 @@ def run():
 
         # persistent views
         if not bot.added:
+            bot.add_view(BisMarketOfferInterest())
             bot.add_view(MarketOfferInterest())
             bot.add_view(DonationLauncher())
             bot.add_view(CrafterLauncher())
+            bot.add_view(MarketLauncher())
             bot.add_view(AdminLauncher())
             bot.add_view(Main())
             bot.added = True

@@ -33,16 +33,16 @@ class AdminCommands(app_commands.Group):
                 raise IsYourselfError
         except IsYourselfError:
             return await interaction.response.send_message(
-                f"` {pontos} ` não é um número válido", ephemeral=True
+                f"`► {pontos} ` não é um número válido", ephemeral=True
             )
         except ValueError:
             return await interaction.response.send_message(
-                f"` {pontos} ` não é um número válido", ephemeral=True
+                f"`► {pontos} ` não é um número válido", ephemeral=True
             )
 
         except IsNegativeError:
             return await interaction.response.send_message(
-                f"` {pontos} ` não é maior que zero", ephemeral=True
+                f"`► {pontos} ` não é maior que zero", ephemeral=True
             )
 
         interactor_name = (
@@ -58,7 +58,7 @@ class AdminCommands(app_commands.Group):
 
         # envia mensagem de feedback
         await interaction.response.send_message(
-            f"` {pontos} ` pontos foram concedidos a {player.mention}",
+            f"`► {pontos} ` pontos foram concedidos a {player.mention}",
             ephemeral=True,
         )
 
@@ -98,7 +98,7 @@ class AdminCommands(app_commands.Group):
 
         except ValueError:
             return await interaction.response.send_message(
-                f"` {pontos} ` não é um número válido", ephemeral=True
+                f"`► {pontos} ` não é um número válido", ephemeral=True
             )
 
         except NotEnoughtPointsError:
@@ -119,7 +119,7 @@ class AdminCommands(app_commands.Group):
 
         # envia mensagem de confirmação
         await interaction.response.send_message(
-            f"` {pontos} ` pontos foram removidos do player {player.mention}",
+            f"`► {pontos} ` pontos foram removidos do player {player.mention}",
             ephemeral=True,
         )
 
@@ -159,7 +159,7 @@ class AdminCommands(app_commands.Group):
 
         except ValueError:
             return await interaction.response.send_message(
-                f"` {quantidade} ` não é um número positivo", ephemeral=True
+                f"`► {quantidade} ` não é um número positivo", ephemeral=True
             )
 
         except NotEnoughtPointsError:
@@ -182,7 +182,7 @@ class AdminCommands(app_commands.Group):
 
         # envia mensagem de confirmação
         await interaction.response.send_message(
-            f"` {quantidade} ` Silver foi transferido para o player {player.mention}",
+            f"`► {quantidade} ` Silver foi transferido para o player {player.mention}",
             ephemeral=True,
         )
 
