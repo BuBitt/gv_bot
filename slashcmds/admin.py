@@ -1,5 +1,6 @@
 import time
 import discord
+from models.guild import Guild
 import settings
 from discord import utils
 from discord import app_commands
@@ -12,12 +13,14 @@ logger = settings.logging.getLogger(__name__)
 
 
 class AdminCommands(app_commands.Group):
-    @app_commands.command(name="add", description="Adiciona pontos a um player")
+    @app_commands.command(
+        name="adicionar-pontos", description="Adiciona pontos a um player"
+    )
     @app_commands.describe(
         player="O player que receberá pontos",
         pontos="A quantidade de pontos a ser adicionada",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
     async def admin_add_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -72,12 +75,14 @@ class AdminCommands(app_commands.Group):
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
 
-    @app_commands.command(name="remover", description="Remove pontos a um player")
+    @app_commands.command(
+        name="remover-pontos", description="Remove pontos a um player"
+    )
     @app_commands.describe(
         player="O player que perderá pontos",
         pontos="A quantidade de pontos a ser removida",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Crafter")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
     async def admin_remove_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -131,10 +136,71 @@ class AdminCommands(app_commands.Group):
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
 
+    @app_commands.command(
+        name="doar-silver", description="Transfere Silver da guilda para um player"
+    )
+    @app_commands.describe(
+        player="O player que receberá silver",
+        quantidade="A quantidade de silver a ser transferida",
+    )
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
+    async def admin_remove_points(
+        self, interaction: discord.Interaction, player: discord.Member, quantidade: int
+    ):
+        account = Account.fetch(player)
+        guild = Guild.fetch(interaction.guild)
+
+        try:
+            if quantidade < 1:
+                raise IsNegativeError
+
+            elif guild.guild_silver < quantidade:
+                raise NotEnoughtPointsError
+
+        except ValueError:
+            return await interaction.response.send_message(
+                f"` {quantidade} ` não é um número positivo", ephemeral=True
+            )
+
+        except NotEnoughtPointsError:
+            return await interaction.response.send_message(
+                f"A Guilda não possui silver suficiente ` {account.points} ` para transferir ` {quantidade} `",
+                ephemeral=True,
+            )
+
+        interactor_name = (
+            interaction.user.name
+            if interaction.user.nick == None
+            else interaction.user.nick
+        )
+        user_name = player.name if player.nick == None else player.nick
+        
+        guild.guild_silver -= quantidade
+        account.silver += quantidade
+        guild.save()
+        account.save()
+
+        # envia mensagem de confirmação
+        await interaction.response.send_message(
+            f"` {quantidade} ` Silver foi transferido para o player {player.mention}",
+            ephemeral=True,
+        )
+
+        # logs também enviados ao player que recebeu pontos
+        log_message_terminal = f"{interactor_name}(ID: {interaction.user.id}) transferiu {quantidade} silver da Guilda para o player {user_name}"
+        logger.info(log_message_terminal)
+
+        timestamp = str(time.time()).split(".")[0]
+        log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` transferiu {quantidade} silver da Guilda para o player `{player.mention}"
+
+        channel = utils.get(interaction.guild.text_channels, name="logs")
+        await channel.send(log_message_ch)
+
+        # Envia PM do log ao player afetado
+        await player.send(log_message_ch)
+
 
 async def setup(bot):
     bot.tree.add_command(
-        AdminCommands(
-            name="pontos", description="Comandos para adição e remoção de pontos"
-        )
+        AdminCommands(name="admin", description="Comandos de administrador")
     )

@@ -1,8 +1,9 @@
 import time
 import discord
+from errors.errors import IsNegativeError, NoChangeError
+from models.guild import Guild
 import settings
 import traceback
-from database import db
 from discord import utils
 import views.interface as wi
 from models.items import Items
@@ -149,3 +150,107 @@ class EditItemConfirm(discord.ui.View):
 
         channel = utils.get(interaction.guild.text_channels, name="logs")
         await channel.send(log_message_ch)
+
+
+class EditTierMinimalRequeirementsAdmin(
+    discord.ui.Modal, title="É possível editar quantos tier quiser"
+):
+    t2 = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="T2",
+        required=False,
+        placeholder="A pontuação mínima desejada para o Tier 2",
+        default=None,
+    )
+
+    t3 = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="T3",
+        required=False,
+        placeholder="A pontuação mínima desejada para o Tier 3",
+        default=None,
+    )
+    t4 = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="T4",
+        required=False,
+        placeholder="A pontuação mínima desejada para o Tier 4",
+        default=None,
+    )
+    t5 = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="T5",
+        required=False,
+        placeholder="A pontuação mínima desejada para o Tier 5",
+        default=None,
+    )
+    t6 = discord.ui.TextInput(
+        style=discord.TextStyle.short,
+        label="T6",
+        required=False,
+        placeholder="A pontuação mínima desejada para o Tier 6",
+        default=None,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guilda = Guild.fetch(interaction.guild)
+        response_tiers = {
+            "t2": self.t2.value,
+            "t3": self.t3.value,
+            "t4": self.t4.value,
+            "t5": self.t5.value,
+            "t6": self.t6.value,
+        }
+
+        guilda_tiers = {
+            "t2": guilda.t2_requirement,
+            "t3": guilda.t3_requirement,
+            "t4": guilda.t4_requirement,
+            "t5": guilda.t5_requirement,
+            "t6": guilda.t6_requirement,
+        }
+
+        non_empty_tiers = {
+            key: value for key, value in response_tiers.items() if value != ""
+        }
+        print(non_empty_tiers)
+
+        try:
+            if non_empty_tiers == {}:
+                raise NoChangeError
+
+            # converte os valores pra int
+            int_dict = {key: int(value) for key, value in non_empty_tiers.items()}
+
+            # Checa se todos os valores são positivos
+            are_all_positive = all(value > 0 for value in int_dict.values())
+
+            if not are_all_positive:
+                raise IsNegativeError
+
+            # se nenhum erro correr executará:
+            for key in int_dict:
+                if key in guilda_tiers:
+                    guilda_tiers[key] = int_dict[key]
+
+            guilda.t2_requirement = guilda_tiers.get("t2")
+            guilda.t3_requirement = guilda_tiers.get("t3")
+            guilda.t4_requirement = guilda_tiers.get("t4")
+            guilda.t5_requirement = guilda_tiers.get("t5")
+            guilda.t6_requirement = guilda_tiers.get("t6")
+            guilda.save()
+
+            await interaction.response.send_message("Done", ephemeral=True)
+
+        except NoChangeError:
+            await interaction.response.send_message(
+                "Nenhum número foi passado.", ephemeral=True
+            )
+        except TypeError:
+            await interaction.response.send_message(
+                f"Você não digitou números, output: {guilda}", ephemeral=True
+            )
+        except IsNegativeError:
+            await interaction.response.send_message(
+                f"Número negativos entre as respostas, output: {guilda}", ephemeral=True
+            )

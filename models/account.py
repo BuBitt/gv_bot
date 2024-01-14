@@ -1,7 +1,6 @@
 import discord
 import peewee
 from database import db
-import settings
 
 
 class Account(peewee.Model):
@@ -10,6 +9,10 @@ class Account(peewee.Model):
     points: int = peewee.IntegerField()
     level: int = peewee.IntegerField()
     role: str = peewee.CharField(max_length=255)
+    got_boots: bool = peewee.BooleanField(default=False, null=False)
+    got_helmt: bool = peewee.BooleanField(default=False, null=False)
+    got_armor: bool = peewee.BooleanField(default=False, null=False)
+    got_legs: bool = peewee.BooleanField(default=False, null=False)
 
     class Meta:
         database = db

@@ -5,19 +5,20 @@ from views.interface import AdminLauncher, CrafterLauncher, DonationLauncher
 
 class InterfaceLaunchers(app_commands.Group):
     @app_commands.command(
-        name="criar_controles_de_administrador",
+        name="criar-controles-de-administrador",
         description="Inicia os botões para controle do administrador",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
     async def admin_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO ADMINISTADOR**",
             color=discord.Color.red(),
             description="""\
 BOTÕES:
-    ` Novo Item `               - Abre o formulário para a adição de um novo item
-    ` Editar item `             - Abre o formulário para a edição de pontos de um item
-    ` Zerar Pontuação de Todos` - Zera os pontos de todas as pessoas na guilda
+    ` Novo Item `                   - Abre o formulário para a adição de um novo item
+    ` Editar item `                 - Abre o formulário para a edição de pontos de um item
+    ` Zerar Pontuação de Todos`     - Zera os pontos de todas as pessoas na guilda
+    ` Transferir Silver da Guilda ` - Abre as instruções para a transferencia de silver da guil p/ player
 
 COMANDOS:
     `/pontos add @usuário quantidade`     - Adiciona pontos ao Player
@@ -31,10 +32,10 @@ COMANDOS:
         )
 
     @app_commands.command(
-        name="criar_controles_de_craft",
+        name="criar-controles-de-craft",
         description="Inicia os botões do sistema de craft",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
     async def craft_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
@@ -47,10 +48,10 @@ COMANDOS:
         )
 
     @app_commands.command(
-        name="criar_controles_de_doação",
+        name="criar-controles-de-doação",
         description="Inicia os botões do sistema de cadastro",
     )
-    @app_commands.checks.has_any_role("Admin", "Vice Lider")
+    @app_commands.checks.has_any_role("Admin", "Vice Lider", "Lider")
     async def donation_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"**Para doar clique no botão abaixo**",

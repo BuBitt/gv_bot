@@ -27,7 +27,7 @@ def run():
 
     # Define o prefixo dos comandos
     bot = commands.Bot(command_prefix="!", intents=intents)
-    
+
     @bot.event
     async def on_ready():
         logger.info(f"Bot {bot.user.name} id:{bot.user.id} has Started")
@@ -60,22 +60,22 @@ def run():
 
         # comandos de load
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider")
+        @commands.has_any_role("Admin", "Vice Lider", "Lider")
         async def load(ctx, cog: str):
             await bot.load_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider")
+        @commands.has_any_role("Admin", "Vice Lider", "Lider")
         async def unload(ctx, cog: str):
             await bot.unload_extension(f"cogs.{cog.lower()}")
 
         @bot.command()
-        @commands.has_any_role("Admin", "Vice Lider")
+        @commands.has_any_role("Admin", "Vice Lider", "Lider")
         async def reload(ctx, cog: str):
             await bot.reload_extension(f"cogs.{cog.lower()}")
             logger.info(f"cog {cog} reloaded.")
             await ctx.send(f"cog: {cog} reloaded")
-    
+
     # TODO Error Handling
     # slashcommands errorhandling
     # async def on_tree_error(
@@ -104,7 +104,7 @@ def run():
 
     # Interaction Menus
     @bot.tree.context_menu(name="Informações Gerais")
-    @app_commands.checks.has_any_role("Crafter", "Vice Lider")
+    @app_commands.checks.has_any_role("Crafter", "Vice Lider", "Lider")
     async def general_info(interaction: discord.Interaction, member: discord.Member):
         embed = discord.Embed(title=f"Informações do player: **{member.name}**")
         await interaction.response.send_message(

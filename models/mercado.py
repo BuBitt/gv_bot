@@ -18,7 +18,7 @@ class MarketOffer(peewee.Model):
     price: int = peewee.IntegerField()
     quantity: int = peewee.IntegerField(default=1)
     image: str = peewee.CharField(max_length=1024)
-    is_active: bool = peewee.BooleanField(default=True)
+    is_active: bool = peewee.BooleanField(default=True, null=False)
     timestamp: str = peewee.CharField(max_length=255)
 
     class Meta:

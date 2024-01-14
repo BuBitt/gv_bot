@@ -4,7 +4,12 @@ import settings
 import traceback
 from discord import utils
 from models.items import Items
-from views.admin import AdminToZeroPointsConfirm, EditItemConfirm, NewItemModalAdmin
+from views.admin import (
+    AdminToZeroPointsConfirm,
+    EditItemConfirm,
+    EditTierMinimalRequeirementsAdmin,
+    NewItemModalAdmin,
+)
 
 
 logger = settings.logging.getLogger(__name__)
@@ -248,6 +253,33 @@ class AdminLauncher(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_modal(EditItemModal())
+
+    @discord.ui.button(
+        label="Transferir Silver da Guilda",
+        style=discord.ButtonStyle.danger,
+        custom_id="admin_transfer_silver_button",
+        row=2,
+    )
+    async def admin_transfer_silver(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        embed = discord.Embed(
+            title="**Instruções de Transferencia de Silver**",
+            description="Para registrar uma transferencia de silver da gulda para um player use o comando:\n\
+``",
+            color=discord.Color.yellow(),
+        )
+        await interaction.response.send_message()
+
+    @discord.ui.button(
+        label="Editar Valores de Tier",
+        style=discord.ButtonStyle.danger,
+        custom_id="admin_edit_value_tier_button",
+    )
+    async def admin_edit_value_tier(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
 
     @discord.ui.button(
         label="Zerar a Pontuação de Todos",
