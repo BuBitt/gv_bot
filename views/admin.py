@@ -233,6 +233,7 @@ class EditTierMinimalRequeirementsAdmin(
                 if key in guilda_tiers:
                     guilda_tiers[key] = int_dict[key]
 
+            # edita os valores no banco de dados
             guilda.t2_requirement = guilda_tiers.get("t2")
             guilda.t3_requirement = guilda_tiers.get("t3")
             guilda.t4_requirement = guilda_tiers.get("t4")
@@ -240,7 +241,18 @@ class EditTierMinimalRequeirementsAdmin(
             guilda.t6_requirement = guilda_tiers.get("t6")
             guilda.save()
 
-            await interaction.response.send_message("Done", ephemeral=True)
+            # envia feedback de sucesso
+            await interaction.response.send_message(f"Alterações: ` {int_dict} `", ephemeral=True)
+            
+            # Log da operação (terminal)
+            log_message_terminal = f"{interaction.user.name}(ID: {interaction.user.id} editou as pontuações de tier: {int_dict}"
+            logger.info(log_message_terminal)
+
+            timestamp = str(time.time()).split(".")[0]
+            log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou as pontuações de tier: {int_dict} `"
+
+            channel = utils.get(interaction.guild.text_channels, name="logs")
+            await channel.send(log_message_ch)
 
         except NoChangeError:
             await interaction.response.send_message(
