@@ -20,7 +20,9 @@ class AdminCommands(app_commands.Group):
         player="O player que receberá pontos",
         pontos="A quantidade de pontos a ser adicionada",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def admin_add_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -84,7 +86,9 @@ class AdminCommands(app_commands.Group):
         player="O player que perderá pontos",
         pontos="A quantidade de pontos a ser removida",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def admin_remove_points(
         self, interaction: discord.Interaction, player: discord.Member, pontos: str
     ):
@@ -147,7 +151,9 @@ class AdminCommands(app_commands.Group):
         player="O player que receberá silver",
         quantidade="A quantidade de silver a ser transferida",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def admin_donate_silver(
         self, interaction: discord.Interaction, player: discord.Member, quantidade: int
     ):

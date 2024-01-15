@@ -1,4 +1,5 @@
 from database import db
+from ast import Dict
 import settings
 import peewee
 
@@ -6,7 +7,7 @@ import peewee
 logger = settings.logging.getLogger(__name__)
 
 
-class MarketOffer(peewee.Model):
+class MarketOfferBis(peewee.Model):
     vendor_id: int = peewee.BigIntegerField()
     buyer_id: int = peewee.BigIntegerField(default=0)
     vendor_name: str = peewee.CharField(max_length=255)
@@ -21,12 +22,12 @@ class MarketOffer(peewee.Model):
 
     class Meta:
         database = db
-        db_table = "market_offers"
+        db_table = "market_offers_bis"
 
     @staticmethod
-    def new(market_offer: dict):
+    def new(market_offer: Dict):
         try:
-            market_offer = MarketOffer.create(
+            market_offer = MarketOfferBis.create(
                 vendor_id=market_offer.get("member_id"),
                 vendor_name=market_offer.get("member_name"),
                 message_id=market_offer.get("offer_message_id"),
@@ -38,8 +39,8 @@ class MarketOffer(peewee.Model):
                 timestamp=market_offer.get("timestamp"),
             )
         except peewee.OperationalError:
-            db.create_tables([MarketOffer])
-            market_offer = MarketOffer.create(
+            MarketOfferBis.create_table()
+            market_offer = MarketOfferBis.create(
                 vendor_id=market_offer.get("member_id"),
                 vendor_name=market_offer.get("member_name"),
                 message_id=market_offer.get("offer_message_id"),
@@ -55,10 +56,10 @@ class MarketOffer(peewee.Model):
 
     @staticmethod
     def fetch(message_id):
-        MarketOffer.create_table()
+        db.create_tables([MarketOfferBis])
         try:
-            market_offer = MarketOffer.get(
-                MarketOffer.message_id == message_id,
+            market_offer = MarketOfferBis.get(
+                MarketOfferBis.message_id == message_id,
             )
         except peewee.DoesNotExist:
             return None
@@ -66,21 +67,21 @@ class MarketOffer(peewee.Model):
 
     @staticmethod
     def fetch_by_jump_url(jump_url):
-        MarketOffer.create_table()
+        db.create_tables([MarketOfferBis])
         try:
-            market_offer = MarketOffer.get(
-                MarketOffer.jump_url == jump_url,
+            market_offer = MarketOfferBis.get(
+                MarketOfferBis.jump_url == jump_url,
             )
         except peewee.DoesNotExist:
             return None
         return market_offer
-
+    
     @staticmethod
     def fetch_by_id(offer_id):
-        MarketOffer.create_table()
+        MarketOfferBis.create_table()
         try:
-            market_offer = MarketOffer.get(
-                MarketOffer.id == offer_id,
+            market_offer = MarketOfferBis.get(
+                MarketOfferBis.id == offer_id,
             )
         except peewee.DoesNotExist:
             return None

@@ -1,21 +1,29 @@
 import time
 import discord
-from models.mercado import MarketOffer
 import settings
 import traceback
+
+from models.mercado import MarketOffer
+from models.mercado_bis import MarketOfferBis
+
 from discord import utils
-from models.items import Items
 from utils.utilities import search_offer_table_construct
+from models.items import Items
 from views.admin import (
     AdminToZeroPointsConfirm,
     EditItemConfirm,
     EditTierMinimalRequeirementsAdmin,
     NewItemModalAdmin,
 )
-from views.market_interface import (
+from views.interface_mercado import (
     MarketDeleteMyOffersModal,
     MarketSearchModal,
     MarketVerifyMyOffersModal,
+)
+from views.interface_mercado_bis import (
+    MarketDeleteMyOffersModalBis,
+    MarketSearchModalBis,
+    MarketVerifyMyOffersModalBis,
 )
 
 
@@ -62,7 +70,9 @@ class NewItemConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` adicionou um novo item a base de dados: {self.new_item}, Pontos: {self.points}`"
 
-        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
 
@@ -396,6 +406,67 @@ class MarketLauncher(discord.ui.View):
 
 
 # Confirmação para deletas canais
+class Confirm(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Confirmar", style=discord.ButtonStyle.red, custom_id="confirm"
+    )
+    async def confirm(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        try:
+            await interaction.channel.delete()
+        except:
+            await interaction.response.send_message(
+                f"Channel delete failed! make sure I have `manage_channels` persmission.",
+                ephemeral=True,
+            )
+
+
+class MarketLauncherBis(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Buscar Item",
+        style=discord.ButtonStyle.success,
+        custom_id="search_market_bis_item",
+    )
+    async def search_market_item_bis(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketSearchModalBis())
+
+    @discord.ui.button(
+        label="Buscar Player",
+        style=discord.ButtonStyle.success,
+        custom_id="show_market_player_bis_offers",
+    )
+    async def show_market_player_offers_bis(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        embed = discord.Embed(
+            title="**ESSA AÇÃO USA UM COMANDO**",
+            description="```/mercado-bis ver-loja [@Player]```\n Use esse comando para ver a lojnha de um player",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+    @discord.ui.button(
+        label="Verificar Compra",
+        style=discord.ButtonStyle.success,
+        custom_id="verify_hash_market_bis_offer",
+    )
+    async def verify_hash_market_offer(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketVerifyMyOffersModalBis())
+
+
+# Confirmação para deletar canais
 class Confirm(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)

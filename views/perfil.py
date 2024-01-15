@@ -270,7 +270,7 @@ class GuildProfileView(discord.ui.View):
         )
 
     @discord.ui.button(
-        label="Baixar Transações",
+        label="Baixar Doações",
         style=discord.ButtonStyle.success,
         custom_id="guild_allt_button",
     )

@@ -5,6 +5,7 @@ from views.interface import (
     CrafterLauncher,
     DonationLauncher,
     MarketLauncher,
+    MarketLauncherBis,
 )
 import settings
 
@@ -14,7 +15,9 @@ class InterfaceLaunchers(app_commands.Group):
         name="criar-controles-de-administrador",
         description="Inicia os botões para controle do administrador",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def admin_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO ADMINISTADOR**",
@@ -43,7 +46,9 @@ COMANDOS:
         name="criar-controles-de-craft",
         description="Inicia os botões do sistema de craft",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def craft_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
@@ -59,7 +64,9 @@ COMANDOS:
         name="criar-controles-de-doação",
         description="Inicia os botões do sistema de cadastro",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def donation_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=f"**Para doar clique no botão abaixo**",
@@ -76,7 +83,9 @@ COMANDOS:
         name="criar-painel-do-mercado",
         description="Inicia o painel e botões do sistema de mercado",
     )
-    @app_commands.checks.has_any_role(settings.VICE_LIDER_ROLE, settings.LEADER_ROLE)
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
     async def market_panel(self, interaction: discord.Interaction):
         market_offers_channel = discord.utils.get(
             interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP
@@ -85,11 +94,12 @@ COMANDOS:
             title="**PAINEL DO MERCARDO**",
             color=discord.Color.dark_green(),
             description=f"""\
-**BOTÕES**:
-    ` Minhas Ofertas `-→ Mostra todas as suas ofertas abertas e seus números
-    ` Buscar Item    `-→ Procura por um item no mercado
-    ` Ver loja       `-→ Mostra todas as ofertas de um determinado player
-    ` Deletar Oferta `-→ Deleta uma oferta pelo seu número 
+**BOTÕES:**
+    ` Minhas Ofertas   `-→ Mostra todas as suas ofertas abertas e seus números
+    ` Buscar Item      `-→ Procura por um item no mercado
+    ` Buscar Player    `-→ Mostra todas as ofertas de um determinado player
+    ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
+    ` Deletar Oferta   `-→ Deleta uma oferta pelo seu número 
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
@@ -104,6 +114,37 @@ COMANDOS:
 """,
         )
         await interaction.channel.send(embed=embed, view=MarketLauncher())
+        await interaction.response.send_message(
+            f"{interaction.user.mention} Botão criado.",
+            ephemeral=True,
+        )
+
+    @app_commands.command(
+        name="criar-painel-do-mercado-bis",
+        description="Inicia o painel e botões do sistema de mercado bis",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
+    async def market_panel_bis(self, interaction: discord.Interaction):
+        market_offers_channel = discord.utils.get(
+            interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP
+        )
+        embed = discord.Embed(
+            title="**PAINEL DO MERCARDO**",
+            color=discord.Color.dark_green(),
+            description=f"""\
+**BOTÕES**
+    ` Buscar Item      `-→ Procura por um item no mercado
+    ` Buscar Player    `-→ Mostra todas as ofertas de um determinado player
+    ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
+
+**REGRAS**
+- Ao completar as 4 peças de um set seus pontos e rank serão resetados;
+- Não é possível pegar uma mesma parte do set até o pŕoximo rest;\n
+""",
+        )
+        await interaction.channel.send(embed=embed, view=MarketLauncherBis())
         await interaction.response.send_message(
             f"{interaction.user.mention} Botão criado.",
             ephemeral=True,

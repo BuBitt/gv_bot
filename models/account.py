@@ -36,7 +36,7 @@ class Account(peewee.Model):
                 Account.user_id == user_object.id,
             )
         except peewee.DoesNotExist:
-            Account.create_table()
+            db.create_tables([Account])
             account = Account.create(
                 user_id=user_object.id,
                 user_name=user_object.name,

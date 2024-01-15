@@ -227,7 +227,9 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - Oferta N° {self.offer.id} teve uma compra. - `{self.buyer.mention}` comprou o item: {self.offer.item} ao preço de {self.offer.price} do vendedor:`{self.vendor.mention}"
 
-        log_channel = utils.get(self.message.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        log_channel = utils.get(
+            self.message.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         log_mkt_channel = utils.get(
             self.message.guild.text_channels, id=settings.MARKET_LOGS
         )

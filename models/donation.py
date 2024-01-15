@@ -14,8 +14,8 @@ class Donation(peewee.Model):
     donor_name: str = peewee.CharField(max_length=255)
     item: str = peewee.CharField(max_length=255)
     quantity: int = peewee.IntegerField()
-    print_proof: str = peewee.CharField(max_length=1024)
     timestamp: str = peewee.CharField(max_length=255)
+    print_proof: str = peewee.CharField(max_length=1024)
 
 
     class Meta:
@@ -36,7 +36,7 @@ class Donation(peewee.Model):
                 timestamp=transaction_dict.get("timestamp"),
             )
         except peewee.OperationalError:
-            Donation.create_table()
+            db.create_tables([Donation])
             transaction = Donation.create(
                 crafter_id=transaction_dict.get("crafter_id"),
                 crafter_name=transaction_dict.get("crafter_name"),

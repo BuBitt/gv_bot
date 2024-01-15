@@ -9,7 +9,7 @@ from discord.ext import commands
 from models.account import Account
 from models.donation import Donation
 from views.mercado import MarketOfferInterest
-from views.mercado_bis import BisMarketOfferInterest
+from views.mercado_bis import MarketOfferInterestBis
 from views.perfil import PlayerGeneralIfo
 from views.interface import (
     AdminLauncher,
@@ -42,7 +42,7 @@ def run():
 
         # persistent views
         if not bot.added:
-            bot.add_view(BisMarketOfferInterest())
+            bot.add_view(MarketOfferInterestBis())
             bot.add_view(MarketOfferInterest())
             bot.add_view(DonationLauncher())
             bot.add_view(CrafterLauncher())
@@ -117,6 +117,7 @@ def run():
         settings.CRAFTER_ROLE,
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
+        settings.BOT_MANAGER_ROLE,
     )
     async def general_info(interaction: discord.Interaction, member: discord.Member):
         embed = discord.Embed(title=f"Informações do player: **{member.name}**")
