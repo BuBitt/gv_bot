@@ -35,26 +35,6 @@ def truncar_string(input_string, max_length=13):
         return input_string
 
 
-class ActionNature(discord.ui.View):
-    answer1 = None
-
-    @discord.ui.select(
-        placeholder="Qual a natureza da ação?",
-        options=[
-            discord.SelectOption(label="Doação", value="D"),
-            discord.SelectOption(label="Pedido", value="P"),
-        ],
-    )
-    async def select_nature(
-        self, interaction: discord.Interaction, select_item: discord.ui.Select
-    ):
-        self.answer1 = select_item.values
-        self.children[0].disabled = True
-        await interaction.message.edit(view=self)
-        await interaction.response.defer()
-        self.stop()
-
-
 class CadastroTransacao(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -62,21 +42,39 @@ class CadastroTransacao(commands.Cog):
     transaction_dict = {}
 
     @commands.command()
-    @commands.has_any_role(settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE)
+    @commands.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     async def doar(self, ctx: commands.context.Context):
-        logger.debug(f"context: {ctx}")
-        if ctx.channel.name.startswith("DOAÇÃO -"):
+        logger.info(f"context: {ctx}")
+
+        if ctx.channel.name.startswith("doação-"):
             transaction_dict = {}
             run = 0
 
             # Encontra todos os crafters de cada categoria pelo Role
-
-            cooking = discord.utils.get(ctx.guild.roles, name="Cooking").members
-            blacksmith = discord.utils.get(ctx.guild.roles, name="Blacksmith").members
-            weaving = discord.utils.get(ctx.guild.roles, name="Weaving").members
-            carpentry = discord.utils.get(ctx.guild.roles, name="Carpentry").members
-            breeding = discord.utils.get(ctx.guild.roles, name="Breeding").members
-
+            cooking = discord.utils.get(
+                ctx.guild.roles, id=settings.CRAFTER_COOKING_ROLE
+            ).members
+            blacksmith = discord.utils.get(
+                ctx.guild.roles, id=settings.CRAFTER_BLACKSMITH_ROLE
+            ).members
+            weaving = discord.utils.get(
+                ctx.guild.roles, id=settings.CRAFTER_WEAVING_ROLE
+            ).members
+            carpentry = discord.utils.get(
+                ctx.guild.roles, id=settings.CRAFTER_CARPENTRY_ROLE
+            ).members
+            breeding = discord.utils.get(
+                ctx.guild.roles, id=settings.CRAFTER_BREEDING_ROLE
+            ).members
+            
+            print(cooking)
             # Loop do Crafter
 
             while True:
@@ -90,15 +88,19 @@ class CadastroTransacao(commands.Cog):
                 first_embed.add_field(
                     name="> Cooking", value=f"{constroi_tabela(cooking)}"
                 )
+
                 first_embed.add_field(
                     name="> Blacksmith", value=f"{constroi_tabela(blacksmith)}"
                 )
+
                 first_embed.add_field(
                     name="> Weaving", value=f"{constroi_tabela(weaving)}"
                 )
+
                 first_embed.add_field(
                     name="> Carpentry", value=f"{constroi_tabela(carpentry)}"
                 )
+
                 first_embed.add_field(
                     name="> Breeding", value=f"{constroi_tabela(breeding)}"
                 )
@@ -373,14 +375,6 @@ class CadastroTransacao(commands.Cog):
                     await message_sent.edit(embed=embed_qte_item, view=None)
 
                     run = 1
-
-            # # menu de seleção da natureza da operação
-            # view = ActionNature()
-            # await ctx.send(view=view)
-            # await view.wait()
-            # transaction_dict["operation_type"] = view.answer1[0]
-            # if view.answer1[0] == "P":
-            #     transaction_dict["quantity"] -= 2 * transaction_dict["quantity"]
 
             # Print
             while True:

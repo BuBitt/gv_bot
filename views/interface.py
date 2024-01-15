@@ -191,7 +191,7 @@ class DonationLauncher(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f"DOAÇÃO - {interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
+        global_thread_name = f"doação-{interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
         transaction = utils.get(
             interaction.guild.threads,
             name=global_thread_name,
@@ -203,10 +203,27 @@ class DonationLauncher(discord.ui.View):
                 ephemeral=True,
             )
         else:
-            channel = await interaction.channel.create_thread(
+            overwrites = {
+                interaction.guild.default_role: discord.PermissionOverwrite(
+                    view_channel=False
+                ),
+                interaction.user: discord.PermissionOverwrite(
+                    view_channel=True,
+                    send_messages=True,
+                    attach_files=True,
+                    embed_links=True,
+                ),
+                interaction.guild.me: discord.PermissionOverwrite(
+                    view_channel=True, send_messages=True, read_message_history=True
+                ),
+            }
+            category = discord.utils.get(
+                interaction.guild.categories, id=settings.DONATION_CTEGORY
+            )
+            channel = await interaction.guild.create_text_channel(
                 name=global_thread_name,
-                invitable=False,
-                auto_archive_duration=60,
+                overwrites=overwrites,
+                category=category,
                 reason=f"Canal de doação para {interaction.user}",
             )
 
@@ -216,13 +233,13 @@ class DonationLauncher(discord.ui.View):
 1 - Para iniciar um novo cadastro digite `!doar` no chat;\n\
 2 - Na parte `Item` o nome deve ser escrito em inglês, sugestões serão dadas;\n\
 3 - Para cancelar o cadastro a qualquer momento digite `!cancelar`\n\
-4 - Na parte `Print` envie uma imagem pelo por um link externo.",
+4 - Na parte `Print` envie uma imagem pelo chat.",
                 color=discord.Color.yellow(),
             )
             await channel.send(
                 f"{interaction.user.mention}",
                 embed=instructions_embed,
-                view=Main(),
+                view=None,
             )
             await interaction.response.send_message(
                 f"Canal de doação criado para {channel.mention}.", ephemeral=True
@@ -453,7 +470,6 @@ class MarketLauncherBis(discord.ui.View):
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-
 
     @discord.ui.button(
         label="Verificar Compra",

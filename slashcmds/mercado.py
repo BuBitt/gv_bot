@@ -28,7 +28,12 @@ class MercadoCommands(app_commands.Group):
         imagem="Imagem do item com os atributos",
     )
     @app_commands.checks.has_any_role(
-        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def market_new_offer(
         self,
@@ -135,7 +140,12 @@ class MercadoCommands(app_commands.Group):
     )
     @app_commands.describe(item="busca por item")
     @app_commands.checks.has_any_role(
-        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def market_search(self, interaction: discord.Interaction, item: str):
         # Fetch active market offers from the database
@@ -173,7 +183,12 @@ class MercadoCommands(app_commands.Group):
         description="mostra suas ofertas abertas",
     )
     @app_commands.checks.has_any_role(
-        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def my_offers(self, interaction: discord.Interaction):
         # Consulta ofertas ativas no mercado no banco de dados
@@ -208,7 +223,12 @@ class MercadoCommands(app_commands.Group):
     )
     @app_commands.describe(player="Player dono da loja")
     @app_commands.checks.has_any_role(
-        settings.MEMBRO_ROLE, settings.MEMBRO_INICIANTE_ROLE
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def player_offers(
         self, interaction: discord.Interaction, player: discord.User
