@@ -52,7 +52,7 @@ COMANDOS:
     async def craft_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
-            color=discord.Color.blue(),
+            color=discord.Color.yellow(),
         )
         await interaction.channel.send(embed=embed, view=CrafterLauncher())
         await interaction.response.send_message(

@@ -55,7 +55,7 @@ class MarketOffer(peewee.Model):
 
     @staticmethod
     def fetch(message_id):
-        MarketOffer.create_table()
+        db.create_tables([MarketOffer])
         try:
             market_offer = MarketOffer.get(
                 MarketOffer.message_id == message_id,
@@ -66,7 +66,7 @@ class MarketOffer(peewee.Model):
 
     @staticmethod
     def fetch_by_jump_url(jump_url):
-        MarketOffer.create_table()
+        db.create_tables([MarketOffer])
         try:
             market_offer = MarketOffer.get(
                 MarketOffer.jump_url == jump_url,
@@ -77,7 +77,7 @@ class MarketOffer(peewee.Model):
 
     @staticmethod
     def fetch_by_id(offer_id):
-        MarketOffer.create_table()
+        db.create_tables([MarketOffer])
         try:
             market_offer = MarketOffer.get(
                 MarketOffer.id == offer_id,

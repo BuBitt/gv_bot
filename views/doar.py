@@ -52,15 +52,15 @@ class ConfirmTransactionPm(discord.ui.View):
         await interaction.message.edit(embed=self.embed, view=self)
 
         # envia o embed da doação para o canal doações
-        await donation_channel.send(embed=self.embed)
+        donatin_msg = await donation_channel.send(embed=self.embed)
 
         # envia o feedback da confirmação para o manager
         embed_confirm_transaction = discord.Embed(
             title="**Doação Confirmada!**",
-            description=f"A sua doação de foi publicada no canal de doações.",
+            description=f"A sua doação de foi publicada: {donatin_msg.jump_url}",
             color=discord.Color.green(),
         )
-        await self.waiting_message.edit(embed=embed_confirm_transaction, view=Main())
+        await self.waiting_message.edit(embed=embed_confirm_transaction)  # Main())
 
         # escreve a tansação na tabela transactions no banco de dados
         transaction = Donation.new(self.transaction_dict)
@@ -78,6 +78,14 @@ class ConfirmTransactionPm(discord.ui.View):
         account.points += self.transaction_dict["quantity"] * item.points
         account.save()
 
+        # envia o feedback da confirmação para o doador
+        embed_sucess_pm = discord.Embed(
+            title="**Doação Confirmada!**",
+            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada: {donatin_msg.jump_url}",
+            color=discord.Color.green(),
+        )
+        await interaction.response.send_message(embed=embed_sucess_pm)
+
         # Log da operação (terminal)
         donor = utils.get(
             donation_channel.guild.members, id=self.transaction_dict.get("donor_id")
@@ -92,17 +100,9 @@ class ConfirmTransactionPm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f'<t:{timestamp}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
 
-        channel = utils.get(donation_channel.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
-        await channel.send(log_message_ch)
-
-        # envia o feedback da confirmação para o doador
-        embed_sucess_pm = discord.Embed(
-            title="**Doação Confirmada!**",
-            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada no canal {donation_channel}",
-            color=discord.Color.green(),
+        channel = utils.get(
+            donation_channel.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
         )
-
-        await interaction.response.send_message(embed=embed_sucess_pm)
 
     @discord.ui.button(
         label="Negar Doação",
@@ -140,7 +140,9 @@ class ConfirmTransactionPm(discord.ui.View):
         logger.info(log_message_terminal)
 
         log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - Doação negada. Criada por `{donor.mention}`, negada por `{crafter.mention}"
-        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
         # envia o feedback da confirmação para o doador

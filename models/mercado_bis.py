@@ -39,7 +39,7 @@ class MarketOfferBis(peewee.Model):
                 timestamp=market_offer.get("timestamp"),
             )
         except peewee.OperationalError:
-            MarketOfferBis.create_table()
+            db.create_tables([MarketOfferBis])
             market_offer = MarketOfferBis.create(
                 vendor_id=market_offer.get("member_id"),
                 vendor_name=market_offer.get("member_name"),
@@ -78,7 +78,7 @@ class MarketOfferBis(peewee.Model):
     
     @staticmethod
     def fetch_by_id(offer_id):
-        MarketOfferBis.create_table()
+        db.create_tables([MarketOfferBis])
         try:
             market_offer = MarketOfferBis.get(
                 MarketOfferBis.id == offer_id,
