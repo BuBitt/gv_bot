@@ -73,10 +73,8 @@ class CadastroTransacao(commands.Cog):
             breeding = discord.utils.get(
                 ctx.guild.roles, id=settings.CRAFTER_BREEDING_ROLE
             ).members
-            
-            print(cooking)
-            # Loop do Crafter
 
+            # Loop do Crafter
             while True:
                 # embed da menção do crafter
 

@@ -213,7 +213,7 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             embed_offer.add_field(name="", value=f"```{offer.price} Silver```")
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(
-                name=f"Vendedor: {offer.vendor_name}",
+                name=f"{offer.vendor_name} abriu essa oferta",
                 icon_url=interaction.user.display_avatar,
             )
             embed_offer.set_image(url=offer.image)
