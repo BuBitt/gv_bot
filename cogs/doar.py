@@ -7,14 +7,19 @@ from datetime import datetime
 from beautifultable import BeautifulTable
 
 import discord
-from discord import utils
+from discord import Interaction, utils
 from discord.ext import commands
 
 import settings
 from models.items import Items
 from views.doar import ConfirmTransactionPm
 
-from errors.errors import IsNegativeError, IsNotCrafterError, IsNotMentionError
+from errors.errors import (
+    IsNegativeError,
+    IsNotCrafterError,
+    IsNotMentionError,
+    IsYourselfError,
+)
 
 from utils.utilities import (
     id_converter,
@@ -75,11 +80,26 @@ class CadastroTransacao(commands.Cog):
             # Loop do Crafter
             while True:
                 # embed da menção do crafter
-                crafters_ck = [crafter.nick if crafter.nick != None else crafter.name for crafter in cooking]
-                crafters_bs = [crafter.nick if crafter.nick != None else crafter.name for crafter in blacksmith]
-                crafters_wv = [crafter.nick if crafter.nick != None else crafter.name for crafter in weaving]
-                crafters_cp = [crafter.nick if crafter.nick != None else crafter.name for crafter in carpentry]
-                crafters_bd = [crafter.nick if crafter.nick != None else crafter.name for crafter in breeding]
+                crafters_ck = [
+                    crafter.nick if crafter.nick != None else crafter.name
+                    for crafter in cooking
+                ]
+                crafters_bs = [
+                    crafter.nick if crafter.nick != None else crafter.name
+                    for crafter in blacksmith
+                ]
+                crafters_wv = [
+                    crafter.nick if crafter.nick != None else crafter.name
+                    for crafter in weaving
+                ]
+                crafters_cp = [
+                    crafter.nick if crafter.nick != None else crafter.name
+                    for crafter in carpentry
+                ]
+                crafters_bd = [
+                    crafter.nick if crafter.nick != None else crafter.name
+                    for crafter in breeding
+                ]
 
                 first_embed = discord.Embed(
                     title="**Crafter**",
@@ -134,6 +154,9 @@ class CadastroTransacao(commands.Cog):
                         ctx.guild.roles, id=settings.CRAFTER_ROLE
                     )
 
+                    if crafter_user_object.id == ctx.user.id:
+                        raise IsYourselfError
+
                     is_crafter = (
                         True if crafter_role in crafter_user_object.roles else False
                     )
@@ -180,6 +203,11 @@ class CadastroTransacao(commands.Cog):
 
                     else:
                         raise IsNotCrafterError("Erro: o player não é um crafter")
+                
+                except IsYourselfError:
+                    return await ctx.send(
+                        "Doação Cancelada! Você não pode doar para si mesmo"
+                    )
 
                 except IsNotCrafterError:
                     if crafter_mention == "!cancelar":
