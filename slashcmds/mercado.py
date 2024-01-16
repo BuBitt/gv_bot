@@ -91,12 +91,12 @@ class MercadoCommands(app_commands.Group):
                 )
                 embed_offer.set_footer(text=f"Oferta N° {last_id}  •  {item.title()}")
                 embed_offer.add_field(
-                    name="", value=f"```{item.title()}```", inline=False
+                    name="", value=f"**```{item.title()}```**", inline=False
                 )
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
-                    name=f"{vendor_name} está vendendo:",
+                    name=f"{vendor_name} está vendendo",
                     icon_url=interaction.user.display_avatar,
                 )
                 embed_offer.set_image(url=imagem)

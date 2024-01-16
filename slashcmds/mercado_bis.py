@@ -151,7 +151,7 @@ class MercadoBisCommands(app_commands.Group):
                 embed_offer.add_field(name="", value=f"```{value} Pontos Mínimos```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
-                    name=f"{vendor_name} está vendendo:",
+                    name=f"{vendor_name} craftou esse item BIS",
                     icon_url=interaction.user.display_avatar,
                 )
                 embed_offer.set_image(url=imagem)
