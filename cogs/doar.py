@@ -51,8 +51,6 @@ class CadastroTransacao(commands.Cog):
         settings.LEADER_ROLE,
     )
     async def doar(self, ctx: commands.context.Context):
-        logger.info(f"context: {ctx}")
-
         if ctx.channel.name.startswith("doação-"):
             transaction_dict = {}
             run = 0

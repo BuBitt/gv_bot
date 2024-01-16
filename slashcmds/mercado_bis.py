@@ -49,7 +49,7 @@ class MercadoBisCommands(app_commands.Group):
         item="Nome do item oferecido, EX: T3 Plate Helmet ou Harbinger helmet",
         atributos="Exemplo: INT WIZ WP SP HASTE",
         quantidade="quantidade de itens",
-        imagem="Imagem do item com os atributos, envie a imagem no canal imagens e copie o link",
+        print="Print do item com os atributos, envie o print no canal imagens e copie o link",
     )
     @app_commands.checks.has_any_role(
         settings.CRAFTER_ROLE,
@@ -63,12 +63,12 @@ class MercadoBisCommands(app_commands.Group):
         item: str,
         atributos: str,
         quantidade: int,
-        imagem: str,
+        print: str,
     ):
         regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
         try:
-            if not is_valid_regex(imagem, regex):
+            if not is_valid_regex(print, regex):
                 raise IsNotLinkError
 
             else:
@@ -109,7 +109,7 @@ class MercadoBisCommands(app_commands.Group):
                 offer_dict["item_name"] = item_name
                 offer_dict["atributes"] = atributos
                 offer_dict["quantity"] = quantidade
-                offer_dict["image"] = imagem
+                offer_dict["image"] = print
                 offer_dict["timestamp"] = timestamp
 
                 # encontra o canal mercado
@@ -154,7 +154,7 @@ class MercadoBisCommands(app_commands.Group):
                     name=f"{vendor_name} craftou esse item BIS",
                     icon_url=interaction.user.display_avatar,
                 )
-                embed_offer.set_image(url=imagem)
+                embed_offer.set_image(url=print)
 
                 # mensasgem publicada no canal mercado
                 message = await market_channel.send(
@@ -189,7 +189,7 @@ class MercadoBisCommands(app_commands.Group):
 
         except IsNotLinkError:
             await interaction.response.send_message(
-                f"`✪ {imagem} ` não é um link válido.", ephemeral=True
+                f"`✪ {print} ` não é um link válido.", ephemeral=True
             )
 
         except IsNegativeError:

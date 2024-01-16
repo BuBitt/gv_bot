@@ -25,7 +25,7 @@ class MercadoCommands(app_commands.Group):
         item="Nome do item oferecido ex: Cloth T4",
         preço="Preço do item",
         quantidade="quantidade de itens",
-        imagem="Imagem do item com os atributos",
+        print="Print do item com os atributos, envie no canal de imagens",
     )
     @app_commands.checks.has_any_role(
         settings.MEMBRO_INICIANTE_ROLE,
@@ -41,7 +41,7 @@ class MercadoCommands(app_commands.Group):
         item: str,
         preço: int,
         quantidade: int,
-        imagem: str,
+        print: str,
     ):
         regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
@@ -49,8 +49,8 @@ class MercadoCommands(app_commands.Group):
             if preço < 1 or quantidade < 1:
                 raise IsNegativeError
 
-            elif not is_valid_regex(imagem, regex):
-                print(is_valid_regex(imagem, regex))
+            elif not is_valid_regex(print, regex):
+                print(is_valid_regex(print, regex))
                 raise IsNotLinkError
 
             else:
@@ -68,7 +68,7 @@ class MercadoCommands(app_commands.Group):
                 offer_dict["item"] = item
                 offer_dict["quantity"] = quantidade
                 offer_dict["price"] = preço
-                offer_dict["image"] = imagem
+                offer_dict["image"] = print
                 offer_dict["timestamp"] = timestamp
 
                 # encontra o canal mercado
@@ -99,7 +99,7 @@ class MercadoCommands(app_commands.Group):
                     name=f"{vendor_name} está vendendo",
                     icon_url=interaction.user.display_avatar,
                 )
-                embed_offer.set_image(url=imagem)
+                embed_offer.set_image(url=print)
 
                 # mensasgem publicada no canal mercado
                 message = await market_channel.send(
@@ -134,7 +134,7 @@ class MercadoCommands(app_commands.Group):
 
         except IsNotLinkError:
             await interaction.response.send_message(
-                f"`✪ {imagem} ` não é um link válido.", ephemeral=True
+                f"`✪ {print} ` não é um link válido.", ephemeral=True
             )
 
         except IsNegativeError:

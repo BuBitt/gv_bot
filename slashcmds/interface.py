@@ -65,11 +65,11 @@ COMANDOS:
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/bis criar [item] [Atributos] [Quantidade] [Imagem]```
+```/bis criar [item] [Atributos] [Quantidade] [print]```
 `[Item]`→ `T4 Cloth Armor` ou `Celestial Armor`, aparecerão no autocomplete
 `[Atributos]`→ Atributos abreviados. EX: ` INT WIZ VIT SP WP HASTE `
 `[Quantidade]`→ Quantidade de itens a venda
-`[Imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
+`[print]`→ envie um print do item em {market_offers_channel.mention} copie e cole o link
 
 - _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
 
@@ -125,11 +125,11 @@ COMANDOS:
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/mercado criar [item] [preço] [quantidade] [imagem]```
+```/mercado criar [item] [preço] [quantidade] [print]```
 `[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
 `[preço]`→ Preço unitário
 `[quantidade]`→ Quantidade de itens a venda
-`[imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
+`[print]`→ envie umprint do item em {market_offers_channel.mention} copie e cole o link
 
 - _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
 

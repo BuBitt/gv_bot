@@ -17,7 +17,7 @@ class BackgroundTasks(commands.Cog):
     def cog_unload(self) -> None:
         self.fetch_crafters_by_role.stop()
 
-    @tasks.loop(seconds=5)  # Run the task every 60 seconds
+    @tasks.loop(seconds=500)  # Run the task every 60 seconds
     async def fetch_crafters_by_role(self):
         # Your background task logic goes here
         # test = discord.utils.get(
