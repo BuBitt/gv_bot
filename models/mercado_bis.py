@@ -1,4 +1,3 @@
-from sqlalchemy import null
 from database import db
 from ast import Dict
 import settings
