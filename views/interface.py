@@ -23,6 +23,7 @@ from views.interface_crafter import (
     MarketDeleteMyOffersModalBis,
 )
 from views.interface_mercado import (
+    MarketDeleteMyOffersModal,
     MarketSearchModal,
     MarketVerifyMyOffersModal,
 )
@@ -405,7 +406,7 @@ class MarketLauncher(discord.ui.View):
     async def delet_my_market_offer(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_modal(MarketDeleteMyOffersModalBis())
+        await interaction.response.send_modal(MarketDeleteMyOffersModal())
 
     @discord.ui.button(
         label="Minhas Ofertas",
