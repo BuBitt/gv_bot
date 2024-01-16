@@ -224,7 +224,7 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
                 text=f"Oferta N° {offer.id} • {offer.item_name.title()}"
             )
             embed_offer.add_field(
-                name="", value=f"```{offer.item_tier_name.title()}```", inline=False
+                name="", value=f"**```{offer.item_tier_name.title()}```**", inline=False
             )
             embed_offer.add_field(
                 name="",
