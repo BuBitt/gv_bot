@@ -95,6 +95,10 @@ class MarketAdminDeleteOffersModal(discord.ui.Modal, title="Delete uma oferta"):
             return await interaction.response.send_message(
                 f"` {offer_id} ` não é um número."
             )
+        except discord.errors.NotFound:
+            return await interaction.response.send_message(
+                f"Oferta ` {offer_id} ` não foi encontrada."
+            )
 
 
 class MarketAdminDeleteOffersView(discord.ui.View):
