@@ -138,7 +138,7 @@ class MercadoBisCommands(app_commands.Group):
                     name="", value=f"```Atributos: {atributos.upper()}```", inline=False
                 )
                 embed_offer.set_footer(
-                    text=f"Oferta N° {last_id} • {item_name.title()}"
+                    text=f"Oferta N° {last_id}  •  {item_name.title()}"
                 )
 
                 # get the right tier

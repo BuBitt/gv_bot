@@ -90,7 +90,7 @@ class MercadoCommands(app_commands.Group):
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
                 embed_offer.set_footer(
-                    text=f"Oferta N° {last_id} • {item_name.title()}"
+                    text=f"Oferta N° {last_id}  •  {item.title()}"
                 )
                 embed_offer.add_field(name="", value=f"```{item.title()}```")
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")

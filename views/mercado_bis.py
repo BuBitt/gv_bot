@@ -305,7 +305,7 @@ class MarketOfferInterestBis(discord.ui.View):
                 item_type_messages[offer.item_type], ephemeral=True
             )
 
-        # TODO HABILITAR
+        # TODO HABILITAR CHECKER autor tentou comprar a propria oferta
         # checa se o autor da oferta tentou comprá-la
         # if interaction.user.id == vendor.id:
         #     return await interaction.response.send_message(
