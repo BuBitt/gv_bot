@@ -47,10 +47,10 @@ class Wiki(app_commands.Group):
             > 0.45
         ]
 
-        print(similar_channels)
         if similar_channels:
             return await interaction.response.send_message(
-                f"{search_offer_table_construct(similar_channels)}", ephemeral=True
+                f"` Encontrei esses canais que podem te ajudar: `\n{search_offer_table_construct(similar_channels)}",
+                ephemeral=True,
             )
         else:
             return await interaction.response.send_message(
