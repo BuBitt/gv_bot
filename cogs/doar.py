@@ -154,7 +154,7 @@ class CadastroTransacao(commands.Cog):
                         ctx.guild.roles, id=settings.CRAFTER_ROLE
                     )
 
-                    if crafter_user_object.id == ctx.user.id:
+                    if crafter_user_object.id == response.author.id:
                         raise IsYourselfError
 
                     is_crafter = (
@@ -203,11 +203,13 @@ class CadastroTransacao(commands.Cog):
 
                     else:
                         raise IsNotCrafterError("Erro: o player não é um crafter")
-                
+
                 except IsYourselfError:
-                    return await ctx.send(
-                        "Doação Cancelada! Você não pode doar para si mesmo"
+                    embed = discord.Embed(
+                        title=f"Doação Cancelada! Você não pode doar para si mesmo",
+                        color=discord.Color.dark_red(),
                     )
+                    return await ctx.send(embed=embed)
 
                 except IsNotCrafterError:
                     if crafter_mention == "!cancelar":
