@@ -75,6 +75,11 @@ class CadastroTransacao(commands.Cog):
             # Loop do Crafter
             while True:
                 # embed da menção do crafter
+                crafters_ck = [crafter.nick if crafter.nick != None else crafter.name for crafter in cooking]
+                crafters_bs = [crafter.nick if crafter.nick != None else crafter.name for crafter in blacksmith]
+                crafters_wv = [crafter.nick if crafter.nick != None else crafter.name for crafter in weaving]
+                crafters_cp = [crafter.nick if crafter.nick != None else crafter.name for crafter in carpentry]
+                crafters_bd = [crafter.nick if crafter.nick != None else crafter.name for crafter in breeding]
 
                 first_embed = discord.Embed(
                     title="**Crafter**",
@@ -82,23 +87,23 @@ class CadastroTransacao(commands.Cog):
                     color=discord.Color.dark_blue(),
                 )
                 first_embed.add_field(
-                    name="> Cooking", value=f"{constroi_tabela(cooking)}"
+                    name="> Cooking", value=f"{constroi_tabela(crafters_ck)}"
                 )
 
                 first_embed.add_field(
-                    name="> Blacksmith", value=f"{constroi_tabela(blacksmith)}"
+                    name="> Blacksmith", value=f"{constroi_tabela(crafters_bs)}"
                 )
 
                 first_embed.add_field(
-                    name="> Weaving", value=f"{constroi_tabela(weaving)}"
+                    name="> Weaving", value=f"{constroi_tabela(crafters_wv)}"
                 )
 
                 first_embed.add_field(
-                    name="> Carpentry", value=f"{constroi_tabela(carpentry)}"
+                    name="> Carpentry", value=f"{constroi_tabela(crafters_cp)}"
                 )
 
                 first_embed.add_field(
-                    name="> Breeding", value=f"{constroi_tabela(breeding)}"
+                    name="> Breeding", value=f"{constroi_tabela(crafters_bd)}"
                 )
 
                 # envia o embed se está iniciando o formulário

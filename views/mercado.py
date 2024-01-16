@@ -208,7 +208,7 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
             embed_offer.add_field(
                 name="", value=f"```{offer.item.title()}```", inline=False
             )
-            embed_offer.set_footer(text=f"**```OFERTA N° {offer.id}```**")
+            embed_offer.set_footer(text=f"Oferta N° {offer.id}  •  {offer.item.title()}")
             embed_offer.add_field(name="", value=f"```{offer.price} Silver```")
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(

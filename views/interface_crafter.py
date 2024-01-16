@@ -13,7 +13,7 @@ class MarketDeleteMyOffersModalBis(discord.ui.Modal, title="Delete uma oferta"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        offer_id = self.offer_id.value
+        offer_id = self.offer_id.value.strip()
 
         try:
             offer_id = int(offer_id)
