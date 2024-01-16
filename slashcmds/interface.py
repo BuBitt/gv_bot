@@ -125,7 +125,7 @@ COMANDOS:
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/mercado nova-offer [item] [preço] [quantidade] [imagem]```
+```/mercado nova-oferta [item] [preço] [quantidade] [imagem]```
 `[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
 `[preço]`→ Preço unitário
 `[quantidade]`→ Quantidade de itens a venda

@@ -94,7 +94,7 @@ class Profile(app_commands.Group):
             table_balance.rows.append(row)
 
         # embed
-        embed_me = discord.Embed(color=discord.Color.dark_green())
+        embed_me = discord.Embed(color=discord.Color.dark_purple())
         embed_me.set_author(
             name=f"Perfil de {user.name if user.nick == None else user.nick}",
             icon_url=user.display_avatar,
@@ -188,7 +188,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
         embed_guild = discord.Embed(
             title="**Informações Gerais**",
-            color=discord.Color.dark_green(),
+            color=discord.Color.dark_purple(),
             description=f"Com {interaction.guild.member_count} membros, é uma guilda do jogo Ravendawn.",
         )
         embed_guild.set_author(

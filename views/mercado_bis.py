@@ -232,7 +232,7 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             )
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(
-                name=f"{offer.vendor_name} postou esse item BIS",
+                name=f"{offer.vendor_name} crafttou esse item BIS",
                 icon_url=interaction.user.display_avatar,
             )
             embed_offer.set_image(url=offer.image)
