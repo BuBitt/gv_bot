@@ -495,7 +495,7 @@ class MarketLauncherBis(discord.ui.View):
     ):
         embed = discord.Embed(
             title="**ESSA AÇÃO USA UM COMANDO**",
-            description="```/mercado-bis ver-loja [@Player]```\n Use esse comando para ver a lojnha de um player",
+            description="```/bis ver-loja [@Player]```\n Use esse comando para ver a lojnha de um player",
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)

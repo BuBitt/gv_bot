@@ -20,7 +20,7 @@ logger = settings.logging.getLogger(__name__)
 
 
 class MercadoCommands(app_commands.Group):
-    @app_commands.command(name="criar-oferta", description="Cria uma oferta no market")
+    @app_commands.command(name="criar", description="Cria uma oferta no market")
     @app_commands.describe(
         item="Nome do item oferecido ex: Cloth T4",
         preço="Preço do item",

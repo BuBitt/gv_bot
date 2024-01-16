@@ -60,16 +60,16 @@ COMANDOS:
             description=f"""\
 **BOTÕES:**
     ` Minhas Ofertas   `-→ Mostra todas as suas ofertas abertas e seus números
-    ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
-    ` Deletar Oferta   `-→ Deleta uma oferta pelo seu número 
+    ` Verificar Compra `-→ Busca uma venda pelo comprovante
+    ` Deletar Oferta   `-→ Deleta uma oferta sua pelo número 
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/mercado-bis nova-oferta [item] [Atributos] [Quantidade] [Imagem]```
-`[item]`→ `T4 Cloth Armor` ou `Celestial Armor`, aparecerão no autocomplete
+```/bis criar [item] [Atributos] [Quantidade] [Imagem]```
+`[Item]`→ `T4 Cloth Armor` ou `Celestial Armor`, aparecerão no autocomplete
 `[Atributos]`→ Atributos abreviados. EX: ` INT WIZ VIT SP WP HASTE `
-`[quantidade]`→ Quantidade de itens a venda
-`[imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
+`[Quantidade]`→ Quantidade de itens a venda
+`[Imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
 
 - _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
 
@@ -125,7 +125,7 @@ COMANDOS:
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/mercado nova-oferta [item] [preço] [quantidade] [imagem]```
+```/mercado criar [item] [preço] [quantidade] [imagem]```
 `[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
 `[preço]`→ Preço unitário
 `[quantidade]`→ Quantidade de itens a venda

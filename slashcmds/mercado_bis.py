@@ -43,7 +43,7 @@ class MercadoBisCommands(app_commands.Group):
             if current.lower() in item.lower()
         ]
 
-    @app_commands.command(name="criar-oferta", description="Cria uma oferta no market")
+    @app_commands.command(name="criar", description="Cria uma oferta no market")
     @app_commands.autocomplete(item=item_autocomplete)
     @app_commands.describe(
         item="Nome do item oferecido, EX: T3 Plate Helmet ou Harbinger helmet",
@@ -327,6 +327,6 @@ class MercadoBisCommands(app_commands.Group):
 async def setup(bot):
     bot.tree.add_command(
         MercadoBisCommands(
-            name="mercado-bis", description="Comandos para o mercado de itens craftados"
+            name="bis", description="Comandos para o mercado de itens craftados"
         )
     )
