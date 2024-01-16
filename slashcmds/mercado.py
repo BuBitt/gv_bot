@@ -89,10 +89,10 @@ class MercadoCommands(app_commands.Group):
                     color=discord.Color.dark_green(),
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
-                embed_offer.set_footer(
-                    text=f"Oferta N° {last_id}  •  {item.title()}"
+                embed_offer.set_footer(text=f"Oferta N° {last_id}  •  {item.title()}")
+                embed_offer.add_field(
+                    name="", value=f"```{item.title()}```", inline=False
                 )
-                embed_offer.add_field(name="", value=f"```{item.title()}```", inline=False)
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
@@ -128,7 +128,7 @@ class MercadoCommands(app_commands.Group):
                 await channel.send(log_message_ch)
 
                 channel_bis = utils.get(
-                    interaction.guild.text_channels, id=settings.MARKET_LOG_BIS
+                    interaction.guild.text_channels, id=settings.MARKET_LOGS
                 )
                 await channel_bis.send(log_message_ch)
 
