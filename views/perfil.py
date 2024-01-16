@@ -266,7 +266,7 @@ class GuildProfileView(discord.ui.View):
         super().__init__(timeout=None)
         # TODO concertar cd
         self.cooldown = commands.CooldownMapping.from_cooldown(
-            1, 1, commands.BucketType.member
+            1, 300.0, commands.BucketType.member
         )
 
     @discord.ui.button(

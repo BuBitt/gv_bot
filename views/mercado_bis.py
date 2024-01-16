@@ -309,10 +309,10 @@ class MarketOfferInterestBis(discord.ui.View):
 
         # TODO HABILITAR CHECKER autor tentou comprar a propria oferta
         # checa se o autor da oferta tentou comprá-la
-        # if interaction.user.id == vendor.id:
-        #     return await interaction.response.send_message(
-        #         "Você não pode comprar seu prório item!", ephemeral=True
-        #     )
+        if interaction.user.id == vendor.id:
+            return await interaction.response.send_message(
+                "Você não pode comprar seu prório item!", ephemeral=True
+            )
 
         # informações superficiais da oferta de interesse
         vendor_name = getattr(interaction.user, "nick", interaction.user.name)

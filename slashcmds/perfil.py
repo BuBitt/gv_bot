@@ -152,7 +152,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)
+    @app_commands.checks.cooldown(3, 60.0, key=lambda i: i.user.id)
     async def guilda(self, interaction: discord.Interaction):
         last_transactions_query = (
             Donation.select(
@@ -320,7 +320,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    @app_commands.checks.cooldown(5, 1.0, key=lambda i: i.user.id)
+    @app_commands.checks.cooldown(5, 60.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
         interactor_name = (
             interaction.user.name
@@ -348,7 +348,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         settings.LEADER_ROLE,
     )
     # TODO concertar cd
-    @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)
+    @app_commands.checks.cooldown(2, 300.0, key=lambda i: i.user.id)
     async def edit(self, interaction: discord.Interaction):
         await interaction.response.send_message(
             embed=self.embed_me(interaction),

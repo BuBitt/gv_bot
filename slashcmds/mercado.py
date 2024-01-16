@@ -27,6 +27,7 @@ class MercadoCommands(app_commands.Group):
         quantidade="quantidade de itens",
         print="Print do item com os atributos, envie no canal de imagens",
     )
+    @app_commands.checks.cooldown(3, 60.0, key=lambda i: i.user.id)
     @app_commands.checks.has_any_role(
         settings.MEMBRO_INICIANTE_ROLE,
         settings.MEMBRO_ROLE,
