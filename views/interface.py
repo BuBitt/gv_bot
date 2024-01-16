@@ -210,9 +210,16 @@ class DonationLauncher(discord.ui.View):
                 ephemeral=True,
             )
         else:
+            crafter_role = discord.utils.get(
+                interaction.guild.roles, id=settings.CRAFTER_ROLE
+            )
             overwrites = {
                 interaction.guild.default_role: discord.PermissionOverwrite(
                     view_channel=False
+                ),
+                crafter_role: discord.PermissionOverwrite(
+                    view_channel=True,
+                    send_messages=False,
                 ),
                 interaction.user: discord.PermissionOverwrite(
                     view_channel=True,
