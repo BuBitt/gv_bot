@@ -95,20 +95,20 @@ def run():
         interaction: discord.Interaction, error: app_commands.AppCommandError
     ):
         if isinstance(error, app_commands.CommandOnCooldown):
-            logger.info(f"Erro de cooldown {interaction.user.name}")
+            logger.info(f"Erro de cooldown {error}")
             return await interaction.response.send_message(
                 f"Esse comando está em cooldown! Use-o novamente em **{int(error.retry_after)}** segundos!",
                 ephemeral=True,
             )
 
         elif isinstance(error, app_commands.MissingPermissions):
-            logger.info(f"Erro de permissão {interaction.user.name}")
+            logger.info(f"Erro de permissão {error}")
             return await interaction.response.send_message(
                 f"Você não tem permissão para usar esse comando.", ephemeral=True
             )
 
         elif isinstance(error, app_commands.errors.MissingAnyRole):
-            logger.info(f"Erro de permissão {interaction.user.name}")
+            logger.info(f"Erro de permissão {error}")
             await interaction.response.send_message(
                 "Você não tem permissão para executar esse comando", ephemeral=True
             )
