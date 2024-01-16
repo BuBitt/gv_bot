@@ -176,12 +176,12 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
 
         # envia feedback
         await interaction.message.edit(
-            content=f"`► Venda concluída. {self.quantity_to_buy} {self.offer.item} para `{self.buyer.mention}",
+            content=f"`✪ Venda concluída. {self.quantity_to_buy} {self.offer.item} para `{self.buyer.mention}",
             embed=embed_offer,
             view=None,
         )
         await self.buyer.send(
-            content=f"`► Compra concluída. Você comprou {self.quantity_to_buy} {self.offer.item} de `{self.vendor.mention}",
+            content=f"`✪ Compra concluída. Você comprou {self.quantity_to_buy} {self.offer.item} de `{self.vendor.mention}",
             embed=embed_offer,
         )
 
@@ -208,10 +208,11 @@ class MarketOfferInterestVendorConfirmation(discord.ui.View):
             embed_offer.add_field(
                 name="", value=f"```{offer.item.title()}```", inline=False
             )
+            embed_offer.set_footer(text=f"**```OFERTA N° {offer.id}```**")
             embed_offer.add_field(name="", value=f"```{offer.price} Silver```")
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(
-                name=f"{offer.vendor_name} abriu essa oferta",
+                name=f"{offer.vendor_name} criou essa oferta",
                 icon_url=interaction.user.display_avatar,
             )
             embed_offer.set_image(url=offer.image)

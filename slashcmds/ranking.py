@@ -84,13 +84,17 @@ class Rankings(app_commands.Group):
             table.rows.append(row, header=str(rank))
             rank += 1
 
-
+        user_name = (
+            interaction.user.nick
+            if interaction.user.nick != None
+            else interaction.user.name
+        )
         embed_position = discord.Embed(
-            title=f"**Sua posição é a: `{general_rank_position}` com `{points}` pontos**",
-            color=discord.Color.green(),
+            title=f"**`{user_name}`** posição é a: `{general_rank_position}` com `{points}` pontos**",
+            color=discord.Color.yellow(),
         )
         embed_ranking = discord.Embed(
-            title="**Ranking Geral**", color=discord.Color.dark_green()
+            title="**Ranking Geral**", color=discord.Color.dark_purple()
         )
         embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
 

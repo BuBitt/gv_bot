@@ -16,7 +16,9 @@ from views.interface import (
     CrafterLauncher,
     DonationLauncher,
     Main,
+    MarketBisCrafterLauncher,
     MarketLauncher,
+    MarketLauncherBis,
 )
 
 
@@ -42,8 +44,10 @@ def run():
 
         # persistent views
         if not bot.added:
+            bot.add_view(MarketBisCrafterLauncher())
             bot.add_view(MarketOfferInterestBis())
             bot.add_view(MarketOfferInterest())
+            bot.add_view(MarketLauncherBis())
             bot.add_view(DonationLauncher())
             bot.add_view(CrafterLauncher())
             bot.add_view(MarketLauncher())

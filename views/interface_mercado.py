@@ -46,7 +46,7 @@ class MarketSearchModal(discord.ui.Modal, title="Busque ofertas de um item"):
         ]
         offers_table = search_offer_table_construct(offers)
         await interaction.response.send_message(
-            content=f"`  Ofertas:   `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
@@ -129,7 +129,7 @@ class MarketVerifyMyOffersModal(discord.ui.Modal, title="Verificar Venda"):
     async def on_submit(self, interaction: discord.Interaction):
         offer_number = self.hash_value.value
         offer = SellInfo.fetch(offer_number)
-        
+
         if offer == None:
             embed_invalid = discord.Embed(
                 title="**Venda Inexistente.**",

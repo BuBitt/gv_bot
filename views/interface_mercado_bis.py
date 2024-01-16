@@ -1,3 +1,4 @@
+from datetime import datetime
 import difflib
 import traceback
 import discord
@@ -20,15 +21,17 @@ class MarketSearchModalBis(discord.ui.Modal, title="Busque ofertas de um item"):
         item = self.item.value
 
         # Fetch active market offers from the database
-        query_search_for = MarketOfferBis.select().where(MarketOfferBis.is_active)
+        query_is_active = MarketOfferBis.select().where(MarketOfferBis.is_active)
 
         # Consulta ofertas ativas no mercado no banco de dados
         search_results = [
             (
                 offer,
-                difflib.SequenceMatcher(None, item.lower(), offer.item.lower()).ratio(),
+                difflib.SequenceMatcher(
+                    None, item.lower(), offer.item_tier_name.lower()
+                ).ratio(),
             )
-            for offer in query_search_for
+            for offer in query_is_active
         ]
 
         # Calcula as taxas de similaridade usando list comprehension
@@ -41,81 +44,16 @@ class MarketSearchModalBis(discord.ui.Modal, title="Busque ofertas de um item"):
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity}; Vendedor:`{mention_by_id(my_offer.vendor_id)}"
+            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()}; Quantidade: {my_offer.quantity}; Vendedor:`{mention_by_id(my_offer.vendor_id)}"
             for my_offer in filtered_results
         ]
         offers_table = search_offer_table_construct(offers)
         await interaction.response.send_message(
-            content=f"`    Ofertas:     `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         traceback.print_tb(error.__traceback__)
-
-
-class MarketDeleteMyOffersModalBis(discord.ui.Modal, title="Delete uma oferta"):
-    offer_id = discord.ui.TextInput(
-        style=discord.TextStyle.short,
-        label="Número da Oferta",
-        required=True,
-        placeholder="Digite o Número da Oferta",
-    )
-
-    async def on_submit(self, interaction: discord.Interaction):
-        offer_id = self.offer_id.value
-
-        try:
-            offer_id = int(offer_id)
-            offer = MarketOfferBis.fetch_by_id(offer_id)
-
-            if not offer.vendor_id == interaction.user.id:
-                return await interaction.response.send_message(
-                    "Você não é o dono dessa oferta ou ela não existe."
-                )
-            else:
-                embed = discord.Embed(
-                    title="**Você realmente deseja DELETAR essa oferta?**",
-                    color=discord.Color.red(),
-                )
-                return await interaction.response.send_message(
-                    embed=embed,
-                    view=MarketDeleteMyOffersViewBis(offer=offer),
-                    ephemeral=True,
-                )
-        except ValueError:
-            return await interaction.response.send_message(
-                f"` {offer_id} ` não é um número."
-            )
-
-
-class MarketDeleteMyOffersViewBis(discord.ui.View):
-    def __init__(self, offer):
-        self.offer = offer
-        super().__init__(timeout=None)
-
-    @discord.ui.button(
-        label="Confirmar Deleção",
-        style=discord.ButtonStyle.danger,
-        custom_id="delete_my_offer_market",
-    )
-    async def delete_my_offer_market_bis(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        offer = self.offer
-        offer.is_active = False
-        offer.save()
-
-        message = await discord.utils.get(
-            interaction.guild.text_channels, id=settings.MARKET_OFFER_CHANNEL_BIS
-        ).fetch_message(offer.message_id)
-
-        await message.delete()
-
-        embed = discord.Embed(
-            title="**Sua oferta foi deletada.**",
-            color=discord.Color.yellow(),
-        )
-        return await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 class MarketVerifyMyOffersModalBis(discord.ui.Modal, title="Verificar Venda"):
@@ -142,22 +80,18 @@ class MarketVerifyMyOffersModalBis(discord.ui.Modal, title="Verificar Venda"):
 
         # embed comprovante
         embed_offer = discord.Embed(
-            title=f"**RECIBO**", color=discord.Color.dark_gold()
+            title=f"**RECIBO**", color=discord.Color.dark_purple()
         )
-        embed_offer.add_field(name="", value=f"```Item: {offer.item}```", inline=False)
+        embed_offer.add_field(
+            name="",
+            value=f"```Item: {offer.item_tier_name} / {offer.item_name}```",
+            inline=False,
+        )
         embed_offer.insert_field_at(
             name="", value=f"```Oferta N°: {offer.offer_id}```", index=1
         )
         embed_offer.insert_field_at(
-            name="", value=f"```Preço: {offer.price}```", index=1
-        )
-        embed_offer.insert_field_at(
-            name="", value=f"```Qte vendida: {offer.quantity}```", index=2
-        )
-        embed_offer.insert_field_at(
-            name="",
-            value=f"```Total: {offer.quantity * offer.price}```",
-            index=2,
+            name="", value=f"```Qte entregue: {offer.quantity}```", index=2
         )
 
         return await interaction.response.send_message(

@@ -15,13 +15,18 @@ from views.admin import (
     EditTierMinimalRequeirementsAdmin,
     NewItemModalAdmin,
 )
+from views.interface_admin import (
+    MarketAdminDeleteOffersModal,
+    MarketAdminDeleteOffersModalBis,
+)
+from views.interface_crafter import (
+    MarketDeleteMyOffersModalBis,
+)
 from views.interface_mercado import (
-    MarketDeleteMyOffersModal,
     MarketSearchModal,
     MarketVerifyMyOffersModal,
 )
 from views.interface_mercado_bis import (
-    MarketDeleteMyOffersModalBis,
     MarketSearchModalBis,
     MarketVerifyMyOffersModalBis,
 )
@@ -293,6 +298,7 @@ class AdminLauncher(discord.ui.View):
         label="Transferir Silver",
         style=discord.ButtonStyle.danger,
         custom_id="admin_transfer_silver_button",
+        row=2,
     )
     async def admin_transfer_silver(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -310,6 +316,7 @@ Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
         label="Editar Valores de Tier",
         style=discord.ButtonStyle.danger,
         custom_id="admin_edit_value_tier_button",
+        row=2,
     )
     async def admin_edit_value_tier(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -334,6 +341,28 @@ Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
         await interaction.response.send_message(
             embed=embed, view=AdminToZeroPointsConfirm(), ephemeral=True
         )
+
+    @discord.ui.button(
+        label="Remover Oferta Comum",
+        style=discord.ButtonStyle.danger,
+        custom_id="admin_remove_market_offer_button",
+        row=3,
+    )
+    async def remove_offer_admin_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketAdminDeleteOffersModal())
+
+    @discord.ui.button(
+        label="Remover Oferta Bis",
+        style=discord.ButtonStyle.danger,
+        custom_id="admin_remove_market_offer_bis_button",
+        row=3,
+    )
+    async def remove_offer_bis_admin_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketAdminDeleteOffersModalBis())
 
 
 # MERCADO
@@ -375,7 +404,7 @@ class MarketLauncher(discord.ui.View):
     async def delet_my_market_offer(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_modal(MarketDeleteMyOffersModal())
+        await interaction.response.send_modal(MarketDeleteMyOffersModalBis())
 
     @discord.ui.button(
         label="Minhas Ofertas",
@@ -500,6 +529,67 @@ class Confirm(discord.ui.View):
                 f"Channel delete failed! make sure I have `manage_channels` persmission.",
                 ephemeral=True,
             )
+
+
+class MarketBisCrafterLauncher(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Deletar Oferta",
+        style=discord.ButtonStyle.danger,
+        custom_id="crafter_delete_my_market_offer",
+        row=1,
+    )
+    async def delete_my_market_offer_bis(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketDeleteMyOffersModalBis())
+
+    @discord.ui.button(
+        label="Minhas Ofertas",
+        style=discord.ButtonStyle.success,
+        custom_id="show_market_my_offers_crafter",
+    )
+    async def show_market_my_offers_bis(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        # Consulta ofertas ativas no mercado no banco de dados
+        query_search_for = MarketOfferBis.select().where(
+            (MarketOfferBis.vendor_id == interaction.user.id)
+            & (MarketOfferBis.is_active == True)
+        )
+
+        if not query_search_for:
+            # Se nenhum resultado for enquantrado envia uma mensagem
+            return await interaction.response.send_message(
+                "Você não possui ofertas ativas", ephemeral=True
+            )
+
+        # Exibe os resultados
+        offers = [
+            f"{my_offer.jump_url}` N° {my_offer.id} → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()}; Quantidade: {my_offer.quantity} `"
+            for my_offer in query_search_for
+        ]
+
+        # Constroi uma tabela com as ofertas ativas
+        offers_table = search_offer_table_construct(offers)
+
+        # Envia a tabela contruida
+        await interaction.response.send_message(
+            content=f"**`      Suas Ofertas     `**\n{offers_table}",
+            ephemeral=True,
+        )
+
+    @discord.ui.button(
+        label="Verificar Compra",
+        style=discord.ButtonStyle.success,
+        custom_id="verify_hash_market_offer",
+    )
+    async def verify_hash_market_offer(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(MarketVerifyMyOffersModalBis())
 
 
 class Main(discord.ui.View):

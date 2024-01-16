@@ -20,7 +20,7 @@ logger = settings.logging.getLogger(__name__)
 
 
 class MercadoCommands(app_commands.Group):
-    @app_commands.command(name="oferecer", description="Cria uma oferta no market")
+    @app_commands.command(name="criar-oferta", description="Cria uma oferta no market")
     @app_commands.describe(
         item="Nome do item oferecido ex: Cloth T4",
         preço="Preço do item",
@@ -43,13 +43,7 @@ class MercadoCommands(app_commands.Group):
         quantidade: int,
         imagem: str,
     ):
-        regex = (
-            "((http|https)://)(www.)?"
-            + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-            + "{2,256}\\.[a-z]"
-            + "{2,6}\\b([-a-zA-Z0-9@:%"
-            + "._\\+~#?&//=]*)"
-        )
+        regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
         try:
             if preço < 1 or quantidade < 1:
@@ -82,14 +76,23 @@ class MercadoCommands(app_commands.Group):
                     interaction.guild.text_channels, id=settings.MARKET_OFFER_CHANNEL
                 )
 
+                # encontra o ultimo ID da tabela para definir o número da oferta
+                last_id = (
+                    MarketOffer.select(MarketOffer.id)
+                    .order_by(MarketOffer.id.desc())
+                    .limit(1)
+                    .scalar()
+                )
+
                 embed_offer = discord.Embed(
                     title=f"",
                     color=discord.Color.dark_green(),
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
-                embed_offer.add_field(
-                    name="", value=f"```{item.title()}```", inline=False
+                embed_offer.set_footer(
+                    text=f"Oferta N° {last_id} • {item_name.title()}"
                 )
+                embed_offer.add_field(name="", value=f"```{item.title()}```")
                 embed_offer.add_field(name="", value=f"```{preço} Silver```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
@@ -111,7 +114,7 @@ class MercadoCommands(app_commands.Group):
                 MarketOffer.new(offer_dict)
 
                 await interaction.response.send_message(
-                    f"`► Sua oferta foi criada: `{message.jump_url}", ephemeral=True
+                    f"`✪ Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
 
                 # log da operação
@@ -124,14 +127,19 @@ class MercadoCommands(app_commands.Group):
                 )
                 await channel.send(log_message_ch)
 
+                channel_bis = utils.get(
+                    interaction.guild.text_channels, id=settings.MARKET_LOG_BIS
+                )
+                await channel_bis.send(log_message_ch)
+
         except IsNotLinkError:
             await interaction.response.send_message(
-                f"`► {imagem} ` não é um link válido.", ephemeral=True
+                f"`✪ {imagem} ` não é um link válido.", ephemeral=True
             )
 
         except IsNegativeError:
             await interaction.response.send_message(
-                f"`► {item} ` não é um link válido.", ephemeral=True
+                f"`✪ {item} ` não é um link válido.", ephemeral=True
             )
 
     @app_commands.command(
@@ -175,7 +183,7 @@ class MercadoCommands(app_commands.Group):
         ]
         offers_table = search_offer_table_construct(offers)
         await interaction.response.send_message(
-            content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     @app_commands.command(
@@ -214,7 +222,7 @@ class MercadoCommands(app_commands.Group):
 
         # Envia a tabela contruida
         await interaction.response.send_message(
-            content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     @app_commands.command(
@@ -257,7 +265,7 @@ class MercadoCommands(app_commands.Group):
 
         # Envia a tabela contruida
         await interaction.response.send_message(
-            content=f"` Loja de {player_name}: `\n{offers_table}", ephemeral=True
+            content=f"**` Loja - {player_name} `**\n{offers_table}", ephemeral=True
         )
 
 

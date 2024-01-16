@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from views.interface import (
     AdminLauncher,
-    CrafterLauncher,
     DonationLauncher,
+    MarketBisCrafterLauncher,
     MarketLauncher,
     MarketLauncherBis,
 )
@@ -27,7 +27,9 @@ BOTÕES:
     ` Novo Item `                   - Abre o formulário para a adição de um novo item
     ` Editar item `                 - Abre o formulário para a edição de pontos de um item
     ` Transferir Silver `           - Instruções para a transferencia de silver à players
-    ` Zerar Pontuação de Todos`     - Zera os pontos de todas as pessoas na guilda
+    ` Zerar Pontuação de Todos `    - Zera os pontos de todas as pessoas na guilda
+    ` Remover Oferta Comum `        - Deletar uma oferta do mercado comum pelo número
+    ` Remover Oferta Bis `          - Deletar uma oferta do mercado BIS pelo número
 
 COMANDOS:
 - **Adiciona pontos ao Player**
@@ -49,12 +51,32 @@ COMANDOS:
     @app_commands.checks.has_any_role(
         settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
     )
-    async def craft_panel(self, interaction: discord.Interaction):
+    async def craft_panel_bis(self, interaction: discord.Interaction):
+        market_offers_channel = discord.utils.get(
+            interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP_BIS
+        )
         embed = discord.Embed(
-            title="**PAINEL DE GERENCIAMENTO DO CRAFT**",
+            title="**PAINEL DE GERENCIAMENTO DO CRAFTER**",
+            description=f"""\
+**BOTÕES:**
+    ` Minhas Ofertas   `-→ Mostra todas as suas ofertas abertas e seus números
+    ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
+    ` Deletar Oferta   `-→ Deleta uma oferta pelo seu número 
+
+**CRIAR OFERTA:**
+- **Para criar um oferta use o comando:**
+```/mercado-bis nova-oferta [item] [Atributos] [Quantidade] [Imagem]```
+`[item]`→ `T4 Cloth Armor` ou `Celestial Armor`, aparecerão no autocomplete
+`[Atributos]`→ Atributos abreviados. EX: ` INT WIZ VIT SP WP HASTE `
+`[quantidade]`→ Quantidade de itens a venda
+`[imagem]`→ envie uma imagem em {market_offers_channel.mention} copie e cole o link
+
+- _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
+
+""",
             color=discord.Color.yellow(),
         )
-        await interaction.channel.send(embed=embed, view=CrafterLauncher())
+        await interaction.channel.send(embed=embed, view=MarketBisCrafterLauncher())
         await interaction.response.send_message(
             f"{interaction.user.mention} Botão criado.",
             ephemeral=True,
@@ -103,7 +125,7 @@ COMANDOS:
 
 **CRIAR OFERTA:**
 - **Para criar um oferta use o comando:**
-```/mercado oferecer [item] [preço] [quantidade] [imagem]```
+```/mercado nova-offer [item] [preço] [quantidade] [imagem]```
 `[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
 `[preço]`→ Preço unitário
 `[quantidade]`→ Quantidade de itens a venda
@@ -131,8 +153,8 @@ COMANDOS:
             interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP
         )
         embed = discord.Embed(
-            title="**PAINEL DO MERCARDO**",
-            color=discord.Color.dark_green(),
+            title="**PAINEL DO MERCARDO BIS**",
+            color=discord.Color.dark_purple(),
             description=f"""\
 **BOTÕES**
     ` Buscar Item      `-→ Procura por um item no mercado
@@ -140,8 +162,8 @@ COMANDOS:
     ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
 
 **REGRAS**
-- Ao completar as 4 peças de um set seus pontos e rank serão resetados;
-- Não é possível pegar uma mesma parte do set até o pŕoximo rest;\n
+- Ao completar as 4 peças de um set, seus pontos e rank serão resetados;
+- Não é possível pegar uma mesma parte do set até o pŕoximo reset;\n
 """,
         )
         await interaction.channel.send(embed=embed, view=MarketLauncherBis())

@@ -13,8 +13,8 @@ class SellInfoBis(peewee.Model):
     buyer_id: int = peewee.BigIntegerField(default=0)
     buyer_name: str = peewee.CharField(max_length=255)
     offer_id: int = peewee.IntegerField()
-    item: str = peewee.CharField(max_length=255)
-    price: int = peewee.IntegerField()
+    item_name: str = peewee.CharField(max_length=255)
+    item_tier_name: str = peewee.CharField(max_length=255, null=False)
     quantity: int = peewee.IntegerField(default=1)
     timestamp: str = peewee.CharField(max_length=255)
     hash_proof: str = peewee.CharField(max_length=255)
@@ -32,8 +32,8 @@ class SellInfoBis(peewee.Model):
                 buyer_id=sell.get("buyer_id"),
                 buyer_name=sell.get("buyer_name"),
                 offer_id=sell.get("offer_id"),
-                item=sell.get("item"),
-                price=sell.get("price"),
+                item_tier_name=sell.get("item_tier_name"),
+                item_name=sell.get("item_name"),
                 quantity=sell.get("quantity"),
                 timestamp=sell.get("timestamp"),
                 hash_proof=sell.get("hash_proof"),
@@ -46,8 +46,8 @@ class SellInfoBis(peewee.Model):
                 buyer_id=sell.get("buyer_id"),
                 buyer_name=sell.get("buyer_name"),
                 offer_id=sell.get("offer_id"),
-                item=sell.get("item"),
-                price=sell.get("price"),
+                item_tier_name=sell.get("item_tier_name"),
+                item_name=sell.get("item_name"),
                 quantity=sell.get("quantity"),
                 timestamp=sell.get("timestamp"),
                 hash_proof=sell.get("hash_proof"),

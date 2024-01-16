@@ -12,7 +12,7 @@ class Account(peewee.Model):
     level: int = peewee.IntegerField(default=1)
     role: str = peewee.CharField(max_length=255)
     got_boots: bool = peewee.BooleanField(default=False, null=False)
-    got_helmt: bool = peewee.BooleanField(default=False, null=False)
+    got_helmet: bool = peewee.BooleanField(default=False, null=False)
     got_armor: bool = peewee.BooleanField(default=False, null=False)
     got_legs: bool = peewee.BooleanField(default=False, null=False)
 

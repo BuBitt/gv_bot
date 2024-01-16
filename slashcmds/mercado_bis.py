@@ -1,9 +1,12 @@
 from datetime import datetime
-from typing import List
+from typing import List, Literal
 import difflib
 import time
 
 from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
+from models.account import Account
+from models.guild import Guild
+from models.items_bis import ItemBis
 
 import settings
 
@@ -23,62 +26,49 @@ logger = settings.logging.getLogger(__name__)
 
 
 class MercadoBisCommands(app_commands.Group):
-    async def fruit_autocomplete(
+    async def item_autocomplete(
         self,
         interaction: discord.Interaction,
         current: str,
     ) -> List[app_commands.Choice[str]]:
-        itens = Items.select(Items.item)
-        items = [item.item for item in list(itens)]
+        itens_tier_name = ItemBis.select(ItemBis.tier_name)
+        itens_name = ItemBis.select(ItemBis.item_name)
+        items_all = [item.tier_name for item in itens_tier_name] + [
+            item.item_name for item in itens_name
+        ]
+
         return [
             app_commands.Choice(name=item, value=item)
-            for item in items
+            for item in items_all
             if current.lower() in item.lower()
         ]
 
-    @app_commands.command(
-        name="oferecer-test", description="Cria uma oferta no market de craft"
-    )
-    @app_commands.checks.has_any_role(
-        settings.CRAFTER_ROLE, settings.VICE_LIDER_ROLE, settings.BOT_MANAGER_ROLE
-    )
-    @app_commands.describe(item="Comece a escrever o nome do item")
-    @app_commands.autocomplete(item=fruit_autocomplete)
-    async def fruits(self, interaction: discord.Interaction, item: str):
-        await interaction.response.send_message(f"item: {item}")
-
-    @app_commands.command(name="oferecer", description="Cria uma oferta no market")
+    @app_commands.command(name="criar-oferta", description="Cria uma oferta no market")
+    @app_commands.autocomplete(item=item_autocomplete)
     @app_commands.describe(
-        item="Nome do item oferecido ex: Cloth T4",
-        preço="Preço do item",
+        item="Nome do item oferecido, EX: T3 Plate Helmet ou Harbinger helmet",
+        atributos="Exemplo: INT WIZ WP SP HASTE",
         quantidade="quantidade de itens",
-        imagem="Imagem do item com os atributos",
+        imagem="Imagem do item com os atributos, envie a imagem no canal imagens e copie o link",
     )
     @app_commands.checks.has_any_role(
-        settings.CRAFTER_ROLE, settings.VICE_LIDER_ROLE, settings.BOT_MANAGER_ROLE
+        settings.CRAFTER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.BOT_MANAGER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def market_new_offer(
         self,
         interaction: discord.Interaction,
         item: str,
-        preço: int,
+        atributos: str,
         quantidade: int,
         imagem: str,
     ):
-        regex = (
-            "((http|https)://)(www.)?"
-            + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-            + "{2,256}\\.[a-z]"
-            + "{2,6}\\b([-a-zA-Z0-9@:%"
-            + "._\\+~#?&//=]*)"
-        )
+        regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
         try:
-            if preço < 1 or quantidade < 1:
-                raise IsNegativeError
-
-            elif not is_valid_regex(imagem, regex):
-                print(is_valid_regex(imagem, regex))
+            if not is_valid_regex(imagem, regex):
                 raise IsNotLinkError
 
             else:
@@ -87,15 +77,38 @@ class MercadoBisCommands(app_commands.Group):
                     if interaction.user.nick != None
                     else interaction.user.name
                 )
+
+                # encontra o tipo de item (helmet, armor, legs ou legs)
+                item_lower = item.lower()
+                offer_dict = {}
+
+                if "helmet" in item_lower:
+                    offer_dict["item_type"] = "HELMET"
+                elif "armor" in item_lower:
+                    offer_dict["item_type"] = "ARMOR"
+                elif "legs" in item_lower:
+                    offer_dict["item_type"] = "LEGS"
+                elif "boots" in item_lower:
+                    offer_dict["item_type"] = "BOOTS"
+
+                # timestamp
                 timestamp = str(time.time()).split(".")[0]
 
-                # controi oferta
-                offer_dict = {}
+                # converte o item para tier_name
+                if not item.startswith(("T1", "T2", "T3", "T4", "T5", "T6")):
+                    item_name = item
+                    item_tier_name = ItemBis.fetch_by_name(item)
+                else:
+                    item_name = ItemBis.fetch_by_tier_name(item)
+                    item_tier_name = item
+
+                # constroi oferta
                 offer_dict["member_id"] = interaction.user.id
                 offer_dict["member_name"] = vendor_name
-                offer_dict["item"] = item
+                offer_dict["item_tier_name"] = item_tier_name
+                offer_dict["item_name"] = item_name
+                offer_dict["atributes"] = atributos
                 offer_dict["quantity"] = quantidade
-                offer_dict["price"] = preço
                 offer_dict["image"] = imagem
                 offer_dict["timestamp"] = timestamp
 
@@ -105,15 +118,37 @@ class MercadoBisCommands(app_commands.Group):
                     id=settings.MARKET_OFFER_CHANNEL_BIS,
                 )
 
+                # enconta o ultimo id para definir o N° da oferta
+                last_id = (
+                    MarketOfferBis.select(MarketOfferBis.id)
+                    .order_by(MarketOfferBis.id.desc())
+                    .limit(1)
+                    .scalar()
+                )
+
                 embed_offer = discord.Embed(
                     title=f"",
-                    color=discord.Color.dark_green(),
+                    color=discord.Color.dark_purple(),
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
                 embed_offer.add_field(
-                    name="", value=f"```{item.title()}```", inline=False
+                    name="", value=f"**```{item_tier_name.title()}```**"
                 )
-                embed_offer.add_field(name="", value=f"```{preço} Silver```")
+                embed_offer.add_field(
+                    name="", value=f"```Atributos: {atributos.upper()}```", inline=False
+                )
+                embed_offer.set_footer(
+                    text=f"Oferta N° {last_id} • {item_name.title()}"
+                )
+
+                # get the right tier
+                tier_name = f"{item_tier_name[0:2].lower()}_requirement"
+                tier = getattr(Guild, tier_name)
+                tier_points = Guild.select(tier).first()
+                value = getattr(tier_points, tier_name)
+                offer_dict["min_points_req"] = value
+
+                embed_offer.add_field(name="", value=f"```{value} Pontos Mínimos```")
                 embed_offer.add_field(name="", value=f"```{quantidade} Disponíveis```")
                 embed_offer.set_author(
                     name=f"{vendor_name} está vendendo:",
@@ -134,7 +169,7 @@ class MercadoBisCommands(app_commands.Group):
                 MarketOfferBis.new(offer_dict)
 
                 await interaction.response.send_message(
-                    f"`► Sua oferta foi criada: `{message.jump_url}", ephemeral=True
+                    f"`✪ Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
 
                 # log da operação
@@ -147,14 +182,19 @@ class MercadoBisCommands(app_commands.Group):
                 )
                 await channel.send(log_message_ch)
 
+                channel_bis = utils.get(
+                    interaction.guild.text_channels, id=settings.MARKET_LOG_BIS
+                )
+                await channel_bis.send(log_message_ch)
+
         except IsNotLinkError:
             await interaction.response.send_message(
-                f"`► {imagem} ` não é um link válido.", ephemeral=True
+                f"`✪ {imagem} ` não é um link válido.", ephemeral=True
             )
 
         except IsNegativeError:
             await interaction.response.send_message(
-                f"`► {item} ` não é um link válido.", ephemeral=True
+                f"`✪ {item} ` não é um link válido.", ephemeral=True
             )
 
     @app_commands.command(
@@ -178,7 +218,9 @@ class MercadoBisCommands(app_commands.Group):
         search_results = [
             (
                 offer,
-                difflib.SequenceMatcher(None, item.lower(), offer.item.lower()).ratio(),
+                difflib.SequenceMatcher(
+                    None, item.lower(), offer.item_tier_name.lower()
+                ).ratio(),
             )
             for offer in query_search_for
         ]
@@ -188,17 +230,17 @@ class MercadoBisCommands(app_commands.Group):
 
         if not filtered_results:
             return await interaction.response.send_message(
-                f"Não foram encontradas ofertas com `{item.title()}`.", ephemeral=True
+                f"`Não foram encontradas ofertas com `{item.title()}`.", ephemeral=True
             )
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity}; Vendedor:`{mention_by_id(my_offer.vendor_id)}"
+            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()};  Quantidade: {my_offer.quantity}; Crafter:`{mention_by_id(my_offer.vendor_id)}"
             for my_offer in filtered_results
         ]
         offers_table = search_offer_table_construct(offers)
         await interaction.response.send_message(
-            content=f"`    Ofertas:    `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     @app_commands.command(
@@ -206,7 +248,10 @@ class MercadoBisCommands(app_commands.Group):
         description="mostra suas ofertas abertas",
     )
     @app_commands.checks.has_any_role(
-        settings.CRAFTER_ROLE, settings.VICE_LIDER_ROLE, settings.BOT_MANAGER_ROLE
+        settings.CRAFTER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.BOT_MANAGER_ROLE,
+        settings.LEADER_ROLE,
     )
     async def my_offers(self, interaction: discord.Interaction):
         # Consulta ofertas ativas no mercado no banco de dados
@@ -223,7 +268,7 @@ class MercadoBisCommands(app_commands.Group):
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` N° {my_offer.id} → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
+            f"{my_offer.jump_url}` N° {my_offer.id} → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()};  Quantidade: {my_offer.quantity} `"
             for my_offer in query_search_for
         ]
 
@@ -232,7 +277,7 @@ class MercadoBisCommands(app_commands.Group):
 
         # Envia a tabela contruida
         await interaction.response.send_message(
-            content=f"`   Ofertas:   `\n{offers_table}", ephemeral=True
+            content=f"{offers_table}", ephemeral=True
         )
 
     @app_commands.command(
@@ -259,14 +304,14 @@ class MercadoBisCommands(app_commands.Group):
         player_name = player.nick if player.nick != None else player.name
 
         if not query_search_for:
-            # Se nenhum resultado for enquantrado envia uma menságem
+            # Se nenhum resultado for encontrado envia uma mensagem
             return await interaction.response.send_message(
                 f"{player.mention}` não possui ofertas ativas. `", ephemeral=True
             )
 
         # Exibe os resultados
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item}; Preço: {my_offer.price}; Quantidade: {my_offer.quantity} `"
+            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()};  Quantidade: {my_offer.quantity} `"
             for my_offer in query_search_for
         ]
 
@@ -275,7 +320,7 @@ class MercadoBisCommands(app_commands.Group):
 
         # Envia a tabela contruida
         await interaction.response.send_message(
-            content=f"` Loja de {player_name}: `\n{offers_table}", ephemeral=True
+            content=f"**` Loja - {player_name} `**\n{offers_table}", ephemeral=True
         )
 
 

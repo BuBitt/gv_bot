@@ -1,6 +1,7 @@
 import hashlib
 import time
 import traceback
+from models.account import Account
 
 import settings
 
@@ -54,13 +55,9 @@ class QuantityModal(discord.ui.Modal, title="Quantos você deseja comprar?"):
                     ephemeral=True,
                 )
 
-                # adiciona quantidade a comprar e total de silver
+                # adiciona quantidade a comprar
                 self.embed_offer.add_field(
                     name="", value=f"```Qte: {quantity_to_buy}```"
-                )
-                self.embed_offer.add_field(
-                    name="",
-                    value=f"```Total: {quantity_to_buy * self.offer.price} Silver```",
                 )
 
                 # envia a oferta ao canal do mercado
@@ -72,7 +69,6 @@ class QuantityModal(discord.ui.Modal, title="Quantos você deseja comprar?"):
                         message=self.message,
                         quantity_to_buy=quantity_to_buy,
                         offer=self.offer,
-                        vendor=vendor,
                     ),
                 )
 
@@ -97,10 +93,10 @@ class QuantityModal(discord.ui.Modal, title="Quantos você deseja comprar?"):
 
 
 class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
-    def __init__(self, buyer, message, offer, vendor, quantity_to_buy) -> None:
+    def __init__(self, buyer, message, offer, quantity_to_buy) -> None:
         self.buyer = buyer
         self.offer = offer
-        self.vendor = vendor
+
         self.message = message
         self.quantity_to_buy = quantity_to_buy
         super().__init__(timeout=None)
@@ -108,9 +104,9 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
     @discord.ui.button(
         label="Vender",
         style=discord.ButtonStyle.success,
-        custom_id="vendor_confirmation_button",
+        custom_id="vendor_confirmation_button_bis",
     )
-    async def vendor_confirmation_button(
+    async def vendor_confirmation_button_bis(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         # verifica se a ordem ainda está ativa
@@ -139,24 +135,20 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
 
         # embed de confirmação
         embed_offer = discord.Embed(
-            title=f"**RECIBO**", color=discord.Color.brand_green(), timestamp=timestamp
+            title=f"**RECIBO BIS**",
+            color=discord.Color.purple(),
+            timestamp=timestamp,
         )
         embed_offer.add_field(
-            name="", value=f"```Item: {self.offer.item}```", inline=False
+            name="",
+            value=f"```Item: {self.offer.item_tier_name} / {self.offer.item_name}```",
+            inline=False,
         )
         embed_offer.insert_field_at(
             name="", value=f"```Oferta N°: {self.offer.id}```", index=1
         )
         embed_offer.insert_field_at(
-            name="", value=f"```Preço: {self.offer.price}```", index=1
-        )
-        embed_offer.insert_field_at(
-            name="", value=f"```Qte vendida: {self.quantity_to_buy}```", index=2
-        )
-        embed_offer.insert_field_at(
-            name="",
-            value=f"```Total: {self.quantity_to_buy * self.offer.price}```",
-            index=2,
+            name="", value=f"```Qte entregue: {self.quantity_to_buy}```", index=2
         )
         embed_offer.add_field(
             name="COMPROVANTE", value=f"```{sha256_hash}```", inline=False
@@ -169,8 +161,8 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
         sell_dict["buyer_id"] = self.buyer.id
         sell_dict["buyer_name"] = self.buyer.name
         sell_dict["offer_id"] = self.offer.id
-        sell_dict["item"] = self.offer.item
-        sell_dict["price"] = self.offer.price
+        sell_dict["item_tier_name"] = self.offer.item_tier_name
+        sell_dict["item_name"] = self.offer.item_name
         sell_dict["quantity"] = self.quantity_to_buy
         sell_dict["timestamp"] = datetime.fromtimestamp(int(time.time()))
         sell_dict["hash_proof"] = sha256_hash
@@ -178,21 +170,39 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
 
         # envia feedback
         await interaction.message.edit(
-            content=f"`► Venda concluída. {self.quantity_to_buy} {self.offer.item} para `{self.buyer.mention}",
+            content=f"`✪ Venda concluída. {self.quantity_to_buy} {self.offer.item_tier_name} para `{self.buyer.mention}",
             embed=embed_offer,
             view=None,
         )
         await self.buyer.send(
-            content=f"`► Compra concluída. Você comprou {self.quantity_to_buy} {self.offer.item} de `{self.vendor.mention}",
+            content=f"`✪ Compra concluída. Você comprou {self.quantity_to_buy} {self.offer.item_tier_name} de `{interaction.user.mention}",
             embed=embed_offer,
         )
-
-        # update offer no db
-        self.offer.buyer_id = interaction.user.id
 
         # calcula a quantidade de itens restante
         remain = self.offer.quantity - self.quantity_to_buy
         self.offer.quantity = remain
+
+        # sistema para setar o equipamento true ou false no account
+        buyer_account = Account.fetch(self.buyer)
+        item_type = self.offer.item_type.lower()
+
+        attribute_name = f"got_{item_type}"
+        if hasattr(buyer_account, attribute_name):
+            setattr(buyer_account, attribute_name, True)
+
+        # sistema de checkagem dos 4 itens e reset dos pontos
+        if all(
+            getattr(buyer_account, f"got_{item}")
+            for item in ["boots", "helmet", "armor", "legs"]
+        ):
+            buyer_account.points = 0
+            buyer_account.got_helmet = False
+            buyer_account.got_armor = False
+            buyer_account.got_boots = False
+            buyer_account.got_legs = False
+
+        buyer_account.save()
 
         # deleta mensagem de confirmação de venda
         if remain == 0:
@@ -201,19 +211,28 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             await self.message.delete()
 
         else:
+            # encontra o ultimo ID da tabela para definir o número da oferta
             offer = self.offer
+
             embed_offer = discord.Embed(
                 title=f"",
-                color=discord.Color.dark_green(),
+                color=discord.Color.dark_purple(),
                 timestamp=datetime.fromtimestamp(int(self.offer.timestamp)),
             )
-            embed_offer.add_field(
-                name="", value=f"```{offer.item.title()}```", inline=False
+
+            embed_offer.set_footer(
+                text=f"Oferta N° {offer.id} • {offer.item_name.title()}"
             )
-            embed_offer.add_field(name="", value=f"```{offer.price} Silver```")
+            embed_offer.add_field(
+                name="", value=f"```{offer.item_tier_name.title()}```", inline=False
+            )
+            embed_offer.add_field(
+                name="",
+                value=f"```Atributos: {offer.atributes.upper()}```",
+            )
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(
-                name=f"{offer.vendor_name} abriu essa oferta",
+                name=f"{offer.vendor_name} postou esse item BIS",
                 icon_url=interaction.user.display_avatar,
             )
             embed_offer.set_image(url=offer.image)
@@ -223,11 +242,11 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
         self.offer.save()
 
         # log da operação
-        log_message_terminal = f"Oferta N° {self.offer.id}: O vendedor {self.vendor.name} finalizou a oferta do item {self.offer.item}. Comprador: {self.buyer.name}"
+        log_message_terminal = f"Oferta N° {self.offer.id}: O Crafter {interaction.user.name} finalizou uma entrega de item: {self.offer.item_tier_name}. Comprador: {self.buyer.name}"
         logger.info(log_message_terminal)
 
         timestamp = str(time.time()).split(".")[0]
-        log_message_ch = f"<t:{timestamp}:F>` - Oferta N° {self.offer.id} teve uma compra. - `{self.buyer.mention}` comprou o item: {self.offer.item} ao preço de {self.offer.price} do vendedor:`{self.vendor.mention}"
+        log_message_ch = f"<t:{timestamp}:F>` - Oferta N° {self.offer.id} teve um item entregue. - `{self.buyer.mention}` recebeu o item: {self.offer.item_tier_name} do Crafter:`{interaction.user.mention}"
 
         log_channel = utils.get(
             self.message.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
@@ -247,30 +266,72 @@ class MarketOfferInterestBis(discord.ui.View):
 
     @discord.ui.button(
         label="Tenho Interesse",
-        style=discord.ButtonStyle.success,
-        custom_id="interest_in_offer_button",
+        style=discord.ButtonStyle.blurple,
+        emoji="🛒",
+        custom_id="interest_in_offer_button_bis",
     )
-    async def interest_in_offer_button(
+    async def interest_in_offer_button_bis(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        # conta do usuário
+        account = Account.fetch(interaction.user)
+
         # encontra a oferta
         offer = MarketOfferBis.fetch(interaction.message.id)
         vendor = utils.get(interaction.guild.members, id=offer.vendor_id)
 
-        # checa se o autor da oferta tentou comprá-la
-        if interaction.user.id == vendor.id:
+        if account.points < offer.min_points_req:
+            no_points_embed = discord.Embed(
+                title=f"Pontos insuficientes. Você possui ` {account.points}/{offer.min_points_req} `",
+                color=discord.Color.dark_red(),
+            )
             return await interaction.response.send_message(
-                "Você não pode comprar seu prório item!", ephemeral=True
+                embed=no_points_embed,
+                ephemeral=True,
             )
 
+        # TODO inviabilizar compra de tipo do item se ja tiver comprado. válido até até o proximo reset
+        if offer.item_type == "HELMET" and account.got_helmet:
+            return await interaction.response.send_message(
+                "Você já pegou um Helmet, pegue o restante do set para ter acesso a novos Helmets",
+                ephemeral=True,
+            )
+        elif offer.item_type == "ARMOR" and account.got_armor:
+            return await interaction.response.send_message(
+                "Você já pegou um Armor, pegue o restante do set para ter acesso a novos Armors",
+                ephemeral=True,
+            )
+        elif offer.item_type == "LEGS" and account.got_legs:
+            return await interaction.response.send_message(
+                "Você já pegou uma Legs, pegue o restante do set para ter acesso a novas Legs.",
+                ephemeral=True,
+            )
+        elif offer.item_type == "BOOTS" and account.got_boots:
+            return await interaction.response.send_message(
+                "Você já pegou uma Bota, pegue o restante do set para ter acesso a novas botas.",
+                ephemeral=True,
+            )
+
+        # TODO HABILITAR
+        # checa se o autor da oferta tentou comprá-la
+        # if interaction.user.id == vendor.id:
+        #     return await interaction.response.send_message(
+        #         "Você não pode comprar seu prório item!", ephemeral=True
+        #     )
+
         # informações superficiais da oferta de interesse
+        vendor_name = getattr(interaction.user, "nick", interaction.user.name)
+
         embed_offer = discord.Embed(
-            title="**NOVA ORDEM DE COMPRA**",
+            title="**NOVA ORDEM DE COMPRA BIS**",
             description="Caso deseje conversar sobre a venda, envie uma dm clicanco na menção.",
             color=discord.Color.yellow(),
         )
-        embed_offer.add_field(name="", value=f"```Item: {offer.item}```")
-        embed_offer.add_field(name="", value=f"```Item: {offer.price}```")
+        embed_offer.add_field(
+            name="",
+            value=f"```Item: {offer.item_tier_name} / {offer.item_name}```",
+            inline=False,
+        )
 
         # inserir quantidade de compra desejada
         if offer.quantity > 1:
@@ -287,14 +348,10 @@ class MarketOfferInterestBis(discord.ui.View):
             quantity_to_buy = 1
 
             # feedback
+
             await interaction.response.send_message(
                 f"` Sua intenção de compra foi enviada para `{vendor.mention}",
                 ephemeral=True,
-            )
-            embed_offer.add_field(name="", value=f"```Qte: {quantity_to_buy}```")
-            embed_offer.add_field(
-                name="",
-                value=f"```Total Silver: {quantity_to_buy * offer.price}```",
             )
 
             # envia a oferta ao canal do mercado
@@ -306,6 +363,5 @@ class MarketOfferInterestBis(discord.ui.View):
                     message=interaction.message,
                     quantity_to_buy=quantity_to_buy,
                     offer=offer,
-                    vendor=vendor,
                 ),
             )
