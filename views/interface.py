@@ -196,11 +196,12 @@ class DonationLauncher(discord.ui.View):
     async def transaction(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        global_thread_name = f"doação-{interaction.user.name if interaction.user.nick == None else interaction.user.nick}"
+        global_channel_name = f"doação-{interaction.user.name}"
         transaction = utils.get(
-            interaction.guild.threads,
-            name=global_thread_name,
+            interaction.guild.text_channels,
+            name=global_channel_name,
         )
+        print(transaction)
 
         if transaction is not None:
             await interaction.response.send_message(
@@ -226,7 +227,7 @@ class DonationLauncher(discord.ui.View):
                 interaction.guild.categories, id=settings.DONATION_CTEGORY
             )
             channel = await interaction.guild.create_text_channel(
-                name=global_thread_name,
+                name=global_channel_name,
                 overwrites=overwrites,
                 category=category,
                 reason=f"Canal de doação para {interaction.user}",

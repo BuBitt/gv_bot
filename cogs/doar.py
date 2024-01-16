@@ -53,10 +53,7 @@ class CadastroTransacao(commands.Cog):
     async def doar(self, ctx: commands.context.Context):
         logger.info(f"context: {ctx}")
 
-        if (
-            ctx.channel.name.startswith("doação-")
-            and ctx.guild.id == settings.GUILDS_ID
-        ):
+        if ctx.channel.name.startswith("doação-"):
             transaction_dict = {}
             run = 0
 
@@ -516,7 +513,7 @@ class CadastroTransacao(commands.Cog):
 
         else:
             channel = utils.get(
-                ctx.guild.text_channels, id=settings.DONATION_PANEL_CHANNEL
+                ctx.guild.text_channels, id=settings.NEW_DONATION_CHANNEL
             )
             await ctx.send(
                 f"Esse comando não pode ser executado nesse canal. Crie uma nova requisição em {channel.mention}"

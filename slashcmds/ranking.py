@@ -98,7 +98,7 @@ class Rankings(app_commands.Group):
             else interaction.user.name
         )
         embed_position = discord.Embed(
-            title=f"**`{user_name}`** Posição: `{general_rank_position}`  •  Pontos:**` {points} `**",
+            title=f"**`{user_name}`**  •  Posição: `{general_rank_position}`  •  Pontos: **`{points}`**",
             color=discord.Color.yellow(),
         )
         embed_ranking = discord.Embed(

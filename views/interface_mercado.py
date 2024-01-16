@@ -70,7 +70,7 @@ class MarketDeleteMyOffersModal(discord.ui.Modal, title="Delete uma oferta"):
 
             if not offer.vendor_id == interaction.user.id:
                 return await interaction.response.send_message(
-                    "Você não é o dono dessa oferta ou ela não existe."
+                    "Você não é o dono dessa oferta ou ela não existe.", ephemeral=True
                 )
             else:
                 embed = discord.Embed(
