@@ -109,6 +109,14 @@ class Profile(app_commands.Group):
         return embed_me
 
     @app_commands.command(description="Gerencie seu perfil")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     async def meu(self, interaction: discord.Interaction):
         account = Account.fetch(interaction)
 
@@ -134,8 +142,16 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             logger.info(f"{interactor_name} consultou o próprio perfil")
             await interaction.response.send_message(embed=self.embed_me(interaction))
 
-    @app_commands.command(description="Perfil da guilda")
     # TODO concertar cd
+    @app_commands.command(description="Perfil da guilda")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)
     async def guilda(self, interaction: discord.Interaction):
         last_transactions_query = (
@@ -291,11 +307,19 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             f"{interactor_name}(ID: {interaction.user.id}) consultou o perfil da guilda"
         )
 
+    # TODO concertar cd
     @app_commands.command(
         name="ver", description="Envia no chat o perfil de outro player"
     )
     @app_commands.describe(user="O player que terá o perfil enviado no chat")
-    # TODO concertar cd
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     @app_commands.checks.cooldown(5, 1.0, key=lambda i: i.user.id)
     async def see(self, interaction: discord.Interaction, user: discord.Member):
         interactor_name = (
@@ -314,6 +338,14 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
     @app_commands.command(
         name="edit", description="Edita o role principal do seu perfil"
+    )
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
     )
     # TODO concertar cd
     @app_commands.checks.cooldown(1, 1.0, key=lambda i: i.user.id)

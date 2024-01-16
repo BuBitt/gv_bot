@@ -29,6 +29,14 @@ class Rankings(app_commands.Group):
     @app_commands.command(
         name="geral", description="Mostra o ranking de pontuação geral da guilda"
     )
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
     @app_commands.checks.cooldown(1, 0.0, key=lambda i: i.user.id)
     async def geral(self, interaction: discord.Interaction):
         # Define a window function using ROW_NUMBER()

@@ -301,9 +301,11 @@ class MarketOfferInterestBis(discord.ui.View):
         if offer.item_type in item_type_messages and getattr(
             account, f"got_{offer.item_type.lower()}"
         ):
-            return await interaction.response.send_message(
-                item_type_messages[offer.item_type], ephemeral=True
+            embed = discord.Embed(
+                title=f"**! {item_type_messages[offer.item_type]} !**",
+                color=discord.Color.yellow(),
             )
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
 
         # TODO HABILITAR CHECKER autor tentou comprar a propria oferta
         # checa se o autor da oferta tentou comprá-la

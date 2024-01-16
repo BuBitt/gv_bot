@@ -53,7 +53,10 @@ class CadastroTransacao(commands.Cog):
     async def doar(self, ctx: commands.context.Context):
         logger.info(f"context: {ctx}")
 
-        if ctx.channel.name.startswith("doação-"):
+        if (
+            ctx.channel.name.startswith("doação-")
+            and ctx.guild.id == settings.GUILDS_ID
+        ):
             transaction_dict = {}
             run = 0
 
