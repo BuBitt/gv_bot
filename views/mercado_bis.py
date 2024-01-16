@@ -290,26 +290,19 @@ class MarketOfferInterestBis(discord.ui.View):
                 ephemeral=True,
             )
 
-        # TODO inviabilizar compra de tipo do item se ja tiver comprado. válido até até o proximo reset
-        if offer.item_type == "HELMET" and account.got_helmet:
+        # inviabiliza compra de tipo do item se ja houver comprado. válido até até o proximo reset
+        item_type_messages = {
+            "HELMET": "Você já pegou um Helmet, pegue o restante do set para ter acesso a novos Helmets",
+            "ARMOR": "Você já pegou um Armor, pegue o restante do set para ter acesso a novos Armors",
+            "LEGS": "Você já pegou uma Legs, pegue o restante do set para ter acesso a novas Legs.",
+            "BOOTS": "Você já pegou uma Bota, pegue o restante do set para ter acesso a novas botas.",
+        }
+
+        if offer.item_type in item_type_messages and getattr(
+            account, f"got_{offer.item_type.lower()}"
+        ):
             return await interaction.response.send_message(
-                "Você já pegou um Helmet, pegue o restante do set para ter acesso a novos Helmets",
-                ephemeral=True,
-            )
-        elif offer.item_type == "ARMOR" and account.got_armor:
-            return await interaction.response.send_message(
-                "Você já pegou um Armor, pegue o restante do set para ter acesso a novos Armors",
-                ephemeral=True,
-            )
-        elif offer.item_type == "LEGS" and account.got_legs:
-            return await interaction.response.send_message(
-                "Você já pegou uma Legs, pegue o restante do set para ter acesso a novas Legs.",
-                ephemeral=True,
-            )
-        elif offer.item_type == "BOOTS" and account.got_boots:
-            return await interaction.response.send_message(
-                "Você já pegou uma Bota, pegue o restante do set para ter acesso a novas botas.",
-                ephemeral=True,
+                item_type_messages[offer.item_type], ephemeral=True
             )
 
         # TODO HABILITAR
