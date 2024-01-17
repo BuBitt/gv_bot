@@ -49,7 +49,7 @@ class ConfirmTransactionPm(discord.ui.View):
         press_count = 1
         press_type = "S"
         self.update_buttons(press_count, press_type)
-        await interaction.message.edit(embed=self.embed, view=self)
+        await interaction.message.edit(view=self)
 
         # envia o embed da doação para o canal doações
         donation_msg = await donation_channel.send(embed=self.embed)
@@ -64,7 +64,6 @@ class ConfirmTransactionPm(discord.ui.View):
 
         # adiciona a jump url a doação
         self.transaction_dict["jump_url"] = donation_msg.jump_url
-        print(self.transaction_dict.get("jump_url"))
 
         # escreve a tansação na tabela transactions no banco de dados
         transaction = Donation.new(self.transaction_dict)
@@ -81,6 +80,17 @@ class ConfirmTransactionPm(discord.ui.View):
         account = Account.fetch(user_to_add)
         account.points += self.transaction_dict["quantity"] * item.points
         account.save()
+
+        # envia avisos de doação no chat da guilda
+        guild_chat = utils.get(
+            self.waiting_message.guild.text_channels, id=settings.GUILD_CHAT
+        )
+
+        donation_chat_mesage = f'`{self.transaction_dict["donor_name"]}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} para a Guilda! → {self.transaction_dict.get("jump_url")}'
+        embed = discord.Embed(
+            title=donation_chat_mesage, color=discord.Color.dark_purple()
+        )
+        await guild_chat.send(embed=embed)
 
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(

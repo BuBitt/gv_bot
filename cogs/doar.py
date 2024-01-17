@@ -487,7 +487,7 @@ class CadastroTransacao(commands.Cog):
             )
 
             embed_confirm = discord.Embed(
-                title=f"**Recibo: {donor_name}**",
+                title=f"**{donor_name} fez uma doação!**",
                 color=discord.Color.brand_green(),
                 timestamp=datetime.fromtimestamp(
                     int(transaction_dict.get("timestamp"))
@@ -502,11 +502,12 @@ class CadastroTransacao(commands.Cog):
             embed_confirm.set_thumbnail(url=donor_user_object.display_avatar)
 
             embed_confirm.add_field(
-                name="Item Doado", value=f'> {transaction_dict.get("item").title()}'
+                name="> Itens Doados",
+                value=f'**```{transaction_dict.get("item").title()}```**',
             )
             embed_confirm.add_field(
-                name="Quantidade",
-                value=f'> {abs(transaction_dict.get("quantity"))}',
+                name="> Quantidades",
+                value=f'**```{abs(transaction_dict.get("quantity"))}```**',
                 inline=True,
             )
 
@@ -534,9 +535,8 @@ class CadastroTransacao(commands.Cog):
                 color=discord.Color.yellow(),
             )
 
-            await user_pm.send(embed=embed_warning_new_confirmation)
             await user_pm.send(
-                embed=embed_confirm,
+                embeds=[embed_warning_new_confirmation, embed_confirm],
                 view=ConfirmTransactionPm(
                     embed=embed_confirm,
                     transaction_dict=transaction_dict,

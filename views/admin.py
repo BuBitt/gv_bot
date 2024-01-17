@@ -42,7 +42,9 @@ class AdminToZeroPointsConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` Zerou a pontuação de todos os players da guilda `"
 
-        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
 
@@ -148,7 +150,9 @@ class EditItemConfirm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou a pontuação do item: {item_instance.item} para: {self.points} pontos `"
 
-        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
 
@@ -213,7 +217,6 @@ class EditTierMinimalRequeirementsAdmin(
         non_empty_tiers = {
             key: value for key, value in response_tiers.items() if value != ""
         }
-        print(non_empty_tiers)
 
         try:
             if non_empty_tiers == {}:
@@ -223,7 +226,7 @@ class EditTierMinimalRequeirementsAdmin(
             int_dict = {key: int(value) for key, value in non_empty_tiers.items()}
 
             # Checa se todos os valores são positivos
-            are_all_positive = all(value > 0 for value in int_dict.values())
+            are_all_positive = all(value >= 0 for value in int_dict.values())
 
             if not are_all_positive:
                 raise IsNegativeError
@@ -242,8 +245,10 @@ class EditTierMinimalRequeirementsAdmin(
             guilda.save()
 
             # envia feedback de sucesso
-            await interaction.response.send_message(f"Alterações: ` {int_dict} `", ephemeral=True)
-            
+            await interaction.response.send_message(
+                f"Alterações: ` {int_dict} `", ephemeral=True
+            )
+
             # Log da operação (terminal)
             log_message_terminal = f"{interaction.user.name}(ID: {interaction.user.id} editou as pontuações de tier: {int_dict}"
             logger.info(log_message_terminal)
@@ -251,7 +256,9 @@ class EditTierMinimalRequeirementsAdmin(
             timestamp = str(time.time()).split(".")[0]
             log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` editou as pontuações de tier: {int_dict} `"
 
-            channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+            channel = utils.get(
+                interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+            )
             await channel.send(log_message_ch)
 
         except NoChangeError:

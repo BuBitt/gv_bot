@@ -169,10 +169,10 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         table = BeautifulTable()
         table.set_style(BeautifulTable.STYLE_COMPACT)
 
-        headers = ["CRAFTER", "REQUERENTE", "ITEM", "QUANTIDADE"]
+        headers = ["CRAFTER", "DOADOR", "ITEM", "QUANTIDADE"]
         table.columns.header = headers
 
-        table.columns.alignment["REQUERENTE"] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["DOADOR"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["CRAFTER"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
