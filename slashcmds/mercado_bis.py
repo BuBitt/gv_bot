@@ -65,7 +65,7 @@ class MercadoBisCommands(app_commands.Group):
         quantidade: int,
         print: str,
     ):
-        regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
+        regex = r"^https?://.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
         try:
             if not is_valid_regex(print, regex):

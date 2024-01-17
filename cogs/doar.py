@@ -154,8 +154,8 @@ class CadastroTransacao(commands.Cog):
                         ctx.guild.roles, id=settings.CRAFTER_ROLE
                     )
 
-                    if crafter_user_object.id == response.author.id:
-                        raise IsYourselfError
+                    # if crafter_user_object.id == response.author.id:
+                    #     raise IsYourselfError
 
                     is_crafter = (
                         True if crafter_role in crafter_user_object.roles else False
@@ -204,12 +204,13 @@ class CadastroTransacao(commands.Cog):
                     else:
                         raise IsNotCrafterError("Erro: o player não é um crafter")
 
-                except IsYourselfError:
-                    embed = discord.Embed(
-                        title=f"Doação Cancelada! Você não pode doar para si mesmo",
-                        color=discord.Color.dark_red(),
-                    )
-                    return await ctx.send(embed=embed)
+                # TODO Habilitar
+                # except IsYourselfError:
+                #     embed = discord.Embed(
+                #         title=f"Doação Cancelada! Você não pode doar para si mesmo",
+                #         color=discord.Color.dark_red(),
+                #     )
+                #     return await ctx.send(embed=embed)
 
                 except IsNotCrafterError:
                     if crafter_mention == "!cancelar":
@@ -428,7 +429,7 @@ class CadastroTransacao(commands.Cog):
                 except:
                     print_proof = response.content
 
-                regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
+                regex = r"^https?://.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
                 # deleta mensagem de erro
                 if run == 1:
@@ -487,7 +488,6 @@ class CadastroTransacao(commands.Cog):
 
             embed_confirm = discord.Embed(
                 title=f"**Recibo: {donor_name}**",
-                description=f"{donor_name} ajudou a guilda a tornar-se mais forte. ajude você também!",
                 color=discord.Color.brand_green(),
                 timestamp=datetime.fromtimestamp(
                     int(transaction_dict.get("timestamp"))

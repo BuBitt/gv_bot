@@ -44,7 +44,7 @@ class MercadoCommands(app_commands.Group):
         quantidade: int,
         print: str,
     ):
-        regex = "^https?:\/\/.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
+        regex = r"^https?://.*\.(png|jpe?g|gif|bmp|tiff?)(\?.*)?$"
 
         try:
             if preço < 1 or quantidade < 1:

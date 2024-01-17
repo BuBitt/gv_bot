@@ -52,15 +52,19 @@ class ConfirmTransactionPm(discord.ui.View):
         await interaction.message.edit(embed=self.embed, view=self)
 
         # envia o embed da doação para o canal doações
-        donatin_msg = await donation_channel.send(embed=self.embed)
+        donation_msg = await donation_channel.send(embed=self.embed)
 
         # envia o feedback da confirmação para o manager
         embed_confirm_transaction = discord.Embed(
             title="**Doação Confirmada!**",
-            description=f"A sua doação de foi publicada: {donatin_msg.jump_url}",
+            description=f"A sua doação de foi publicada: {donation_msg.jump_url}",
             color=discord.Color.green(),
         )
         await self.waiting_message.edit(embed=embed_confirm_transaction)  # Main())
+
+        # adiciona a jump url a doação
+        self.transaction_dict["jump_url"] = donation_msg.jump_url
+        print(self.transaction_dict.get("jump_url"))
 
         # escreve a tansação na tabela transactions no banco de dados
         transaction = Donation.new(self.transaction_dict)
@@ -81,7 +85,7 @@ class ConfirmTransactionPm(discord.ui.View):
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
             title="**Doação Confirmada!**",
-            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada: {donatin_msg.jump_url}",
+            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada: {donation_msg.jump_url}",
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed_sucess_pm)

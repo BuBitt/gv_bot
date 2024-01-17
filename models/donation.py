@@ -16,8 +16,8 @@ class Donation(peewee.Model):
     item: str = peewee.CharField(max_length=255)
     quantity: int = peewee.IntegerField()
     timestamp: str = peewee.CharField(max_length=255)
+    jump_url: str = peewee.CharField(max_length=1024)
     print_proof: str = peewee.CharField(max_length=1024)
-
 
     class Meta:
         database = db
@@ -33,6 +33,7 @@ class Donation(peewee.Model):
                 donor_name=transaction_dict.get("donor_name"),
                 item=transaction_dict.get("item"),
                 quantity=transaction_dict.get("quantity"),
+                jump_url=transaction_dict.get("jump_url"),
                 print_proof=transaction_dict.get("print"),
                 timestamp=transaction_dict.get("timestamp"),
             )
@@ -45,6 +46,7 @@ class Donation(peewee.Model):
                 donor_name=transaction_dict.get("donor_name"),
                 item=transaction_dict.get("item"),
                 quantity=transaction_dict.get("quantity"),
+                jump_url=transaction_dict.get("jump_url"),
                 print_proof=transaction_dict.get("print"),
                 timestamp=transaction_dict.get("timestamp"),
             )
