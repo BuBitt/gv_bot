@@ -90,7 +90,7 @@ class ConfirmTransactionPm(discord.ui.View):
         embed = discord.Embed(
             title=donation_chat_mesage, color=discord.Color.dark_purple()
         )
-        await guild_chat.send(embed=embed)
+        # await guild_chat.send(embed=embed)
 
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
