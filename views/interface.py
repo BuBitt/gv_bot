@@ -308,7 +308,7 @@ class AdminLauncher(discord.ui.View):
         style=discord.ButtonStyle.success,
         custom_id="admin_recalc_user_ponits_button",
     )
-    async def new_admin_item(
+    async def admin_recalc_user_ponits_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_message("Em Construção", ephemeral=True)
