@@ -304,6 +304,16 @@ class AdminLauncher(discord.ui.View):
         await interaction.response.send_modal(EditItemModal())
 
     @discord.ui.button(
+        label="Recalcular Pontuações",
+        style=discord.ButtonStyle.success,
+        custom_id="admin_recalc_user_ponits_button",
+    )
+    async def new_admin_item(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_message("Em Construção", ephemeral=True)
+
+    @discord.ui.button(
         label="Transferir Silver",
         style=discord.ButtonStyle.danger,
         custom_id="admin_transfer_silver_button",

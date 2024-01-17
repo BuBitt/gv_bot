@@ -2,6 +2,7 @@ import hashlib
 import time
 import traceback
 from models.account import Account
+from models.donation import Donation
 
 import settings
 
@@ -191,13 +192,17 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
         if hasattr(buyer_account, attribute_name):
             setattr(buyer_account, attribute_name, True)
 
-        # get all user transactions
-        
         # sistema de checkagem dos 4 itens e reset dos pontos
         if all(
             getattr(buyer_account, f"got_{item}")
             for item in ["boots", "helmet", "armor", "legs"]
         ):
+            # todas as ofertas ativadas para desativadas
+            Donation.update(is_active=False).where(
+                Donation.donor_id == buyer_account.user_id
+            ).execute()
+
+            # zera pontuação e reseta checkers do player "comprador"
             buyer_account.points = 0
             buyer_account.got_helmet = False
             buyer_account.got_armor = False
