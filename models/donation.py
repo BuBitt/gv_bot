@@ -12,6 +12,7 @@ class Donation(peewee.Model):
     crafter_name: str = peewee.CharField(max_length=255)
     donor_id: int = peewee.BigIntegerField()
     donor_name: str = peewee.CharField(max_length=255)
+    is_active: bool = peewee.BooleanField(default=True)
     item: str = peewee.CharField(max_length=255)
     quantity: int = peewee.IntegerField()
     timestamp: str = peewee.CharField(max_length=255)

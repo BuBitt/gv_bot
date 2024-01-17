@@ -191,6 +191,8 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
         if hasattr(buyer_account, attribute_name):
             setattr(buyer_account, attribute_name, True)
 
+        # get all user transactions
+        
         # sistema de checkagem dos 4 itens e reset dos pontos
         if all(
             getattr(buyer_account, f"got_{item}")
