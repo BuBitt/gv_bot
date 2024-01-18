@@ -535,7 +535,7 @@ class CadastroTransacao(commands.Cog):
                 color=discord.Color.yellow(),
             )
 
-            await user_pm.send(
+            return await user_pm.send(
                 embeds=[embed_warning_new_confirmation, embed_confirm],
                 view=ConfirmTransactionPm(
                     embed=embed_confirm,

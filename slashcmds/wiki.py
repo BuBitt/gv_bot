@@ -2,7 +2,7 @@ import difflib
 import discord
 import settings
 from discord import app_commands
-import cogs.background_tasks as background_tasks
+import background_tasks as background_tasks
 from utils.utilities import search_offer_table_construct
 
 logger = settings.logging.getLogger(__name__)

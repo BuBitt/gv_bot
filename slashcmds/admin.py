@@ -1,6 +1,8 @@
+import datetime
 import time
 import discord
 from models.guild import Guild
+from models.mercado_bis import MarketOfferBis
 import settings
 from discord import utils
 from discord import app_commands
@@ -210,6 +212,68 @@ class AdminCommands(app_commands.Group):
 
         # Envia PM do log ao player afetado
         await player.send(log_message_ch)
+
+    @app_commands.command(
+        name="atualizar-ordens-bis",
+        description="Transfere Silver da guilda para um player",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
+    async def admin_update_bis_orders(self, interaction: discord.Interaction):
+        # atualiza ofertas existentes
+        donation_channel_messages = utils.get(
+            interaction.guild.text_channels, id=settings.MARKET_OFFER_CHANNEL_BIS
+        )
+        donation_channel_messages_history = donation_channel_messages.history(
+            limit=None
+        )
+
+        async for message in donation_channel_messages_history:
+            # enconta o ultimo id para definir o N° da oferta
+            offer = MarketOfferBis.fetch(message.id)
+            vendor = utils.get(interaction.guild.members, id=offer.vendor_id)
+
+            embed_offer = discord.Embed(
+                title=f"",
+                color=discord.Color.dark_purple(),
+                timestamp=datetime.datetime.fromtimestamp(int(offer.timestamp)),
+            )
+            embed_offer.add_field(
+                name="", value=f"**```{offer.item_tier_name.title()}```**"
+            )
+            embed_offer.add_field(
+                name="",
+                value=f"```Atributos: {offer.atributes.upper()}```",
+                inline=False,
+            )
+            embed_offer.set_footer(
+                text=f"Oferta N° {offer.id}  •  {offer.item_name.title()}"
+            )
+
+            # get the right tier
+            tier_name = f"{offer.item_tier_name[0:2].lower()}_requirement"
+            tier = getattr(Guild, tier_name)
+            tier_points = Guild.select(tier).first()
+            value = getattr(tier_points, tier_name)
+
+            offer.min_points_req = value
+            offer.save()
+
+            embed_offer.add_field(name="", value=f"```{value} Pontos Mínimos```")
+            embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
+            embed_offer.set_author(
+                name=f"{offer.vendor_name} craftou esse item BIS",
+                icon_url=interaction.user.display_avatar,
+            )
+            embed_offer.set_image(url=offer.image)
+
+            # mensasgem publicada no canal mercado
+            message = await message.edit(embed=embed_offer)
+        
+        return await interaction.response.send_message(
+            "Valores minimos das ofertas atualizados"
+        )
 
 
 async def setup(bot):
