@@ -344,6 +344,50 @@ class MercadoBisCommands(app_commands.Group):
             content=f"**` Loja - {player_name} `**\n{offers_table}", ephemeral=True
         )
 
+    @app_commands.command(
+        name="enviar-loja",
+        description="envia sua loja é um bom formato no chat",
+    )
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
+    async def player_send_offers(self, interaction: discord.Interaction):
+        # Consulta ofertas ativas no mercado no banco de dados
+        query_search_for = MarketOfferBis.select().where(
+            (MarketOfferBis.vendor_id == interaction.user.id)
+            & (MarketOfferBis.is_active == True)
+        )
+
+        player_name = (
+            interaction.user.nick
+            if interaction.user.nick != None
+            else interaction.user.name
+        )
+
+        if not query_search_for:
+            # Se nenhum resultado for encontrado envia uma mensagem
+            return await interaction.response.send_message(
+                f"{interaction.user.mention}` não possui ofertas ativas. `",
+                ephemeral=True,
+            )
+
+        offers = [
+            f"{my_offer.jump_url}` → {my_offer.item_tier_name} • {my_offer.atributes.upper()} `"
+            for my_offer in query_search_for
+        ]
+        offers_table = search_offer_table_construct(offers)
+        embed = discord.Embed(
+            title=f"**``` Loja - {player_name} ```**",
+            description=f"{offers_table}",
+            color=discord.Color.dark_purple(),
+        )
+        return await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     bot.tree.add_command(
