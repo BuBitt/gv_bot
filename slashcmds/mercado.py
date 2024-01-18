@@ -90,7 +90,9 @@ class MercadoCommands(app_commands.Group):
                     color=discord.Color.dark_green(),
                     timestamp=datetime.fromtimestamp(int(timestamp)),
                 )
-                embed_offer.set_footer(text=f"Oferta N° {last_id}  •  {item.title()}")
+                embed_offer.set_footer(
+                    text=f"Oferta N° {last_id + 1}  •  {item.title()}"
+                )
                 embed_offer.add_field(
                     name="", value=f"**```{item.title()}```**", inline=False
                 )

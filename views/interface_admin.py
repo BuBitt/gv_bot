@@ -34,6 +34,10 @@ class MarketAdminDeleteOffersModalBis(discord.ui.Modal, title="Delete uma oferta
             return await interaction.response.send_message(
                 f"` {offer_id} ` não é um número."
             )
+        except discord.errors.NotFound:
+            return await interaction.response.send_message(
+                f"` {offer_id} ` não existe."
+            )
 
 
 class MarketAdminDeleteOffersViewBis(discord.ui.View):

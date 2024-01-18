@@ -138,7 +138,7 @@ class MercadoBisCommands(app_commands.Group):
                     name="", value=f"```Atributos: {atributos.upper()}```", inline=False
                 )
                 embed_offer.set_footer(
-                    text=f"Oferta N° {last_id}  •  {item_name.title()}"
+                    text=f"Oferta N° {last_id + 1}  •  {item_name.title()}"
                 )
 
                 # get the right tier
@@ -309,17 +309,30 @@ class MercadoBisCommands(app_commands.Group):
                 f"{player.mention}` não possui ofertas ativas. `", ephemeral=True
             )
 
-        # Exibe os resultados
+        # se o player for o author envia um embed da loja
+        if interaction.user.id == player.id:
+            offers = [
+                f"{my_offer.jump_url}` → {my_offer.item_tier_name} • {my_offer.atributes.upper()} `"
+                for my_offer in query_search_for
+            ]
+            offers_table = search_offer_table_construct(offers)
+            embed = discord.Embed(
+                title=f"**``` Loja - {player_name} ```**",
+                description=f"{offers_table}",
+                color=discord.Color.dark_purple(),
+            )
+            return await interaction.response.send_message(embed=embed)
+
+        # Envia a tabela contruida
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name}; Atributos: {my_offer.atributes.upper()};  Quantidade: {my_offer.quantity} `"
+            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name} • {my_offer.atributes.upper()} • Quantidade: {my_offer.quantity} `"
             for my_offer in query_search_for
         ]
 
         # Constroi uma tabela com as ofertas ativas
         offers_table = search_offer_table_construct(offers)
 
-        # Envia a tabela contruida
-        await interaction.response.send_message(
+        return await interaction.response.send_message(
             content=f"**` Loja - {player_name} `**\n{offers_table}", ephemeral=True
         )
 
