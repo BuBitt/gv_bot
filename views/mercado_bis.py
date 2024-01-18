@@ -188,9 +188,11 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
         buyer_account = Account.fetch(self.buyer)
         item_type = self.offer.item_type.lower()
 
-        attribute_name = f"got_{item_type}"
-        if hasattr(buyer_account, attribute_name):
-            setattr(buyer_account, attribute_name, True)
+        # Verifica se é T2 (custa 0)
+        if not sell_dict.get("item_tier_name").startswith("T2"):
+            attribute_name = f"got_{item_type}"
+            if hasattr(buyer_account, attribute_name):
+                setattr(buyer_account, attribute_name, True)
 
         # sistema de checkagem dos 4 itens e reset dos pontos
         if all(
@@ -316,11 +318,12 @@ class MarketOfferInterestBis(discord.ui.View):
 
         # TODO HABILITAR CHECKER autor tentou comprar a propria oferta
         # checa se o autor da oferta tentou comprá-la
-        if interaction.user.id == vendor.id:
-            return await interaction.response.send_message(
-                "Você não pode comprar seu prório item!", ephemeral=True
-            )
+        # if interaction.user.id == vendor.id:
+            # return await interaction.response.send_message(
+            #     "Você não pode comprar seu prório item!", ephemeral=True
+            # )
 
+        # TODO USAR DPS
         # informações superficiais da oferta de interesse
         vendor_name = getattr(interaction.user, "nick", interaction.user.name)
 
@@ -330,8 +333,13 @@ class MarketOfferInterestBis(discord.ui.View):
             color=discord.Color.yellow(),
         )
         embed_offer.add_field(
-            name="",
-            value=f"```Item: {offer.item_tier_name} / {offer.item_name}```",
+            name="> Item",
+            value=f"**```{offer.item_tier_name} | {offer.item_name}```**",
+            inline=False,
+        )
+        embed_offer.add_field(
+            name="> Atributos",
+            value=f"```{offer.atributes}```",
             inline=False,
         )
 

@@ -78,24 +78,32 @@ class MercadoBisCommands(app_commands.Group):
                     else interaction.user.name
                 )
 
-                # encontra o tipo de item (helmet, armor, legs ou legs)
+                # encontra o tipo de item (helmet, armor, legs legs, and weapons)
                 item_lower = item.lower()
                 offer_dict = {}
 
-                if "helmet" in item_lower:
-                    offer_dict["item_type"] = "HELMET"
-                elif "armor" in item_lower:
-                    offer_dict["item_type"] = "ARMOR"
-                elif "legs" in item_lower:
-                    offer_dict["item_type"] = "LEGS"
-                elif "boots" in item_lower:
-                    offer_dict["item_type"] = "BOOTS"
+                item_type_mapping = {
+                    "helmet": "HELMET",
+                    "armor": "ARMOR",
+                    "legs": "LEGS",
+                    "boots": "BOOTS",
+                    "bow": "BOW",
+                    "shield": "SHIELD",
+                    "staff": "STAFF",
+                    "sceptre": "SCEPTRE",
+                    "buckler": "BUCKLER",
+                }
+
+                for keyword, item_type in item_type_mapping.items():
+                    if keyword in item_lower:
+                        offer_dict["item_type"] = item_type
+                        break
 
                 # timestamp
                 timestamp = str(time.time()).split(".")[0]
 
                 # converte o item para tier_name
-                if not item.startswith(("T1", "T2", "T3", "T4", "T5", "T6")):
+                if not item.startswith(("T2", "T3", "T4", "T5", "T6")):
                     item_name = item
                     item_tier_name = ItemBis.fetch_by_name(item)
                 else:
