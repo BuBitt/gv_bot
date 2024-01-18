@@ -319,10 +319,10 @@ class EditTierMinimalRequeirementsAdmin(
             await interaction.response.send_message(
                 "Nenhum número foi passado.", ephemeral=True
             )
-        # except TypeError:
-        #     await interaction.response.send_message(
-        #         f"Você não digitou números, output: {guilda}", ephemeral=True
-        #     )
+        except TypeError:
+            await interaction.response.send_message(
+                f"Você não digitou números, output: {guilda}", ephemeral=True
+            )
         except IsNegativeError:
             await interaction.response.send_message(
                 f"Número negativos entre as respostas, output: {guilda}", ephemeral=True
