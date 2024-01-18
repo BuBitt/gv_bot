@@ -349,7 +349,7 @@ class MercadoBisCommands(app_commands.Group):
         description="envia sua loja é um bom formato no chat",
     )
     @app_commands.checks.has_any_role(
-        settings.CRAFTER_ROLE
+        settings.CRAFTER_ROLE,
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
@@ -394,18 +394,15 @@ class MercadoBisCommands(app_commands.Group):
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    async def player_send_offers(self, interaction: discord.Interaction, player: discord.User):
+    async def player_send_offers(
+        self, interaction: discord.Interaction, player: discord.User
+    ):
         # Consulta ofertas ativas no mercado no banco de dados
         query_search_for = MarketOfferBis.select().where(
-            (MarketOfferBis.vendor_id == player.id)
-            & (MarketOfferBis.is_active == True)
+            (MarketOfferBis.vendor_id == player.id) & (MarketOfferBis.is_active == True)
         )
 
-        player_name = (
-            player.nick
-            if player.nick != None
-            else player.name
-        )
+        player_name = player.nick if player.nick != None else player.name
 
         if not query_search_for:
             # Se nenhum resultado for encontrado envia uma mensagem
