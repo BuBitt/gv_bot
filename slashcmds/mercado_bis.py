@@ -17,7 +17,13 @@ import settings
 from models.items import Items
 from models.mercado_bis import MarketOfferBis
 
-from utils.utilities import is_valid_regex, mention_by_id, search_offer_table_construct
+from utils.utilities import (
+    enviar_loja_table_construct,
+    is_valid_regex,
+    mention_by_id,
+    search_offer_table_construct,
+    separate_offers_by_name,
+)
 from views.mercado_bis import MarketOfferInterestBis
 from database import db
 
@@ -444,10 +450,13 @@ class MercadoBisCommands(app_commands.Group):
             f"{my_offer.jump_url}` → {completar_string(my_offer.item_tier_name)} • {my_offer.atributes.upper()} `"
             for my_offer in query_search_for
         ]
-        offers_table = search_offer_table_construct(offers)
+        separate_offers = separate_offers_by_name(offers)
+        
+        table_construct = enviar_loja_table_construct(separate_offers)
+        
         embed = discord.Embed(
             title=f"**``` Loja - {player_name} ```**",
-            description=f"Clique na `#` para ir até a ofeta\n\n{offers_table}",
+            description=f"Clique na `#` para ir até a ofeta\n\n{table_construct}",
             color=discord.Color.dark_purple(),
         )
         return await interaction.response.send_message(embed=embed)
