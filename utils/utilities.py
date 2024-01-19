@@ -97,6 +97,6 @@ def enviar_loja_table_construct(offers):
             item, header=None, alignment=BeautifulTable.ALIGN_LEFT, padding_left=0
         )
 
-        main_table.append_row([f"{table}\n"])
+        main_table.rows.append([f"{table}\n"])
 
     return main_table
