@@ -11,6 +11,7 @@ class MarketOfferBis(peewee.Model):
     vendor_id: int = peewee.BigIntegerField()
     vendor_name: str = peewee.CharField(max_length=255)
     message_id: int = peewee.BigIntegerField()
+    guild_msg_chat_id: int = peewee.BigIntegerField(default=0, null=False)
     item_name: str = peewee.CharField(max_length=255, null=False)
     item_tier_name: str = peewee.CharField(max_length=255, null=False)
     item_type: str = peewee.CharField(max_length=255, null=False)
@@ -39,6 +40,7 @@ class MarketOfferBis(peewee.Model):
                 item_tier_name=market_offer.get("item_tier_name"),
                 min_points_req=market_offer.get("min_points_req"),
                 atributes=market_offer.get("atributes"),
+                guild_msg_chat_id=market_offer.get("guild_msg_chat_id"),
                 quantity=market_offer.get("quantity"),
                 image=market_offer.get("image"),
                 timestamp=market_offer.get("timestamp"),
@@ -55,6 +57,7 @@ class MarketOfferBis(peewee.Model):
                 item_tier_name=market_offer.get("item_tier_name"),
                 min_points_req=market_offer.get("min_points_req"),
                 atributes=market_offer.get("atributes"),
+                guild_msg_chat_id=market_offer.get("guild_msg_chat_id"),
                 quantity=market_offer.get("quantity"),
                 image=market_offer.get("image"),
                 timestamp=market_offer.get("timestamp"),

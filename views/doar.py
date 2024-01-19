@@ -107,6 +107,10 @@ class ConfirmTransactionPm(discord.ui.View):
         crafter = utils.get(
             donation_channel.guild.members, id=self.transaction_dict.get("crafter_id")
         )
+        
+        channel = utils.get(
+            donation_channel.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
 
         log_message_terminal = f'Doação Nº {transaction} foi efetuada com sucesso. {self.transaction_dict["donor_name"]} doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]}, Crafter {self.transaction_dict.get("crafter_name")}'
         logger.info(log_message_terminal)
@@ -114,9 +118,7 @@ class ConfirmTransactionPm(discord.ui.View):
         timestamp = str(time.time()).split(".")[0]
         log_message_ch = f'<t:{timestamp}:F>` - Doação Nº {transaction} foi efetuada com sucesso. `{donor.mention}` doou {self.transaction_dict["quantity"]} {self.transaction_dict["item"]} ao Crafter `{crafter.mention}'
 
-        channel = utils.get(
-            donation_channel.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
-        )
+        
 
     @discord.ui.button(
         label="Negar Doação",
@@ -140,24 +142,7 @@ class ConfirmTransactionPm(discord.ui.View):
             description=f"` {self.transaction_dict.get('donor_name')} ` negou o pedido de confirmação e a doação não será publicada.",
             color=discord.Color.dark_red(),
         )
-        await self.waiting_message.edit(embed=transaction_denaied_embed, view=Main())
-
-        # log da operação
-        donor = utils.get(
-            interaction.guild.members, id=self.transaction_dict.get("donor_id")
-        )
-        crafter = utils.get(
-            interaction.guild.members, id=self.transaction_dict.get("crafter_id")
-        )
-
-        log_message_terminal = f"Doação negada. Criada por {self.transaction_dict.get('donor_name')}, negada por {self.transaction_dict.get('crafter_name')}"
-        logger.info(log_message_terminal)
-
-        log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - Doação negada. Criada por `{donor.mention}`, negada por `{crafter.mention}"
-        channel = utils.get(
-            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
-        )
-        await channel.send(log_message_ch)
+        await self.waiting_message.edit(embed=transaction_denaied_embed)
 
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
@@ -165,4 +150,4 @@ class ConfirmTransactionPm(discord.ui.View):
             description=f"O Crafter {self.transaction_dict['crafter_name']} negou a doação e a ela não será publicada.",
             color=discord.Color.green(),
         )
-        await interaction.response.send_message(embed=embed_sucess_pm)
+        return await interaction.response.send_message(embed=embed_sucess_pm)

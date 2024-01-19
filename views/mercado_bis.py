@@ -145,15 +145,24 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             value=f"```Item: {self.offer.item_tier_name} / {self.offer.item_name}```",
             inline=False,
         )
-        embed_offer.insert_field_at(
-            name="", value=f"```Oferta N°: {self.offer.id}```", index=1
+        embed_offer.add_field(
+            name="", value=f"```Atributos: {self.offer.atributes}```", inline=False
         )
         embed_offer.insert_field_at(
-            name="", value=f"```Qte entregue: {self.quantity_to_buy}```", index=2
+            name="", value=f"```Oferta N°: {self.offer.id}```", index=2
+        )
+        embed_offer.insert_field_at(
+            name="", value=f"```Qte entregue: {self.quantity_to_buy}```", index=3
         )
         embed_offer.add_field(
             name="COMPROVANTE", value=f"```{sha256_hash}```", inline=False
         )
+
+        buyer_name = getattr(self.buyer, "nick", self.buyer)
+        embed_offer.set_author(
+            name=f"{buyer_name} pegou o item", icon_url=self.buyer.display_avatar
+        )
+        embed_offer.set_image(url=offer.image)
 
         # grava venda no db
         sell_dict = {}
@@ -176,7 +185,7 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             view=None,
         )
         await self.buyer.send(
-            content=f"`✪ Compra concluída. Você comprou {self.quantity_to_buy} {self.offer.item_tier_name} de `{interaction.user.mention}",
+            content=f"✪` Concluído. Você pegou {self.quantity_to_buy} {self.offer.item_tier_name} de `{interaction.user.mention}",
             embed=embed_offer,
         )
 
@@ -218,6 +227,14 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             # muda o status da oferta no db e deleta oferta no canal ofertas
             self.offer.is_active = False
             await self.message.delete()
+
+            # deletea a msg no chat da guilda
+            guild_chat = utils.get(
+                self.message.guild.text_channels, id=settings.GUILD_CHAT
+            )
+            message = await guild_chat.fetch_message(offer.guild_msg_chat_id)
+            if offer.guild_msg_chat_id != 0:
+                await message.delete()
 
         else:
             # encontra o ultimo ID da tabela para definir o número da oferta
@@ -325,12 +342,16 @@ class MarketOfferInterestBis(discord.ui.View):
 
         # TODO USAR DPS
         # informações superficiais da oferta de interesse
-        vendor_name = getattr(interaction.user, "nick", interaction.user.name)
+        user_name = getattr(interaction.user, "nick", interaction.user.name)
 
         embed_offer = discord.Embed(
-            title="**NOVA ORDEM DE COMPRA BIS**",
-            description="Caso deseje conversar sobre a venda, envie uma dm clicanco na menção.",
+            title="**NOVO PEDIDO DE ITEM BIS**",
+            description="Caso deseje conversar sobre o pedido, envie uma dm clicanco na menção.",
             color=discord.Color.yellow(),
+        )
+        embed_offer.set_author(
+            name=f"{user_name} pediu esse item",
+            icon_url=interaction.user.display_avatar,
         )
         embed_offer.add_field(
             name="> Item",
@@ -342,6 +363,7 @@ class MarketOfferInterestBis(discord.ui.View):
             value=f"```{offer.atributes}```",
             inline=False,
         )
+        embed_offer.set_image(url=offer.image)
 
         # inserir quantidade de compra desejada
         if offer.quantity > 1:

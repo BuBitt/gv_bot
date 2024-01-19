@@ -51,7 +51,6 @@ class MercadoCommands(app_commands.Group):
                 raise IsNegativeError
 
             elif not is_valid_regex(print, regex):
-                print(is_valid_regex(print, regex))
                 raise IsNotLinkError
 
             else:

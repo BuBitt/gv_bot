@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ENV CONGIG
+if os.getenv("DEV_ENV") == "true":
+    DEV_ENV = True
+else:
+    DEV_ENV = False
 
 # DISCORD CONFIG
 DISCORD_API_SECRET = os.getenv("DISCORD_API_TOKEN")

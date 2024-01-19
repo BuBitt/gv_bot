@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import time
 import discord
@@ -229,6 +230,14 @@ class AdminCommands(app_commands.Group):
             limit=None
         )
 
+        # envia resposta
+        embed = discord.Embed(
+            title="**Valores minimos das ofertas atualizados**",
+            description="Levará um tempo até todas serem atualizadas.",
+            ephemeral=True,
+        )
+        await interaction.response.send_message(embed=embed)
+
         async for message in donation_channel_messages_history:
             # enconta o ultimo id para definir o N° da oferta
             offer = MarketOfferBis.fetch(message.id)
@@ -270,10 +279,6 @@ class AdminCommands(app_commands.Group):
 
             # mensasgem publicada no canal mercado
             message = await message.edit(embed=embed_offer)
-        
-        return await interaction.response.send_message(
-            "Valores minimos das ofertas atualizados"
-        )
 
 
 async def setup(bot):

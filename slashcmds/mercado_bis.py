@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import List, Literal
+from typing import List
 import difflib
 import time
 
 from errors.errors import IsNegativeError, IsNotLinkError, IsNotLinkError
-from models.account import Account
 from models.guild import Guild
 from models.items_bis import ItemBis
 
@@ -14,6 +13,7 @@ import discord
 from discord import app_commands
 from discord import utils
 
+import settings
 from models.items import Items
 from models.mercado_bis import MarketOfferBis
 
@@ -23,6 +23,14 @@ from database import db
 
 
 logger = settings.logging.getLogger(__name__)
+
+
+def completar_string(input_string, max_length=17):
+    if len(input_string) < max_length:
+        result = input_string + (max_length - len(input_string)) * " "
+        return result
+    else:
+        return input_string
 
 
 class MercadoBisCommands(app_commands.Group):
@@ -172,13 +180,25 @@ class MercadoBisCommands(app_commands.Group):
                 offer_dict["offer_message_id"] = message.id
                 offer_dict["offer_jump_url"] = message.jump_url
 
-                # escreve oferta no banco de dados
-                db.create_tables([MarketOfferBis])
-                MarketOfferBis.new(offer_dict)
-
                 await interaction.response.send_message(
                     f"`✪ Sua oferta foi criada: `{message.jump_url}", ephemeral=True
                 )
+
+                # enviar no chat geral
+                guild_channel = utils.get(
+                    interaction.guild.text_channels, id=settings.GUILD_CHAT
+                )
+                embed = discord.Embed(
+                    title=f"**`{offer_dict.get('member_name')}`** postou um novo item BIS no mercado",
+                    color=discord.Color.dark_purple(),
+                    description=f"_Clique na `#` para ir até a ofeta_\n{message.jump_url}**` {offer_dict.get('item_tier_name')} • {offer_dict.get('atributes')} `**",
+                )
+                geral_chat_msg = await guild_channel.send(embed=embed)
+                offer_dict["guild_msg_chat_id"] = geral_chat_msg.id
+
+                # escreve oferta no banco de dados
+                db.create_tables([MarketOfferBis])
+                MarketOfferBis.new(offer_dict)
 
                 # log da operação
                 log_message_terminal = f"{interaction.user.name} cirou uma nova oferta"
@@ -412,13 +432,13 @@ class MercadoBisCommands(app_commands.Group):
             )
 
         offers = [
-            f"{my_offer.jump_url}` → {my_offer.item_tier_name} • {my_offer.atributes.upper()} • {my_offer.min_points_req}p `"
+            f"{my_offer.jump_url}` → {completar_string(my_offer.item_tier_name)} • {my_offer.atributes.upper()} `"
             for my_offer in query_search_for
         ]
         offers_table = search_offer_table_construct(offers)
         embed = discord.Embed(
             title=f"**``` Loja - {player_name} ```**",
-            description=f"{offers_table}",
+            description=f"Clique na `#` para ir até a ofeta\n\n{offers_table}",
             color=discord.Color.dark_purple(),
         )
         return await interaction.response.send_message(embed=embed)

@@ -202,7 +202,6 @@ class DonationLauncher(discord.ui.View):
             interaction.guild.text_channels,
             name=global_channel_name,
         )
-        print(transaction)
 
         if transaction is not None:
             await interaction.response.send_message(
