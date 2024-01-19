@@ -375,9 +375,13 @@ class MercadoBisCommands(app_commands.Group):
     )
     async def player_send_offers(self, interaction: discord.Interaction):
         # Consulta ofertas ativas no mercado no banco de dados
-        query_search_for = MarketOfferBis.select().where(
-            (MarketOfferBis.vendor_id == interaction.user.id)
-            & (MarketOfferBis.is_active == True)
+        query_search_for = (
+            MarketOfferBis.select()
+            .where(
+                (MarketOfferBis.vendor_id == interaction.user.id)
+                & (MarketOfferBis.is_active == True)
+            )
+            .order_by(MarketOfferBis.item_tier_name.desc())
         )
 
         player_name = (
@@ -418,8 +422,13 @@ class MercadoBisCommands(app_commands.Group):
         self, interaction: discord.Interaction, player: discord.User
     ):
         # Consulta ofertas ativas no mercado no banco de dados
-        query_search_for = MarketOfferBis.select().where(
-            (MarketOfferBis.vendor_id == player.id) & (MarketOfferBis.is_active == True)
+        query_search_for = (
+            MarketOfferBis.select()
+            .where(
+                (MarketOfferBis.vendor_id == player.id)
+                & (MarketOfferBis.is_active == True)
+            )
+            .order_by(MarketOfferBis.item_tier_name.desc())
         )
 
         player_name = player.nick if player.nick != None else player.name
