@@ -105,7 +105,7 @@ class Rankings(app_commands.Group):
             color=discord.Color.yellow(),
         )
         embed_ranking = discord.Embed(
-            title="**Ranking Geral - TOP 20**", color=discord.Color.dark_purple()
+            title="**Ranking Geral - TOP 18**", color=discord.Color.dark_purple()
         )
         embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
 
