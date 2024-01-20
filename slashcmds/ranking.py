@@ -78,7 +78,7 @@ class Rankings(app_commands.Group):
         table.columns.alignment["PONTOS"] = BeautifulTable.ALIGN_RIGHT
 
         rank = 1
-        for user in account_query.limit(18):
+        for user in account_query:
             try:
                 user_object = utils.get(interaction.guild.members, id=int(user.user_id))
 
@@ -100,6 +100,7 @@ class Rankings(app_commands.Group):
             if interaction.user.nick != None
             else interaction.user.name
         )
+        
         embed_position = discord.Embed(
             title=f"**`{user_name}`**  •  Posição: `{general_rank_position}`  •  Pontos: **`{points}`**",
             color=discord.Color.yellow(),
@@ -107,7 +108,7 @@ class Rankings(app_commands.Group):
         embed_ranking = discord.Embed(
             title="**Ranking Geral - TOP 18**", color=discord.Color.dark_purple()
         )
-        embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
+        embed_ranking.add_field(name=" ", value=f"{table}", inline=False)
 
         await interaction.response.send_message(embeds=[embed_ranking, embed_position])
 

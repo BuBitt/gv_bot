@@ -27,7 +27,6 @@ BOTÕES:
     ` Novo Item `                   - Abre o formulário para a adição de um novo item
     ` Editar item `                 - Abre o formulário para a edição de pontos de um item
     ` Recalcular Pontuação`         - Recalcula a pontuação de todos os players
-    ` Transferir Silver `           - Instruções para a transferencia de silver à players
     ` Zerar Pontuação de Todos `    - Zera os pontos de todas as pessoas na guilda
     ` Remover Oferta Comum `        - Deletar uma oferta do mercado comum pelo número
     ` Remover Oferta Bis `          - Deletar uma oferta do mercado BIS pelo número

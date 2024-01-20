@@ -186,6 +186,8 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             ]
             table.rows.append(row)
 
+        print(table)
+
         embed_guild = discord.Embed(
             title="**Informações Gerais**",
             color=discord.Color.dark_purple(),
@@ -193,18 +195,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         )
         embed_guild.set_author(
             name=f"Guilda {interaction.guild.name}", icon_url=interaction.guild.icon
-        )
-        embed_guild.add_field(
-            name="Tanks",
-            value=Account.select().where(Account.role == "Tank").count(),
-        )
-        embed_guild.add_field(
-            name="Healers",
-            value=Account.select().where(Account.role == "Healer").count(),
-        )
-        embed_guild.add_field(
-            name="Damagers",
-            value=Account.select().where(Account.role == "Damage").count(),
         )
         embed_guild.add_field(
             name="_**Últimas Doações**_",
@@ -235,6 +225,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             row = [truncar_string(transaction.item), int(transaction.total_quantity)]
             table.rows.append(row)
 
+        print(table)
         # Greatest Donators
         items = [truncated.get(item, item) for item in items]
 
@@ -286,6 +277,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["QTE DOADA"] = BeautifulTable.ALIGN_RIGHT
 
+        print(table)
         embed_guild.add_field(
             name="_**Histórico de Itens**_",
             value=f"```{table}```",

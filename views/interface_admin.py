@@ -133,4 +133,3 @@ class MarketAdminDeleteOffersView(discord.ui.View):
             color=discord.Color.yellow(),
         )
         return await interaction.response.send_message(embed=embed, ephemeral=True)
-

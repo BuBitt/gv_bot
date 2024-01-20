@@ -1,6 +1,9 @@
 import time
 import discord
 from errors.errors import IsNegativeError
+from models.account import Account
+from models.donation import Donation
+from peewee import *
 import settings
 import traceback
 
@@ -315,25 +318,20 @@ class AdminLauncher(discord.ui.View):
     async def admin_recalc_user_ponits_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_message("Em Construção", ephemeral=True)
+        # accounts = Account.select(Account.user_id)
 
-    @discord.ui.button(
-        label="Transferir Silver",
-        style=discord.ButtonStyle.danger,
-        custom_id="admin_transfer_silver_button",
-        row=2,
-    )
-    async def admin_transfer_silver(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        embed = discord.Embed(
-            title="**Instruções de Transferencia de Silver**",
-            description="Para registrar uma transferencia de silver da gulda para um player use o comando:\n\
-Essa transferencia só é geita em casos e oversupply ou grande necessidade\n\
-```/admin doar-silver [@player] [quantidade]```",
-            color=discord.Color.yellow(),
-        )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        # for query_account in accounts:
+        #     account_donation_points = (
+        #         Donation.select(Donation.item, fn.SUM(Donation.quantity).alias('total_quantidade'))
+        #         .where(
+        #             Donation.donor_id == query_account.user_id
+        #             and Donation.is_active == True
+        #         )
+        #         .execute()
+        #     )
+        #     print(account_donation_points)
+
+        await interaction.response.send_message("Em Construção", ephemeral=True)
 
     @discord.ui.button(
         label="Editar Valores de Tier",

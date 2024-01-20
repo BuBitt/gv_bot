@@ -451,9 +451,9 @@ class MercadoBisCommands(app_commands.Group):
             for my_offer in query_search_for
         ]
         separate_offers = separate_offers_by_name(offers)
-        
+
         table_construct = enviar_loja_table_construct(separate_offers)
-        
+
         embed = discord.Embed(
             title=f"**``` Loja - {player_name} ```**",
             description=f"Clique na `#` para ir até a ofeta\n\n{table_construct}",
