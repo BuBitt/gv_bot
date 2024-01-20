@@ -51,7 +51,7 @@ class Rankings(app_commands.Group):
                 window_function.alias("row_number"),
             )
             .order_by(Account.points.desc())
-            .limit(25)
+            .limit(20)
         )
 
         general_position = (
@@ -106,7 +106,7 @@ class Rankings(app_commands.Group):
             color=discord.Color.yellow(),
         )
         embed_ranking = discord.Embed(
-            title="**Ranking Geral**", color=discord.Color.dark_purple()
+            title="**Ranking Geral - TOP 20**", color=discord.Color.dark_purple()
         )
         embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
 
