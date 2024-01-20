@@ -51,7 +51,6 @@ class Rankings(app_commands.Group):
                 window_function.alias("row_number"),
             )
             .order_by(Account.points.desc())
-            .limit(20)
         )
 
         general_position = (
@@ -79,7 +78,7 @@ class Rankings(app_commands.Group):
         table.columns.alignment["PONTOS"] = BeautifulTable.ALIGN_RIGHT
 
         rank = 1
-        for user in account_query.limit(25):
+        for user in account_query.limit(18):
             try:
                 user_object = utils.get(interaction.guild.members, id=int(user.user_id))
 
