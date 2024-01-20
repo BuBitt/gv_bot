@@ -43,12 +43,16 @@ class Rankings(app_commands.Group):
         window_function = fn.ROW_NUMBER().over(order_by=[Account.points.desc()])
 
         # Construct the query with the window function
-        account_query = Account.select(
-            Account.user_name,
-            Account.user_id,
-            Account.points,
-            window_function.alias("row_number"),
-        ).order_by(Account.points.desc())
+        account_query = (
+            Account.select(
+                Account.user_name,
+                Account.user_id,
+                Account.points,
+                window_function.alias("row_number"),
+            )
+            .order_by(Account.points.desc())
+            .limit(25)
+        )
 
         general_position = (
             Account.select(

@@ -1,5 +1,6 @@
 import time
 import discord
+from errors.errors import IsNegativeError
 import settings
 import traceback
 
@@ -147,8 +148,12 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
         # tenta converter points para um número inteiro
         try:
             points = int(points)
-            if points < 1:
-                raise TypeError
+            if points < 0:
+                raise IsNegativeError
+        except IsNegativeError:
+            await interaction.response.send_message(
+                "A pontuação não pode ser negativa.", ephemeral=True
+            )
         except:
             embed = discord.Embed(
                 title=f"**` {points} ` não é um número válido**",
