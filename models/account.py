@@ -15,6 +15,7 @@ class Account(peewee.Model):
     got_helmet: bool = peewee.BooleanField(default=False, null=False)
     got_armor: bool = peewee.BooleanField(default=False, null=False)
     got_legs: bool = peewee.BooleanField(default=False, null=False)
+    set_lock: str = peewee.CharField(max_length=2, default="no", null=False)
 
     class Meta:
         database = db

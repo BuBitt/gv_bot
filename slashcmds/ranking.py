@@ -13,13 +13,9 @@ from models.account import Account
 logger = settings.logging.getLogger(__name__)
 
 
-truncated = {}
-
-
-def truncar_string(input_string, max_length=13):
+def truncar_string(input_string, max_length=17):
     if len(input_string) > max_length:
         result = input_string[: max_length - 3] + "…"
-        truncated[result] = input_string
         return result
     else:
         return input_string
@@ -37,21 +33,18 @@ class Rankings(app_commands.Group):
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    @app_commands.checks.cooldown(1, 0.0, key=lambda i: i.user.id)
+    @app_commands.checks.cooldown(5, 300.0, key=lambda i: i.user.id)
     async def geral(self, interaction: discord.Interaction):
         # Define a window function using ROW_NUMBER()
         window_function = fn.ROW_NUMBER().over(order_by=[Account.points.desc()])
 
         # Construct the query with the window function
-        account_query = (
-            Account.select(
-                Account.user_name,
-                Account.user_id,
-                Account.points,
-                window_function.alias("row_number"),
-            )
-            .order_by(Account.points.desc())
-        )
+        account_query = Account.select(
+            Account.user_name,
+            Account.user_id,
+            Account.points,
+            window_function.alias("row_number"),
+        ).order_by(Account.points.desc())
 
         general_position = (
             Account.select(
@@ -69,16 +62,16 @@ class Rankings(app_commands.Group):
             general_rank_position = pos.row_number
 
         table = BeautifulTable()
-        table.set_style(BeautifulTable.STYLE_COMPACT)
+        table.set_style(BeautifulTable.STYLE_NONE)
 
-        headers = ["NOME", "PONTOS"]
+        headers = ["", " ", "  "]
         table.columns.header = headers
 
-        table.columns.alignment["NOME"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["PONTOS"] = BeautifulTable.ALIGN_RIGHT
+        table.columns.alignment[""] = BeautifulTable.ALIGN_RIGHT
+        table.columns.alignment[" "] = BeautifulTable.ALIGN_LEFT
+        table.columns.alignment["  "] = BeautifulTable.ALIGN_RIGHT
 
-        rank = 1
-        for user in account_query:
+        for user in account_query.limit(30):
             try:
                 user_object = utils.get(interaction.guild.members, id=int(user.user_id))
 
@@ -89,26 +82,27 @@ class Rankings(app_commands.Group):
                 name = user.user_name
 
             row = [
-                name,
+                user.row_number,
+                truncar_string(name),
                 user.points,
             ]
-            table.rows.append(row, header=str(rank))
-            rank += 1
+            table.rows.append(row)
 
         user_name = (
             interaction.user.nick
             if interaction.user.nick != None
             else interaction.user.name
         )
-        
+
         embed_position = discord.Embed(
             title=f"**`{user_name}`**  •  Posição: `{general_rank_position}`  •  Pontos: **`{points}`**",
             color=discord.Color.yellow(),
         )
+        table.show_headers = False
         embed_ranking = discord.Embed(
-            title="**Ranking Geral - TOP 18**", color=discord.Color.dark_purple()
+            title="**Ranking Geral - TOP 30**", color=discord.Color.dark_purple()
         )
-        embed_ranking.add_field(name=" ", value=f"{table}", inline=False)
+        embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
 
         await interaction.response.send_message(embeds=[embed_ranking, embed_position])
 

@@ -215,11 +215,13 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
 
             # zera pontuação e reseta checkers do player "comprador"
             buyer_account.points = 0
+            buyer_account.set_lock = "no"
             buyer_account.got_helmet = False
             buyer_account.got_armor = False
             buyer_account.got_boots = False
             buyer_account.got_legs = False
 
+        buyer_account.set_lock = sell_dict.get("item_tier_name")[:2].lower()
         buyer_account.save()
 
         # deleta mensagem de confirmação de venda
@@ -306,16 +308,6 @@ class MarketOfferInterestBis(discord.ui.View):
         offer = MarketOfferBis.fetch(interaction.message.id)
         vendor = utils.get(interaction.guild.members, id=offer.vendor_id)
 
-        if account.points < offer.min_points_req:
-            no_points_embed = discord.Embed(
-                title=f"Pontos insuficientes. Você possui ` {account.points}/{offer.min_points_req} `",
-                color=discord.Color.dark_red(),
-            )
-            return await interaction.response.send_message(
-                embed=no_points_embed,
-                ephemeral=True,
-            )
-
         # inviabiliza compra de tipo do item se ja houver comprado. válido até até o proximo reset
         item_type_messages = {
             "HELMET": "Você já pegou um Helmet, pegue o restante do set para ter acesso a novos Helmets",
@@ -333,12 +325,45 @@ class MarketOfferInterestBis(discord.ui.View):
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
 
-        # TODO HABILITAR CHECKER autor tentou comprar a propria oferta
-        # checa se o autor da oferta tentou comprá-la
-        if interaction.user.id == vendor.id:
-            return await interaction.response.send_message(
-                "Você não pode comprar seu prório item!", ephemeral=True
+        if getattr(account, "set_lock") in ["t3", "t4", "t5", "t6"]:
+            embed = discord.Embed(
+                title=f"**Você precisa pegar todar as peças do mesmo tier antes de pegar a do próximo**",
+                color=discord.Color.dark_red(),
             )
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        count_set_parts = (
+            sum(
+                [
+                    account.got_boots,
+                    account.got_helmet,
+                    account.got_armor,
+                    account.got_legs,
+                ]
+            )
+            + 1
+        )
+
+        # verifica se possui pontos suficientes para pegar o item (avaliação escalonada, sempre que um item é pego
+        # ele precisará doar mais itens para pegar o proximo)
+        required_points = offer.min_points_req * count_set_parts
+
+        if account.points < required_points:
+            no_points_embed = discord.Embed(
+                title=f"Pontos insuficientes. Você possui ` {account.points}/{required_points} `",
+                color=discord.Color.dark_red(),
+            )
+            return await interaction.response.send_message(
+                embed=no_points_embed,
+                ephemeral=True,
+            )
+
+        # checa se o autor da oferta tentou comprá-la
+        if not settings.DEV_ENV:
+            if interaction.user.id == vendor.id:
+                return await interaction.response.send_message(
+                    "Você não pode comprar seu prório item!", ephemeral=True
+                )
 
         # TODO USAR DPS
         # informações superficiais da oferta de interesse

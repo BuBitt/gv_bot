@@ -6,12 +6,23 @@ from beautifultable import BeautifulTable
 import settings
 from models.account import Account
 from models.donation import Donation
+from utils.utilities import (
+    search_offer_table_construct,
+)
 from views.perfil import GuildProfileView, UserProfileEdit
 
 logger = settings.logging.getLogger(__name__)
 
 
 truncated = {}
+
+
+def completar_string(input_string, max_length=13):
+    if len(input_string) < max_length:
+        result = input_string + (max_length - len(input_string)) * " "
+        return result
+    else:
+        return input_string
 
 
 def truncar_string(input_string, max_length=13):
@@ -40,30 +51,19 @@ class Profile(app_commands.Group):
                 Donation.crafter_name,
                 Donation.item,
                 Donation.quantity,
+                Donation.jump_url,
             )
             .where(Donation.donor_id == user.id)
             .order_by(Donation.id.desc())
             .limit(5)
         )
 
-        table = BeautifulTable()
-        table.set_style(BeautifulTable.STYLE_COMPACT)
-        headers = ["Nº", "CRAFTER", "ITEM", "QUANTIDADE"]
-        table.columns.header = headers
+        donations = [
+            f"{donation.jump_url}` → doou {completar_string(str(donation.quantity), max_length=6)}{truncar_string(completar_string(donation.item, max_length=13),max_length=13)} → {completar_string(truncar_string(donation.crafter_name))} `"
+            for donation in user_query
+        ]
 
-        table.columns.alignment["Nº"] = BeautifulTable.ALIGN_RIGHT
-        table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["CRAFTER"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
-
-        for transaction in list(user_query):
-            row = [
-                transaction.id,
-                truncar_string(transaction.crafter_name),
-                truncar_string(transaction.item),
-                transaction.quantity,
-            ]
-            table.rows.append(row)
+        table = search_offer_table_construct(donations)
 
         # Balance
         table_balance = BeautifulTable()
@@ -75,6 +75,9 @@ class Profile(app_commands.Group):
         table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
+        table_balance.columns.padding_right["ITEM"] = 24
+        table_balance.columns.padding_right["QUANTIDADE"] = 0
+
         user_query = (
             Donation.select(
                 Donation.donor_id,
@@ -84,13 +87,12 @@ class Profile(app_commands.Group):
             .where(Donation.donor_id == user.id)
             .group_by(Donation.donor_id, Donation.item)
             .order_by(fn.SUM(Donation.quantity).desc())
-        )
+        ).limit(15)
 
         balance_data = list(user_query)
-        items = [truncar_string(transaction.item) for transaction in balance_data]
 
         for transaction in balance_data:
-            row = [truncar_string(transaction.item), int(transaction.total_quantity)]
+            row = [transaction.item, int(transaction.total_quantity)]
             table_balance.rows.append(row)
 
         # embed
@@ -102,7 +104,7 @@ class Profile(app_commands.Group):
         embed_me.add_field(name="**Level**", value=account.level)
         embed_me.add_field(name="**Pontuação**", value=account.points)
         embed_me.add_field(name="**Role**", value=account.role)
-        embed_me.add_field(name="_**Últimas Doações**_", value=f"""```{table} ```""")
+        embed_me.add_field(name="_**Últimas Doações**_", value=f"""{table}""")
         embed_me.add_field(
             name="_**Histórico**_", value=f"```{table_balance} ```", inline=False
         )
@@ -154,51 +156,36 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
     )
     @app_commands.checks.cooldown(3, 60.0, key=lambda i: i.user.id)
     async def guilda(self, interaction: discord.Interaction):
-        last_transactions_query = (
+        last_donations_query = (
             Donation.select(
                 Donation.id,
                 Donation.crafter_name,
                 Donation.donor_name,
                 Donation.item,
                 Donation.quantity,
+                Donation.jump_url,
             )
             .order_by(Donation.id.desc())
-            .limit(10)
+            .limit(6)
         )
 
-        table = BeautifulTable()
-        table.set_style(BeautifulTable.STYLE_COMPACT)
+        donations = [
+            f"{donation.jump_url}` → {completar_string(truncar_string(donation.donor_name),max_length=11)} doou {completar_string(str(donation.quantity), max_length=4)}{truncar_string(completar_string(donation.item, max_length=10),max_length=12)} → {completar_string(truncar_string(donation.crafter_name))} `"
+            for donation in last_donations_query
+        ]
 
-        headers = ["CRAFTER", "DOADOR", "ITEM", "QUANTIDADE"]
-        table.columns.header = headers
-
-        table.columns.alignment["DOADOR"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["CRAFTER"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
-        table.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
-
-        for transaction in last_transactions_query:
-            row = [
-                truncar_string(transaction.crafter_name),
-                truncar_string(transaction.donor_name),
-                truncar_string(transaction.item),
-                transaction.quantity,
-            ]
-            table.rows.append(row)
-
-        print(table)
+        table = search_offer_table_construct(donations)
 
         embed_guild = discord.Embed(
-            title="**Informações Gerais**",
+            title="",
             color=discord.Color.dark_purple(),
-            description=f"Com {interaction.guild.member_count} membros, é uma guilda do jogo Ravendawn.",
         )
         embed_guild.set_author(
             name=f"Guilda {interaction.guild.name}", icon_url=interaction.guild.icon
         )
         embed_guild.add_field(
             name="_**Últimas Doações**_",
-            value=f"```{table} ```",
+            value=f"{table}",
             inline=False,
         )
 
@@ -209,7 +196,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
             .group_by(Donation.item)
             .order_by(fn.SUM(Donation.quantity).desc())
-        )
+        ).limit(15)
 
         table = BeautifulTable()
         table.set_style(BeautifulTable.STYLE_COMPACT)
@@ -225,7 +212,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             row = [truncar_string(transaction.item), int(transaction.total_quantity)]
             table.rows.append(row)
 
-        print(table)
         # Greatest Donators
         items = [truncated.get(item, item) for item in items]
 
@@ -250,7 +236,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             Donation.select(subquery.c.donor_name, subquery.c.item, subquery.c.quantity)
             .from_(subquery)
             .where(subquery.c.row_num == 1)
-            .limit(10)
         )
 
         # Execute the query
@@ -277,7 +262,6 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         table.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table.columns.alignment["QTE DOADA"] = BeautifulTable.ALIGN_RIGHT
 
-        print(table)
         embed_guild.add_field(
             name="_**Histórico de Itens**_",
             value=f"```{table}```",
