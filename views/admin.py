@@ -10,6 +10,7 @@ from discord import utils
 import views.interface as wi
 from models.items import Items
 from models.account import Account
+from views.mercado_bis import MarketOfferInterestBis
 
 
 logger = settings.logging.getLogger(__name__)
@@ -251,6 +252,57 @@ class EditTierMinimalRequeirementsAdmin(
                 f"Alterações: ` {int_dict} `",
                 ephemeral=True,
             )
+
+            # atualiza ofertas existentes
+            donation_channel_messages = utils.get(
+                interaction.guild.text_channels, id=settings.MARKET_OFFER_CHANNEL_BIS
+            )
+            donation_channel_messages_history = donation_channel_messages.history(
+                limit=None
+            )
+
+            async for message in donation_channel_messages_history:
+                # enconta o ultimo id para definir o N° da oferta
+                offer = MarketOfferBis.fetch(message.id)
+
+                embed_offer = discord.Embed(
+                    title=f"",
+                    color=discord.Color.dark_purple(),
+                    timestamp=datetime.datetime.fromtimestamp(int(offer.timestamp)),
+                )
+                embed_offer.add_field(
+                    name="", value=f"**```{offer.item_tier_name.title()}```**"
+                )
+                embed_offer.add_field(
+                    name="",
+                    value=f"```Atributos: {offer.atributes.upper()}```",
+                    inline=False,
+                )
+                embed_offer.set_footer(
+                    text=f"Oferta N° {offer.id}  •  {offer.item_name.title()}"
+                )
+
+                # get the right tier
+                tier_name = f"{offer.item_tier_name[0:2].lower()}_requirement"
+                tier = getattr(Guild, tier_name)
+                tier_points = Guild.select(tier).first()
+                value = getattr(tier_points, tier_name)
+
+                offer.min_points_req = value
+                offer.save()
+
+                embed_offer.add_field(name="", value=f"```{value} Pontos Mínimos```")
+                embed_offer.add_field(
+                    name="", value=f"```{offer.quantity} Disponíveis```"
+                )
+                embed_offer.set_author(
+                    name=f"{offer.vendor_name} craftou esse item BIS",
+                    icon_url=interaction.user.display_avatar,
+                )
+                embed_offer.set_image(url=offer.image)
+
+                # mensasgem publicada no canal mercado
+                await message.edit(embed=embed_offer, view=MarketOfferInterestBis())
 
             # Log da operação (terminal)
             log_message_terminal = f"{interaction.user.name}(ID: {interaction.user.id} editou as pontuações de tier: {int_dict}"

@@ -221,7 +221,9 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             buyer_account.got_boots = False
             buyer_account.got_legs = False
 
-        buyer_account.set_lock = sell_dict.get("item_tier_name")[:2].lower()
+        else:
+            buyer_account.set_lock = sell_dict.get("item_tier_name")[:2].lower()
+
         buyer_account.save()
 
         # deleta mensagem de confirmação de venda
@@ -257,6 +259,10 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             embed_offer.add_field(
                 name="",
                 value=f"```Atributos: {offer.atributes.upper()}```",
+                inline=False,
+            )
+            embed_offer.add_field(
+                name="", value=f"```{offer.min_points_req} Pontos Mínimos```"
             )
             embed_offer.add_field(name="", value=f"```{offer.quantity} Disponíveis```")
             embed_offer.set_author(
@@ -320,14 +326,20 @@ class MarketOfferInterestBis(discord.ui.View):
             account, f"got_{offer.item_type.lower()}"
         ):
             embed = discord.Embed(
-                title=f"**! {item_type_messages[offer.item_type]} !**",
+                title=f"**{item_type_messages[offer.item_type]} !**",
                 color=discord.Color.yellow(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
 
-        if getattr(account, "set_lock") in ["t3", "t4", "t5", "t6"]:
+        item_tier = offer.item_tier_name[:2].lower()
+
+        # checa se o player está com o tier lockado (não pode pegar itens de outro tier)
+        if (
+            getattr(account, "set_lock") != item_tier
+            and getattr(account, "set_lock") != "no"
+        ):
             embed = discord.Embed(
-                title=f"**Você precisa pegar todar as peças do mesmo tier antes de pegar a do próximo**",
+                title=f"**Você precisa pegar todar as peças do mesmo tier antes de pegar a de outro tier.**",
                 color=discord.Color.dark_red(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)

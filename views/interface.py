@@ -334,7 +334,7 @@ class AdminLauncher(discord.ui.View):
         await interaction.response.send_message("Em Construção", ephemeral=True)
 
     @discord.ui.button(
-        label="Editar Valores de Tier",
+        label="Editar Valores Mínimos de Tier",
         style=discord.ButtonStyle.danger,
         custom_id="admin_edit_value_tier_button",
         row=2,
@@ -343,6 +343,7 @@ class AdminLauncher(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_modal(EditTierMinimalRequeirementsAdmin())
+        
 
     @discord.ui.button(
         label="Zerar a Pontuação de Todos",
