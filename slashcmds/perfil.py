@@ -59,7 +59,7 @@ class Profile(app_commands.Group):
         )
 
         donations = [
-            f"{donation.jump_url}` → doou {completar_string(str(donation.quantity), max_length=6)}{truncar_string(completar_string(donation.item, max_length=13),max_length=13)} → {completar_string(truncar_string(donation.crafter_name))} `"
+            f"{donation.jump_url}` → doou {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=13),max_length=15)} → {completar_string(truncar_string(donation.crafter_name))} `"
             for donation in user_query
         ]
 
