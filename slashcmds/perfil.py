@@ -75,7 +75,7 @@ class Profile(app_commands.Group):
         table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
-        table_balance.columns.padding_right["ITEM"] = 24
+        table_balance.columns.padding_right["ITEM"] = 26
         table_balance.columns.padding_right["QUANTIDADE"] = 0
 
         user_query = (
