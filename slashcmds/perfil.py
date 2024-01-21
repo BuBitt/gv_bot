@@ -170,7 +170,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         )
 
         donations = [
-            f"{donation.jump_url}` → {completar_string(truncar_string(donation.donor_name),max_length=11)} doou {completar_string(str(donation.quantity), max_length=4)}{truncar_string(completar_string(donation.item, max_length=10),max_length=12)} → {completar_string(truncar_string(donation.crafter_name))} `"
+            f"{donation.jump_url}` → {completar_string(truncar_string(donation.donor_name,max_length=18),max_length=16)} doou {completar_string(str(donation.quantity), max_length=4)}{truncar_string(completar_string(donation.item, max_length=13),max_length=15)} `"
             for donation in last_donations_query
         ]
 
