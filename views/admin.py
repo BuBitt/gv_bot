@@ -291,13 +291,15 @@ class EditTierMinimalRequeirementsAdmin(
                 offer.min_points_req = value
                 offer.save()
 
+                vendor = utils.get(interaction.guild.members, id=offer.vendor_id)
+
                 embed_offer.add_field(name="", value=f"```{value} Pontos Mínimos```")
                 embed_offer.add_field(
                     name="", value=f"```{offer.quantity} Disponíveis```"
                 )
                 embed_offer.set_author(
                     name=f"{offer.vendor_name} craftou esse item BIS",
-                    icon_url=interaction.user.display_avatar,
+                    icon_url=vendor.display_avatar,
                 )
                 embed_offer.set_image(url=offer.image)
 
