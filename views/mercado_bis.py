@@ -222,7 +222,10 @@ class MarketOfferInterestVendorConfirmationBis(discord.ui.View):
             buyer_account.got_legs = False
 
         else:
-            buyer_account.set_lock = sell_dict.get("item_tier_name")[:2].lower()
+            # evita o set_lock em armas
+            for word in ["boots", "helmet", "armor", "legs"]:
+                if word in sell_dict.get("item_tier_name"):
+                    buyer_account.set_lock = sell_dict.get("item_tier_name")[:2].lower()
 
         buyer_account.save()
 
