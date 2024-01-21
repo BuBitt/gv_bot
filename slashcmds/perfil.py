@@ -59,7 +59,7 @@ class Profile(app_commands.Group):
         )
 
         donations = [
-            f"{donation.jump_url}` → doou {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=13),max_length=15)} → {completar_string(truncar_string(donation.crafter_name))} `"
+            f"{donation.jump_url}` → doou    {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=12),max_length=11)} → {completar_string(truncar_string(donation.crafter_name,max_length=12),max_length=13)} `"
             for donation in user_query
         ]
 
@@ -75,7 +75,7 @@ class Profile(app_commands.Group):
         table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
-        table_balance.columns.padding_right["ITEM"] = 26
+        table_balance.columns.padding_right["ITEM"] = 28
         table_balance.columns.padding_right["QUANTIDADE"] = 0
 
         user_query = (
