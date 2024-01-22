@@ -106,6 +106,12 @@ class MercadoBisCommands(app_commands.Group):
                     "staff": "STAFF",
                     "sceptre": "SCEPTRE",
                     "buckler": "BUCKLER",
+                    "light blade": "LIGHT BLADE",
+                    "hammer": "HAMMER",
+                    "greatsword": "SWORD",
+                    "greateaxe": "AXE",
+                    "dagger": "DAGGER",
+                    "club": "CLUB",
                 }
 
                 for keyword, item_type in item_type_mapping.items():

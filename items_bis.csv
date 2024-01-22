@@ -1,87 +1,127 @@
-tier_name,item_name,item_quantity,,,,
-T2 Plate Armor,Crescent Armor,0,,,,
-T2 Plate Helmet,Crescent Helmet,0,,,,
-T2 Plate Legs,Crescent Legs,0,,,,
-T2 Plate Boots,Crescent Boots,0,,,,
-T3 Plate Armor,Harbinger Armor,0,,,,
-T3 Plate Helmet,Harbinger Helmet,0,,,,
-T3 Plate Legs,Harbinger Legs,0,,,,
-T3 Plate Boots,Harbinger Boots,0,,,,
-T4 Plate Armor,Enforcer Armor,0,,,,
-T4 Plate Helmet,Enforcer Helmet,0,,,,
-T4 Plate Legs,Enforcer Legs,0,,,,
-T4 Plate Boots,Enforcer Boots,0,,,,
-T5 Plate Armor,Protector's Armor,0,,,,
-T5 Plate Helmet,Protector's Helmet,0,,,,
-T5 Plate Legs,Protector's Legs,0,,,,
-T5 Plate Boots,Protector's Boots,0,,,,
-T6 Plate Armor,Chivalry Armor,0,,,,
-T6 Plate Helmet,Chivalry Helmet,0,,,,
-T6 Plate Legs,Chivalry Legs,0,,,,
-T6 Plate Boots,Chivalry Boots,0,,,,
-T2 Leather Helmet,Nomad Helmet,0,,,,
-T2 Leather Armor,Nomad Armor,0,,,,
-T2 Leather Legs,Nomad Legs,0,,,,
-T2 Leather Boots,Nomad Boots,0,,,,
-T3 Leather Helmet,Bruiser's Helmet,0,,,,
-T3 Leather Armor,Bruiser's Armor,0,,,,
-T3 Leather Legs,Bruiser's Legs,0,,,,
-T3 Leather Boots,Bruiser's Boots,0,,,,
-T4 Leather Helmet,Outlaw Helmet,0,,,,
-T4 Leather Armor,Outlaw Armor,0,,,,
-T4 Leather Legs,Outlaw Legs,0,,,,
-T4 Leather Boots,Outlaw Boots,0,,,,
-T5 Leather Helmet,Studded Helmet,0,,,,
-T5 Leather Armor,Studded Armor,0,,,,
-T5 Leather Legs,Studded Legs,0,,,,
-T5 Leather Boots,Studded Boots,0,,,,
-T6 Leather Helmet,Guerrila Helmet,0,,,,
-T6 Leather Armor,Guerrila Armor,0,,,,
-T6 Leather Legs,Guerrila Legs,0,,,,
-T6 Leather Boots,Guerrila Boots,0,,,,
-T2 Cloth Armor,Viper's Armor,0,,,,
-T2 Cloth Helmet,Viper's Helmet,0,,,,
-T2 Cloth Legs,Viper's Legs,0,,,,
-T2 Cloth Armor,Viper's Boots,0,,,,
-T3 Cloth Armor,Profane Armor,0,,,,
-T3 Cloth Helmet,Profane Helmet,0,,,,
-T3 Cloth Legs,Profane Legs,0,,,,
-T3 Cloth Armor,Profane Boots,0,,,,
-T4 Cloth Armor,Celestial Armor,0,,,, 
-T4 Cloth Helmet,Celestial Helmet,0,,,,
-T4 Cloth Legs,Celestial Legs,0,,,,
-T4 Cloth Armor,Celestial Boots,0,,,,
-T5 Cloth Armor,Mystic Armor,0,,,,
-T5 Cloth Helmet,Mystic Helmet,0,,,,
-T5 Cloth Legs,Mystic Legs,0,,,,
-T5 Cloth Armor,Mystic Boots,0,,,,
-T6 Cloth Armor,Warlock Armor,0,,,,
-T6 Cloth Helmet,Warlock Helmet,0,,,,
-T6 Cloth Legs,Warlock Legs,0,,,,
-T6 Cloth Armor,Warlock Boots,0,,,,
-T1 Bow,Oakwood Bow,0,,,,
-T2 Bow,Viper's Bow,0,,,,
-T3 Bow,Black Ash Bow,0,,,,
-T4 Bow,Bullseye Bow,0,,,,
-T5 Bow,Predator Bow,0,,,,
-T6 Bow,Marksman Bow,0,,,,
-T2 Staff,Warlock Staff,0,,,,
-T3 Staff,Cultist Staff,0,,,,
-T4 Staff,Celestial Staff,0,,,,
-T5 Staff,Lightshard Staff,0,,,,
-T6 Staff,Necromancer's Staff,0,,,,
-T2 Sceptre ,Tribal Sceptre,0,,,,
-T3 Sceptre ,Serpent Sceptre,0,,,,
-T4 Sceptre ,Crystal Sceptre,0,,,,
-T5 Sceptre ,Celestial Sceptre,0,,,,
-T6 Sceptre ,Crowbone Sceptre,0,,,,
-T2 Shield,Sturdy Buckler,0,,,,
-T3 Shield,Marauder's Shield,0,,,,
-T4 Shield,Rune Shield,0,,,,
-T5 Shield,Ravenguard's Shield,0,,,,
-T6 Shield,Nocturnal Shield,0,,,,
-T2 Buckler,Sentinel Shield,0,,,,
-T3 Buckler,Defender's Bulwark,0,,,,
-T4 Buckler,Steelclad Bulwark,0,,,,
-T5 Buckler,King's Defender,0,,,,
-T6 Buckler,Sturdy Buckler,0,,,,
+tier_name,item_name,item_quantity
+T2 Plate Armor,Crescent Armor,0
+T2 Plate Helmet,Crescent Helmet,0
+T2 Plate Legs,Crescent Legs,0
+T2 Plate Boots,Crescent Boots,0
+T3 Plate Armor,Harbinger Armor,0
+T3 Plate Helmet,Harbinger Helmet,0
+T3 Plate Legs,Harbinger Legs,0
+T3 Plate Boots,Harbinger Boots,0
+T4 Plate Armor,Enforcer Armor,0
+T4 Plate Helmet,Enforcer Helmet,0
+T4 Plate Legs,Enforcer Legs,0
+T4 Plate Boots,Enforcer Boots,0
+T5 Plate Armor,Protector's Armor,0
+T5 Plate Helmet,Protector's Helmet,0
+T5 Plate Legs,Protector's Legs,0
+T5 Plate Boots,Protector's Boots,0
+T6 Plate Armor,Chivalry Armor,0
+T6 Plate Helmet,Chivalry Helmet,0
+T6 Plate Legs,Chivalry Legs,0
+T6 Plate Boots,Chivalry Boots,0
+T2 Leather Helmet,Nomad Helmet,0
+T2 Leather Armor,Nomad Armor,0
+T2 Leather Legs,Nomad Legs,0
+T2 Leather Boots,Nomad Boots,0
+T3 Leather Helmet,Bruiser's Helmet,0
+T3 Leather Armor,Bruiser's Armor,0
+T3 Leather Legs,Bruiser's Legs,0
+T3 Leather Boots,Bruiser's Boots,0
+T4 Leather Helmet,Outlaw Helmet,0
+T4 Leather Armor,Outlaw Armor,0
+T4 Leather Legs,Outlaw Legs,0
+T4 Leather Boots,Outlaw Boots,0
+T5 Leather Helmet,Studded Helmet,0
+T5 Leather Armor,Studded Armor,0
+T5 Leather Legs,Studded Legs,0
+T5 Leather Boots,Studded Boots,0
+T6 Leather Helmet,Guerrila Helmet,0
+T6 Leather Armor,Guerrila Armor,0
+T6 Leather Legs,Guerrila Legs,0
+T6 Leather Boots,Guerrila Boots,0
+T2 Cloth Armor,Viper's Armor,0
+T2 Cloth Helmet,Viper's Helmet,0
+T2 Cloth Legs,Viper's Legs,0
+T2 Cloth Armor,Viper's Boots,0
+T3 Cloth Armor,Profane Armor,0
+T3 Cloth Helmet,Profane Helmet,0
+T3 Cloth Legs,Profane Legs,0
+T3 Cloth Armor,Profane Boots,0
+T4 Cloth Armor,Celestial Armor,0
+T4 Cloth Helmet,Celestial Helmet,0
+T4 Cloth Legs,Celestial Legs,0
+T4 Cloth Armor,Celestial Boots,0
+T5 Cloth Armor,Mystic Armor,0
+T5 Cloth Helmet,Mystic Helmet,0
+T5 Cloth Legs,Mystic Legs,0
+T5 Cloth Armor,Mystic Boots,0
+T6 Cloth Armor,Warlock Armor,0
+T6 Cloth Helmet,Warlock Helmet,0
+T6 Cloth Legs,Warlock Legs,0
+T6 Cloth Armor,Warlock Boots,0
+T1 Bow,Oakwood Bow,0
+T2 Bow,Viper's Bow,0
+T3 Bow,Black Ash Bow,0
+T4 Bow,Bullseye Bow,0
+T5 Bow,Predator Bow,0
+T6 Bow,Marksman Bow,0
+T2 Staff,Warlock Staff,0
+T3 Staff,Cultist Staff,0
+T4 Staff,Celestial Staff,0
+T5 Staff,Lightshard Staff,0
+T6 Staff,Necromancer's Staff,0
+T2 Sceptre ,Tribal Sceptre,0
+T3 Sceptre ,Serpent Sceptre,0
+T4 Sceptre ,Crystal Sceptre,0
+T5 Sceptre ,Celestial Sceptre,0
+T6 Sceptre ,Crowbone Sceptre,0
+T2 Shield,Sturdy Buckler,0
+T3 Shield,Marauder's Shield,0
+T4 Shield,Rune Shield,0
+T5 Shield,Ravenguard's Shield,0
+T6 Shield,Nocturnal Shield,0
+T2 Buckler,Sentinel Shield,0
+T3 Buckler,Defender's Bulwark,0
+T4 Buckler,Steelclad Bulwark,0
+T5 Buckler,King's Defender,0
+T6 Buckler,Sturdy Buckler,0
+T2 Light Blade,Swashbuckler's Blade ,0
+T3 Light Blade,Serpentine Blade ,0
+T4 Light Blade,Duelist's Companion ,0
+T5 Light Blade,Ornamented Saber ,0
+T6 Light Blade,Scarlet Thorn ,0
+T2 Hammer,Crushing Hammer ,0
+T3 Hammer,Punisher's Gavel ,0
+T4 Hammer,Lawgiver's Warhammer ,0
+T5 Hammer,Dwarven Warhammer ,0
+T6 Hammer,Soulwarden's Hammer ,0
+T2 Greatsword,Valiant Greatsword ,0
+T3 Greatsword,Heroic Greatsword ,0
+T4 Greatsword,Bonebiter Greatsword ,0
+T5 Greatsword,Samurai's Daikatana ,0
+T6 Greatsword,Magister's Greatsword ,0
+T2 Greataxe,Warrior's Greataxe ,0
+T3 Greataxe,Savage Battle Axe ,0
+T4 Greataxe,Hangman's Greataxe ,0
+T5 Greataxe,Orcish Battle Axe ,0
+T6 Greataxe,Nocturnal Greataxe ,0
+T2 Dagger,Noble Dagger ,0
+T3 Dagger,Ice Dagger ,0
+T4 Dagger,Heartstopper Dagger ,0
+T5 Dagger,Assassin's Dagger ,0
+T6 Dagger,Ritual Dagger ,0
+T2 Club,Studded Flail ,0
+T3 Club,Shieldbreaker's Flail ,0
+T4 Club,Ravenguard Morningstar ,0
+T5 Club,Enforcer's Mace ,0
+T6 Club,Skullbasher Mace ,0
+T2 Sword,Warden's Sword ,0
+T3 Sword,Lawbreaker's Sword ,0
+T4 Sword,Guardian's Longsword ,0
+T5 Sword,Crusader's Longsword ,0
+T6 Sword,Champion's Longsword ,0
+T2 Axe,Marauder's Axe ,0
+T3 Axe,Dread Axe ,0
+T4 Axe,Stormcarver Axe ,0
+T5 Axe,Hellblade Axe ,0
+T6 Axe,Dragonbane Axe ,0
