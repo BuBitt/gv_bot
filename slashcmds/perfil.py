@@ -368,7 +368,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
                 Donation.item,
                 fn.SUM(Donation.quantity).alias("quantidade"),
             )
-            .where(Donation.crafter_id == 416071270975930389)
+            .where(Donation.crafter_id == user.id)
             .group_by(Donation.crafter_id, Donation.item)
             .order_by(fn.SUM(Donation.quantity).desc())
         )
