@@ -27,7 +27,7 @@ def completar_string(input_string, max_length=13):
 
 def truncar_string(input_string, max_length=13):
     if len(input_string) > max_length:
-        result = input_string[: max_length - 3] + "…"
+        result = input_string[: max_length - 1] + "…"
         truncated[result] = input_string
         return result
     else:
@@ -59,7 +59,7 @@ class Profile(app_commands.Group):
         )
 
         donations = [
-            f"{donation.jump_url}` → doou    {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=12),max_length=11)} → {completar_string(truncar_string(donation.crafter_name,max_length=12),max_length=13)} `"
+            f"{donation.jump_url}` → doou    {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=12),max_length=12)} → {completar_string(truncar_string(donation.crafter_name,max_length=12),max_length=13)} `"
             for donation in user_query
         ]
 
@@ -75,7 +75,7 @@ class Profile(app_commands.Group):
         table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
 
-        table_balance.columns.padding_right["ITEM"] = 28
+        table_balance.columns.padding_right["ITEM"] = 20
         table_balance.columns.padding_right["QUANTIDADE"] = 0
 
         user_query = (
@@ -170,7 +170,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         )
 
         donations = [
-            f"{donation.jump_url}` → {completar_string(truncar_string(donation.donor_name,max_length=18),max_length=16)} doou {completar_string(str(donation.quantity), max_length=4)}{truncar_string(completar_string(donation.item, max_length=17),max_length=18)} `"
+            f"{donation.jump_url}` → {completar_string(truncar_string(donation.donor_name,max_length=18),max_length=18)} doou {completar_string(str(donation.quantity), max_length=6)}{truncar_string(completar_string(donation.item, max_length=17),max_length=20)} `"
             for donation in last_donations_query
         ]
 
@@ -331,6 +331,65 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             view=UserProfileEdit(profile_embed=self.embed_me(interaction)),
             ephemeral=True,
         )
+
+    # TODO concertar cd
+    @app_commands.command(
+        name="crafter", description="Envia no chat o perfil de um crafter"
+    )
+    @app_commands.describe(user="O crafter que terá o perfil enviado no chat")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
+    @app_commands.checks.cooldown(5, 60.0, key=lambda i: i.user.id)
+    async def see_crafter(self, interaction: discord.Interaction, user: discord.Member):
+        crafters = discord.utils.get(
+            interaction.guild.roles, id=settings.CRAFTER_ROLE
+        ).members
+        crafters = [crafter for crafter in crafters]
+
+        if not user in crafters:
+            return await interaction.response.send_message(
+                f"{user.nick} não é um crafter", ephemeral=True
+            )
+
+        embed = discord.Embed(color=discord.Color.dark_purple())
+        embed.set_author(
+            name=f"{user.nick} - Balanço", icon_url=user.display_avatar
+        )
+
+        query = (
+            Donation.select(
+                Donation.crafter_id,
+                Donation.item,
+                fn.SUM(Donation.quantity).alias("quantidade"),
+            )
+            .where(Donation.crafter_id == 416071270975930389)
+            .group_by(Donation.crafter_id, Donation.item)
+            .order_by(fn.SUM(Donation.quantity).desc())
+        )
+
+        # tabela
+        table_balance = BeautifulTable()
+        table_balance.set_style(BeautifulTable.STYLE_COMPACT)
+
+        headers = ["ITEM", "QUANTIDADE"]
+        table_balance.columns.header = headers
+
+        table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+
+        for donation in query:
+            row = [truncar_string(donation.item), int(donation.quantidade)]
+            table_balance.rows.append(row)
+
+        # envia tabela
+        embed.add_field(name="", value=f"```{table_balance}```")
+        return await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot):
