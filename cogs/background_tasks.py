@@ -38,7 +38,7 @@ class BackgroundTasks(commands.Cog):
 
             async for message in channel.history(limit=None):
                 offer = MarketOfferBis.fetch(message.id)
-                
+
                 gv_guild = self.bot.guilds[0]
                 channel = discord.utils.get(
                     gv_guild.text_channels, id=settings.MARKET_OFFER_CHANNEL_BIS
@@ -66,9 +66,9 @@ class BackgroundTasks(commands.Cog):
                     )
                     embed.set_image(url=offer.image)
 
-                    log_message_terminal = f"{offer.id} foi deletada"
+                    log_message_terminal = f"Oferta Nº {offer.id} de {offer.vendor_name}: {offer.item_tier_name} {offer.atributes} foi deletada"
                     logger.info(log_message_terminal)
-                    
+
                     await vendor.send(embed=embed)
                     await message.delete()
 
