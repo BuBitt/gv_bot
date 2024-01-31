@@ -182,18 +182,47 @@ class AdminCommands(app_commands.Group):
         self, interaction: discord.Interaction, player: discord.User
     ):
         account = Account.fetch(player)
-        account.points = 0
-        account.got_helmet = False
-        account.got_armor = False
-        account.got_legs = False
-        account.got_boots = False
-        account.set_lock = "no"
-        account.save()
+        if account != None:
+            account.points = 0
+            account.got_helmet = False
+            account.got_armor = False
+            account.got_legs = False
+            account.got_boots = False
+            account.set_lock = "no"
+            account.save()
 
-        await interaction.response.send_message(
-            f"os pontos de {player.mention} foram resetados e seu set_lock foi limpo.",
-            ephemeral=True,
-        )
+            await interaction.response.send_message(
+                f"os pontos de {player.mention} foram resetados e seu set_lock foi limpo.",
+                ephemeral=True,
+            )
+
+            # logs também enviados ao player que recebeu pontos
+            interactor_name = (
+                interaction.user.name
+                if interaction.user.nick == None
+                else interaction.user.nick
+            )
+
+            user_name = player.name if player.nick == None else player.nick
+
+            log_message_terminal = f"{interactor_name}(ID: {interaction.user.id}) zerou a pontuação do player {user_name}"
+            logger.info(log_message_terminal)
+
+            timestamp = str(time.time()).split(".")[0]
+            log_message_ch = f"<t:{timestamp}:F>` - `{interaction.user.mention}` zerou a pontuação do player `{player.mention}"
+
+            channel = utils.get(
+                interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+            )
+            await channel.send(log_message_ch)
+
+            # Envia PM do log ao player afetado
+            await player.send(log_message_ch)
+        else:
+            return await interaction.response.send_message(
+                f"Player não existe",
+                ephemeral=True,
+            )
 
 
 async def setup(bot):
