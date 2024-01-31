@@ -95,7 +95,7 @@ class ConfirmTransactionPm(discord.ui.View):
         # envia o feedback da confirmação para o doador
         embed_sucess_pm = discord.Embed(
             title="**Doação Confirmada!**",
-            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada: {self.transaction_dict.get("jump_url")}",
+            description=f"A doação de ` {self.transaction_dict.get('donor_name')} ` foi aceita e publicada: {self.transaction_dict.get('jump_url')}",
             color=discord.Color.green(),
         )
         await interaction.response.send_message(embed=embed_sucess_pm)
