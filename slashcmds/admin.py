@@ -168,6 +168,33 @@ class AdminCommands(app_commands.Group):
             f"Aviso Publicado: {aviso.jump_url}", ephemeral=True
         )
 
+    @app_commands.command(
+        name="zerar",
+        description="manda um embed de aviso",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+        settings.BOT_MANAGER_ROLE,
+        settings.CRAFTER_ROLE,
+    )
+    async def reset_player_points(
+        self, interaction: discord.Interaction, player: discord.User
+    ):
+        account = Account.fetch(player)
+        account.points = 0
+        account.got_helmet = False
+        account.got_armor = False
+        account.got_legs = False
+        account.got_boots = False
+        account.set_lock = "no"
+        account.save()
+
+        await interaction.response.send_message(
+            f"os pontos de {player.mention} foram resetados e seu set_lock foi limpo.",
+            ephemeral=True,
+        )
+
 
 async def setup(bot):
     bot.tree.add_command(
