@@ -163,7 +163,7 @@ class AdminCommands(app_commands.Group):
         chat_da_guilda = discord.utils.get(
             interaction.guild.text_channels, id=settings.GUILD_CHAT
         )
-        aviso = await chat_da_guilda.send(embed=embed)
+        aviso = await chat_da_guilda.send(content=aviso)
         await interaction.response.send_message(
             f"Aviso Publicado: {aviso.jump_url}", ephemeral=True
         )
