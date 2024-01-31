@@ -35,8 +35,8 @@ class Rankings(app_commands.Group):
     )
     @app_commands.checks.cooldown(5, 300.0, key=lambda i: i.user.id)
     async def geral(self, interaction: discord.Interaction):
-        account = Account.get(interaction.user.id)
-        
+        account = Account.fetch(interaction)
+
         # Define a window function using ROW_NUMBER()
         window_function = fn.ROW_NUMBER().over(order_by=[Account.points.desc()])
 
