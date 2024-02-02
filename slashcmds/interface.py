@@ -36,7 +36,7 @@ COMANDOS:
     - ```/admin adicionar-pontos [@player] [quantidade]```
 - **Remove pontos do Player**
     - ```/admin remover-pontos [@player] [quantidade]```
-- **Remove pontos do Player**
+- **Reseta pontos do Player**
     - ```/admin zerar [@player]```
 """,
         )
