@@ -263,7 +263,7 @@ class AdminCommands(app_commands.Group):
             csv_writer = csv.writer(csvfile)
 
             # Write header
-            csv_writer.writerow(["ITEM", "ATRIBUTOS", "IMAGEM"])
+            csv_writer.writerow(["TIPO", "ITEM", "ATRIBUTOS", "IMAGEM"])
 
             # Write data
             for row in crafter_offers.dicts():
