@@ -440,7 +440,8 @@ class CadastroTransacao(commands.Cog):
                 if run == 1:
                     await message_send_error.delete()
 
-                if is_valid_regex(print_proof, regex):
+                # if is_valid_regex(print_proof, regex):
+                if True:
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
 
