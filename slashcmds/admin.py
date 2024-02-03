@@ -255,14 +255,16 @@ class AdminCommands(app_commands.Group):
             MarketOfferBis.atributes,
             MarketOfferBis.image,
         )
-        csv_file_path = f"historico-de-craft-{crafter.nick}-{datetime.datetime.now()}.csv"
+        csv_file_path = (
+            f"historico-de-craft-{crafter.nick}-{datetime.datetime.now()}.csv"
+        )
 
-        with open(csv_file_path, 'w', newline='') as csvfile:
+        with open(csv_file_path, "w", newline="") as csvfile:
             csv_writer = csv.writer(csvfile)
-            
+
             # Write header
             csv_writer.writerow(["ITEM", "ATRIBUTOS", "IMAGEM"])
-            
+
             # Write data
             for row in crafter_offers.dicts():
                 csv_writer.writerow(row.values())
@@ -276,6 +278,9 @@ class AdminCommands(app_commands.Group):
         )
 
         os.remove(csv_file_path)
+
+        log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
+        logger.info(log_message_terminal)
 
 
 async def setup(bot):
