@@ -198,7 +198,7 @@ class Profile(app_commands.Group):
         embed_me.add_field(
             name="**Doação/Produção**",
             value=(
-                abs(all_itens / crafted_itens)
+                int(all_itens / crafted_itens)
                 if crafted_itens != 0
                 else "0 Itens produzidos"
             ),
