@@ -10,6 +10,7 @@ class Guild(peewee.Model):
     t4_requirement: int = peewee.IntegerField(default=0)
     t5_requirement: int = peewee.IntegerField(default=0)
     t6_requirement: int = peewee.IntegerField(default=0)
+    is_in_maintenance: bool = peewee.BooleanField(default=False)
 
     class Meta:
         database = db

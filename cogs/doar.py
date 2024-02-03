@@ -9,6 +9,7 @@ from beautifultable import BeautifulTable
 import discord
 from discord import Interaction, utils
 from discord.ext import commands
+from models.guild import Guild
 
 import settings
 from models.items import Items
@@ -56,7 +57,9 @@ class CadastroTransacao(commands.Cog):
         settings.LEADER_ROLE,
     )
     async def doar(self, ctx: commands.context.Context):
-        if settings.MAINTENANCE:
+        # checa se está em manutenção
+        guild = Guild.fetch(ctx.guild)
+        if guild.is_in_maintenance:
             embed = discord.Embed(title="Doações suspensas pela direção.", color=discord.Color.yellow())
             logger.info(f"{ctx.author.name} tentou doar.")
             return await ctx.send(embed=embed)

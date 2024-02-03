@@ -281,7 +281,7 @@ class AdminCommands(app_commands.Group):
 
         log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
         logger.info(log_message_terminal)
-    
+
     @app_commands.command(
         name="balanço-crafter",
         description="envia um arquivo excel do balanço de um crafter",
@@ -337,6 +337,30 @@ class AdminCommands(app_commands.Group):
 
         log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
         logger.info(log_message_terminal)
+
+    @app_commands.command(
+        name="manutenção",
+        description="Põe ou remove o bot do estado de manutenção",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
+    async def crafters_balance(self, interaction: discord.Interaction):
+        guild = Guild.fetch(interaction.guild)
+        if guild.is_in_maintenance:
+            guild.is_in_maintenance = False
+            guild.save()
+            logger.info(f"{interaction.user.nick} Desativou a manutenção")
+            return await interaction.response.send_message(
+                "Manutenção Terminada", ephemeral=True
+            )
+        else:
+            guild.is_in_maintenance = True
+            guild.save()
+            logger.info(f"{interaction.user.nick} Ativou a manutenção")
+            return await interaction.response.send_message(
+                "Manutenção Iniciada", ephemeral=True
+            )
 
 
 async def setup(bot):
