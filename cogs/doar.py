@@ -56,6 +56,11 @@ class CadastroTransacao(commands.Cog):
         settings.LEADER_ROLE,
     )
     async def doar(self, ctx: commands.context.Context):
+        if settings.MAINTENANCE:
+            embed = discord.Embed(title="Doações suspensas pela direção.", color=discord.Color.yellow())
+            logger.info(f"{ctx.author.name} tentou doar.")
+            return await ctx.send(embed=embed)
+        
         if ctx.channel.name.startswith("doação-"):
             transaction_dict = {}
             run = 0

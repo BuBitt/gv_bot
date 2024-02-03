@@ -281,6 +281,62 @@ class AdminCommands(app_commands.Group):
 
         log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
         logger.info(log_message_terminal)
+    
+    @app_commands.command(
+        name="balanço-crafter",
+        description="envia um arquivo excel do balanço de um crafter",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
+    async def crafters_balance(
+        self, interaction: discord.Interaction, crafter: discord.User
+    ):
+        crafter_offers = (
+            MarketOfferBis.select(
+                MarketOfferBis.id,
+                MarketOfferBis.vendor_id,
+                MarketOfferBis.item_tier_name,
+                MarketOfferBis.item_type,
+                MarketOfferBis.atributes,
+                MarketOfferBis.image,
+            )
+            .where(MarketOfferBis.vendor_id == crafter.id)
+            .order_by(MarketOfferBis.id.desc())
+        )
+
+        crafter_offers = crafter_offers.select(
+            MarketOfferBis.item_type,
+            MarketOfferBis.item_tier_name,
+            MarketOfferBis.atributes,
+            MarketOfferBis.image,
+        )
+        csv_file_path = (
+            f"historico-de-craft-{crafter.nick}-{datetime.datetime.now()}.csv"
+        )
+
+        with open(csv_file_path, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+
+            # Write header
+            csv_writer.writerow(["TIPO", "ITEM", "ATRIBUTOS", "IMAGEM"])
+
+            # Write data
+            for row in crafter_offers.dicts():
+                csv_writer.writerow(row.values())
+
+        file = discord.File(csv_file_path)
+
+        await interaction.response.send_message(
+            f"Histórico de Craft: {crafter.nick}",
+            ephemeral=True,
+            file=file,
+        )
+
+        os.remove(csv_file_path)
+
+        log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
+        logger.info(log_message_terminal)
 
 
 async def setup(bot):

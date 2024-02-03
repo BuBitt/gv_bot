@@ -13,13 +13,15 @@ if os.getenv("DEV_ENV") == "true":
     DEV_ENV = True
 else:
     DEV_ENV = False
+    
+if os.getenv("DEV_MAINTENANCE") == "true":
+    MAINTENANCE = True
+else:
+    MAINTENANCE = False
 
 # DISCORD CONFIG
 DISCORD_API_SECRET = os.getenv("DISCORD_API_TOKEN")
 GUILDS_ID = discord.Object(id=int(os.getenv("GUILD")))
-
-# CONSTANTS FOR OPTIMIZATION
-
 
 # DISCORD ROLES
 MEMBRO_INICIANTE_ROLE = int(os.getenv("DISCORD_MEMBRO_INICIANTE_ROLE"))
