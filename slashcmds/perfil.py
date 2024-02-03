@@ -1,7 +1,9 @@
 import discord
 from peewee import fn
 from discord import app_commands
+from models.mercado_bis import MarketOfferBis
 from beautifultable import BeautifulTable
+from models.vendas_bis import SellInfoBis
 
 import settings
 from models.account import Account
@@ -9,7 +11,8 @@ from models.donation import Donation
 from utils.utilities import (
     search_offer_table_construct,
 )
-from views.perfil import GuildProfileView, UserProfileEdit
+from views.perfil import GuildProfileView, ProfileCrafterUi, UserProfileEdit
+
 
 logger = settings.logging.getLogger(__name__)
 
@@ -107,6 +110,104 @@ class Profile(app_commands.Group):
         embed_me.add_field(name="_**Últimas Doações**_", value=f"""{table}""")
         embed_me.add_field(
             name="_**Histórico**_", value=f"```{table_balance} ```", inline=False
+        )
+        return embed_me
+
+    @staticmethod
+    def embed_crafter(interaction):
+        account = Account.fetch(interaction)
+
+        crafter = (
+            interaction.user
+            if type(interaction) == discord.Interaction
+            else interaction
+        )
+
+        user_query = (
+            Donation.select(
+                Donation.id,
+                Donation.donor_name,
+                Donation.item,
+                Donation.quantity,
+                Donation.jump_url,
+            )
+            .where(Donation.crafter_id == crafter.id)
+            .order_by(Donation.id.desc())
+            .limit(5)
+        )
+
+        donations = [
+            f"{donation.jump_url}` → recebeu {completar_string(str(donation.quantity), max_length=6)}{completar_string(truncar_string(donation.item, max_length=12),max_length=12)} → {completar_string(truncar_string(donation.donor_name,max_length=12),max_length=13)} `"
+            for donation in user_query
+        ]
+
+        table = search_offer_table_construct(donations)
+
+        # Balance
+        table_balance = BeautifulTable()
+        table_balance.set_style(BeautifulTable.STYLE_COMPACT)
+
+        headers = ["ITEM", "QUANTIDADE"]
+        table_balance.columns.header = headers
+
+        table_balance.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
+        table_balance.columns.alignment["QUANTIDADE"] = BeautifulTable.ALIGN_RIGHT
+
+        user_query = (
+            Donation.select(
+                Donation.crafter_id,
+                Donation.item,
+                fn.SUM(Donation.quantity).alias("total_quantity"),
+            )
+            .where(Donation.crafter_id == crafter.id)
+            .group_by(Donation.crafter_id, Donation.item)
+            .order_by(fn.SUM(Donation.quantity).desc())
+        ).limit(15)
+
+        balance_data = list(user_query)
+
+        for transaction in balance_data:
+            row = [transaction.item, int(transaction.total_quantity)]
+            table_balance.rows.append(row)
+
+        # embed
+        embed_me = discord.Embed(color=discord.Color.dark_green())
+        embed_me.set_author(
+            name=f"Perfil do Crafter {crafter.nick}",
+            icon_url=crafter.display_avatar,
+        )
+
+        crafted_itens = (
+            MarketOfferBis.select()
+            .where(MarketOfferBis.vendor_id == crafter.id)
+            .count()
+        )
+
+        crafted_itens_etregues = (
+            SellInfoBis.select().where(SellInfoBis.vendor_id == crafter.id).count()
+        )
+
+        all_itens = Donation.select(Donation.crafter_id, Donation.quantity).where(
+            Donation.crafter_id == crafter.id
+        )
+
+        all_itens = all_itens.select(fn.SUM(Donation.quantity).alias("total")).scalar()
+
+        embed_me.add_field(name="**Itens Publicados**", value=crafted_itens)
+        embed_me.add_field(name="**Itens Entregues**", value=crafted_itens_etregues)
+        embed_me.add_field(
+            name="**Doação/Produção**",
+            value=(
+                abs(all_itens / crafted_itens)
+                if crafted_itens != 0
+                else "0 Itens produzidos"
+            ),
+        )
+        embed_me.add_field(name="_**Últimas Doações Recebidas**_", value=f"""{table}""")
+        embed_me.add_field(
+            name="_**Balanço e Itens Recebidos**_",
+            value=f"```{table_balance} ```",
+            inline=False,
         )
         return embed_me
 
@@ -334,7 +435,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
 
     # TODO concertar cd
     @app_commands.command(
-        name="crafter", description="Envia no chat o perfil de um crafter"
+        name="balanço-crafter", description="Envia no chat o perfil de um crafter"
     )
     @app_commands.describe(user="O crafter que terá o perfil enviado no chat")
     @app_commands.checks.has_any_role(
@@ -346,7 +447,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         settings.LEADER_ROLE,
     )
     @app_commands.checks.cooldown(5, 60.0, key=lambda i: i.user.id)
-    async def see_crafter(self, interaction: discord.Interaction, user: discord.Member):
+    async def crafter_balance(
+        self, interaction: discord.Interaction, user: discord.Member
+    ):
         crafters = discord.utils.get(
             interaction.guild.roles, id=settings.CRAFTER_ROLE
         ).members
@@ -358,9 +461,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
 
         embed = discord.Embed(color=discord.Color.dark_purple())
-        embed.set_author(
-            name=f"{user.nick} - Balanço", icon_url=user.display_avatar
-        )
+        embed.set_author(name=f"{user.nick} - Balanço", icon_url=user.display_avatar)
 
         query = (
             Donation.select(
@@ -390,6 +491,42 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         # envia tabela
         embed.add_field(name="", value=f"```{table_balance}```")
         return await interaction.response.send_message(embed=embed)
+
+    # TODO concertar cd
+    @app_commands.command(
+        name="crafter", description="Envia no chat o perfil de um crafter"
+    )
+    @app_commands.describe(crafter="O crafter que terá o perfil enviado no chat")
+    @app_commands.checks.has_any_role(
+        settings.MEMBRO_INICIANTE_ROLE,
+        settings.MEMBRO_ROLE,
+        settings.OFFICER_ROLE,
+        settings.COMMANDER_ROLE,
+        settings.VICE_LIDER_ROLE,
+        settings.LEADER_ROLE,
+    )
+    @app_commands.checks.cooldown(20, 60.0, key=lambda i: i.user.id)
+    async def crafter_profile(
+        self, interaction: discord.Interaction, crafter: discord.Member
+    ):
+        # encontra o role de CRAFTER
+        crafter_role = discord.utils.get(
+            interaction.guild.roles, id=settings.CRAFTER_ROLE
+        )
+
+        # checa se o player passado é crafter e executa o comando
+        if crafter_role in crafter.roles:
+            logger.info(
+                f"{interaction.user.nick}(ID: {interaction.user.id}) consultou o perfil do crafter {crafter.nick}(ID: {crafter.id})"
+            )
+            embed = self.embed_crafter(crafter)
+            return await interaction.response.send_message(
+                embed=embed, view=ProfileCrafterUi(crafter)
+            )
+        else:
+            return await interaction.response.send_message(
+                f"{crafter.nick} Não é Crafter", ephemeral=True
+            )
 
 
 async def setup(bot):

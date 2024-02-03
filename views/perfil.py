@@ -1,4 +1,5 @@
 import csv
+import datetime
 import os
 import time
 
@@ -7,6 +8,7 @@ from discord import utils
 from discord.ext import commands
 
 import cogs.doar as cd
+from models.mercado_bis import MarketOfferBis
 
 import settings
 from models.account import Account
@@ -337,31 +339,121 @@ class GuildProfileView(discord.ui.View):
         logger.info(log_message_terminal)
 
         log_message_ch = f"<t:{str(time.time()).split('.')[0]}:F>` - `{interaction.user.mention}` baixou os dados de doação da guilda `"
-        channel = utils.get(interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL)
+        channel = utils.get(
+            interaction.guild.text_channels, id=settings.ADMIN_LOGS_CHANNEL
+        )
         await channel.send(log_message_ch)
 
-    # @discord.ui.button(
-    #     label="Baixar Balanço",
-    #     style=discord.ButtonStyle.success,
-    #     custom_id="guild_balance_button",
-    # )
-    # async def guild_download_balance(
-    #     self, interaction: discord.Interaction, button: discord.ui.Button
-    # ):
-    #     self.gpb_pressed = 1
-    #     self.update_buttons()
-    #     await interaction.message.edit(view=self)
-    #
-    #     self.balance_all.write_csv(
-    #         f"data-balance-{interaction.user.id}.csv", separator=","
-    #     )
-    #     file = discord.File(f"data-balance-{interaction.user.id}.csv")
-    #
-    #     file_down_embed = discord.Embed(
-    #         title="**O balanço completo está disponível no arquivo**",
-    #         color=discord.Color.yellow(),
-    #     )
-    #     await interaction.response.send_message(
-    #         embed=file_down_embed, file=file, ephemeral=True
-    #     )
-    #     os.remove(f"data-balance-{interaction.user.id}.csv")
+
+class ProfileCrafterUi(discord.ui.View):
+    def __init__(self, crafter) -> None:
+        self.crafter = crafter
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Baixar Itens Publicados",
+        style=discord.ButtonStyle.success,
+        custom_id="download_crafted_itens",
+    )
+    async def download_crafted_itens(
+        self, interaction: discord.Interaction, button: discord.Button
+    ):
+        crafter = self.crafter
+
+        crafter_offers = (
+            MarketOfferBis.select(
+                MarketOfferBis.id,
+                MarketOfferBis.vendor_id,
+                MarketOfferBis.item_tier_name,
+                MarketOfferBis.item_type,
+                MarketOfferBis.atributes,
+                MarketOfferBis.image,
+            )
+            .where(MarketOfferBis.vendor_id == crafter.id)
+            .order_by(MarketOfferBis.id.desc())
+        )
+
+        crafter_offers = crafter_offers.select(
+            MarketOfferBis.item_type,
+            MarketOfferBis.item_tier_name,
+            MarketOfferBis.atributes,
+            MarketOfferBis.image,
+        )
+        csv_file_path = (
+            f"historico-de-craft-{crafter.nick}-{datetime.datetime.now()}.csv"
+        )
+
+        with open(csv_file_path, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+
+            # Write header
+            csv_writer.writerow(["TIPO", "ITEM", "ATRIBUTOS", "IMAGEM"])
+
+            # Write data
+            for row in crafter_offers.dicts():
+                csv_writer.writerow(row.values())
+
+        file = discord.File(csv_file_path)
+
+        await interaction.response.send_message(
+            f"Histórico de Craft: {crafter.nick}",
+            ephemeral=True,
+            file=file,
+        )
+
+        os.remove(csv_file_path)
+
+        log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico do crafter {crafter.nick}(ID: {crafter.id})"
+        logger.info(log_message_terminal)
+
+    @discord.ui.button(
+        label="Baixar Doações Recebidas",
+        style=discord.ButtonStyle.success,
+        custom_id="download_crafted_recived_donations",
+    )
+    async def download_crafted_recived_donations(
+        self, interaction: discord.Interaction, button: discord.Button
+    ):
+        crafter = self.crafter
+
+        crafter_offers = (
+            Donation.select()
+            .where(Donation.crafter_id == crafter.id)
+            .order_by(Donation.id.desc())
+        )
+
+        crafter_offers = crafter_offers.select(
+            Donation.item, Donation.timestamp, Donation.print_proof, Donation.jump_url
+        )
+
+        csv_file_path = f"historico-de-doações-recebidas-{crafter.nick}-{datetime.datetime.now()}.csv"
+
+        with open(csv_file_path, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+
+            # Write header
+            csv_writer.writerow(["ITEM", "DATA", "IMAGEM", "MENSAGEM"])
+
+            # Write data
+            for row in crafter_offers.dicts():
+                csv_writer.writerow(
+                    [
+                        row.get("item"),
+                        datetime.datetime.fromtimestamp(int(row.get("timestamp"))),
+                        row.get("print_proof"),
+                        row.get("jump_url"),
+                    ]
+                )
+
+        file = discord.File(csv_file_path)
+
+        await interaction.response.send_message(
+            f"Histórico de Doações Recebidas: {crafter.nick}",
+            ephemeral=True,
+            file=file,
+        )
+
+        os.remove(csv_file_path)
+
+        log_message_terminal = f"{interaction.user.nick}(ID: {interaction.user.id}) baixou o historico de itens recebidos do crafter {crafter.nick}(ID: {crafter.id})"
+        logger.info(log_message_terminal)
