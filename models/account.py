@@ -7,7 +7,7 @@ from database import db
 class Account(peewee.Model):
     user_id: int = peewee.BigIntegerField()
     user_name: str = peewee.CharField(max_length=255)
-    points: int = peewee.IntegerField(default=0)
+    points: int = peewee.FloatField(default=0)
     silver_quantity: int = peewee.BigIntegerField(default=0)
     level: int = peewee.IntegerField(default=1)
     role: str = peewee.CharField(max_length=255)

@@ -230,7 +230,7 @@ class EditTierMinimalRequeirementsAdmin(
                 raise NoChangeError
 
             # converte os valores pra int
-            int_dict = {key: int(value) for key, value in non_empty_tiers.items()}
+            int_dict = {key: float(value) for key, value in non_empty_tiers.items()}
 
             # Checa se todos os valores são positivos
             are_all_positive = all(value >= 0 for value in int_dict.values())

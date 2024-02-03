@@ -150,7 +150,7 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
 
         # tenta converter points para um número inteiro
         try:
-            points = int(points)
+            points = float(points)
             if points < 0:
                 raise IsNegativeError
         except IsNegativeError:

@@ -5,7 +5,7 @@ from database import db
 class Items(peewee.Model):
     item = peewee.CharField(primary_key=True, max_length=255)
     add_by_id = peewee.BigIntegerField()
-    points = peewee.IntegerField()
+    points = peewee.FloatField()
 
     class Meta:
         database = db
@@ -19,7 +19,7 @@ class Items(peewee.Model):
             return True
         except peewee.DoesNotExist:
             return False
-    
+
     @staticmethod
     def fetch(item):
         try:
