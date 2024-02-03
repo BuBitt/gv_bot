@@ -1,5 +1,7 @@
 import asyncio
+import csv
 import datetime
+import os
 import time
 import discord
 from models.guild import Guild
@@ -223,6 +225,57 @@ class AdminCommands(app_commands.Group):
                 f"Player não existe",
                 ephemeral=True,
             )
+
+    @app_commands.command(
+        name="historico-crafter",
+        description="envia um arquivo excel do histórico de um crafter",
+    )
+    @app_commands.checks.has_any_role(
+        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
+    )
+    async def get_crafters_history(
+        self, interaction: discord.Interaction, crafter: discord.User
+    ):
+        crafter_offers = (
+            MarketOfferBis.select(
+                MarketOfferBis.id,
+                MarketOfferBis.vendor_id,
+                MarketOfferBis.item_tier_name,
+                MarketOfferBis.item_type,
+                MarketOfferBis.atributes,
+                MarketOfferBis.image,
+            )
+            .where(MarketOfferBis.vendor_id == crafter.id)
+            .order_by(MarketOfferBis.id.desc())
+        )
+
+        crafter_offers = crafter_offers.select(
+            MarketOfferBis.item_type,
+            MarketOfferBis.item_tier_name,
+            MarketOfferBis.atributes,
+            MarketOfferBis.image,
+        )
+        csv_file_path = f"historico-de-craft-{crafter.nick}-{datetime.datetime.now()}.csv"
+
+        with open(csv_file_path, 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            
+            # Write header
+            csv_writer.writerow(["ITEM", "ATRIBUTOS", "IMAGEM"])
+            
+            # Write data
+            for row in crafter_offers.dicts():
+                csv_writer.writerow(row.values())
+
+        file = discord.File(csv_file_path)
+
+        await interaction.response.send_message(
+            f"Histórico de Craft: {crafter.nick}",
+            ephemeral=True,
+            file=file,
+        )
+
+        os.remove(csv_file_path)
 
 
 async def setup(bot):
