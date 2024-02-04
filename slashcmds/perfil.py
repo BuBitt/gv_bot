@@ -515,10 +515,9 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
         )
 
         crafter_checker = (
-            True
-            if MarketOfferBis.select().where(MarketOfferBis.vendor_id == crafter.id)
-            != None
-            else False
+            MarketOfferBis.select()
+            .where(MarketOfferBis.vendor_id == crafter.id)
+            .exists()
         )
 
         if crafter_checker:
@@ -533,7 +532,7 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             )
         else:
             return await interaction.response.send_message(
-                f"{crafter.nick} Não é Crafter", ephemeral=True
+                f"{crafter.mention} Não é Crafter", ephemeral=True
             )
 
 
