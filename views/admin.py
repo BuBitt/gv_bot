@@ -77,7 +77,7 @@ class NewItemModalAdmin(discord.ui.Modal, title="Adicione um novo item"):
 
         # tenta converter points para um número inteiro
         try:
-            points = int(points)
+            points = float(points)
             if points < 1:
                 raise TypeError
         except:
