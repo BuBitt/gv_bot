@@ -40,7 +40,7 @@ COMANDOS:
     - ```/admin manutenção```
 - **Mostra o histórico de itens recebidos (crafter)**
     - ```/admin historico-crafter [@crafter]```
-- **Evia um aviso rápido no Chat-Da-Guilda**
+- **Envia um aviso rápido no Chat-Da-Guilda**
     - ```/admin aviso [@título] [@aviso]```
 """,
         )
