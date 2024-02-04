@@ -86,7 +86,7 @@ class Rankings(app_commands.Group):
             row = [
                 user.row_number,
                 truncar_string(name),
-                user.points,
+                round(user.points),
             ]
             table.rows.append(row)
 
@@ -105,6 +105,10 @@ class Rankings(app_commands.Group):
             title="**Ranking Geral - TOP 30**", color=discord.Color.dark_purple()
         )
         embed_ranking.add_field(name=" ", value=f"```{table}```", inline=False)
+
+        logger.info(
+            f"{interaction.user.nick}(ID: {interaction.user.id}) consultou o rank geral"
+        )
 
         await interaction.response.send_message(embeds=[embed_ranking, embed_position])
 

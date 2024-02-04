@@ -8,16 +8,14 @@ from discord import app_commands
 from discord.ext import commands
 from models.account import Account
 from models.donation import Donation
-from views.mercado import MarketOfferInterest
 from views.mercado_bis import MarketOfferInterestBis
 from views.perfil import PlayerGeneralIfo
 from views.interface import (
+    Main,
     AdminLauncher,
     CrafterLauncher,
     DonationLauncher,
-    Main,
     MarketBisCrafterLauncher,
-    MarketLauncher,
     MarketLauncherBis,
 )
 
@@ -46,12 +44,13 @@ def run():
         if not bot.added:
             bot.add_view(MarketBisCrafterLauncher())
             bot.add_view(MarketOfferInterestBis())
-            bot.add_view(MarketOfferInterest())
             bot.add_view(MarketLauncherBis())
+
             bot.add_view(DonationLauncher())
+
             bot.add_view(CrafterLauncher())
-            bot.add_view(MarketLauncher())
             bot.add_view(AdminLauncher())
+
             bot.add_view(Main())
             bot.added = True
 

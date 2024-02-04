@@ -1,13 +1,12 @@
 import discord
-from discord import app_commands
+import settings
 from views.interface import (
     AdminLauncher,
     DonationLauncher,
-    MarketBisCrafterLauncher,
-    MarketLauncher,
     MarketLauncherBis,
+    MarketBisCrafterLauncher,
 )
-import settings
+from discord import app_commands
 
 
 class InterfaceLaunchers(app_commands.Group):
@@ -28,7 +27,6 @@ BOTÕES:
     ` Editar item `                 - Abre o formulário para a edição de pontos de um item
     ` Recalcular Pontuação`         - Recalcula a pontuação de todos os players
     ` Zerar Pontuação de Todos `    - Zera os pontos de todas as pessoas na guilda
-    ` Remover Oferta Comum `        - Deletar uma oferta do mercado comum pelo número
     ` Remover Oferta Bis `          - Deletar uma oferta do mercado BIS pelo número
 
 COMANDOS:
@@ -38,6 +36,12 @@ COMANDOS:
     - ```/admin remover-pontos [@player] [quantidade]```
 - **Reseta pontos do Player**
     - ```/admin zerar [@player]```
+- **Desativa as doações (usar novamente para ativar)**
+    - ```/admin manutenção```
+- **Mostra o histórico de itens recebidos (crafter)**
+    - ```/admin historico-crafter [@crafter]```
+- **Evia um aviso rápido no Chat-Da-Guilda**
+    - ```/admin aviso [@título] [@aviso]```
 """,
         )
         await interaction.channel.send(embed=embed, view=AdminLauncher())
@@ -104,46 +108,6 @@ COMANDOS:
         )
 
     @app_commands.command(
-        name="criar-painel-do-mercado",
-        description="Inicia o painel e botões do sistema de mercado",
-    )
-    @app_commands.checks.has_any_role(
-        settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
-    )
-    async def market_panel(self, interaction: discord.Interaction):
-        market_offers_channel = discord.utils.get(
-            interaction.guild.text_channels, id=settings.MARKET_IMAGES_DUMP
-        )
-        embed = discord.Embed(
-            title="**PAINEL DO MERCARDO**",
-            color=discord.Color.dark_green(),
-            description=f"""\
-**BOTÕES:**
-    ` Minhas Ofertas   `-→ Mostra todas as suas ofertas abertas e seus números
-    ` Buscar Item      `-→ Procura por um item no mercado
-    ` Buscar Player    `-→ Mostra todas as ofertas de um determinado player
-    ` Verificar Compra `-→ Buscar uma venda pelo seu comprovante
-    ` Deletar Oferta   `-→ Deleta uma oferta pelo seu número 
-
-**CRIAR OFERTA:**
-- **Para criar um oferta use o comando:**
-```/mercado criar [item] [preço] [quantidade] [print]```
-`[item]`→ Escreva um nome para o item. EX:` T4 Cloth Armor int `
-`[preço]`→ Preço unitário
-`[quantidade]`→ Quantidade de itens a venda
-`[print]`→ envie umprint do item em {market_offers_channel.mention} copie e cole o link
-
-- _Executar o comando no canal {market_offers_channel.mention} facilitará o processo._
-
-""",
-        )
-        await interaction.channel.send(embed=embed, view=MarketLauncher())
-        await interaction.response.send_message(
-            f"{interaction.user.mention} Botão criado.",
-            ephemeral=True,
-        )
-
-    @app_commands.command(
         name="criar-painel-do-mercado-bis",
         description="Inicia o painel e botões do sistema de mercado bis",
     )
@@ -173,27 +137,6 @@ COMANDOS:
             f"{interaction.user.mention} Botão criado.",
             ephemeral=True,
         )
-
-    # @app_commands.command(name="close", description="Fecha um canal")
-    # @app_commands.checks.has_any_role(settings.CRAFTER_ROLE)
-    # async def close_command(self, interaction: discord.Interaction):
-    #     if (
-    #         interaction.user.name in interaction.channel.name
-    #         or interaction.user.nick in interaction.channel.name
-    #     ):
-    #         embed = discord.Embed(
-    #             title=f"Você tem certeza que deseja deletar o canal?",
-    #             color=discord.Color.dark_red(),
-    #         )
-    #         await interaction.response.send_message(
-    #             embed=embed, view=Confirm(), ephemeral=True
-    #         )
-    #     else:
-    #         await interaction.response.send_message(
-    #             f"{interaction.channel.mention} não é um canal de doação.",
-    #             ephemeral=True,
-    #         )
-
 
 async def setup(bot):
     bot.tree.add_command(
