@@ -514,8 +514,16 @@ _**Após feito o cadastro seu perfil estará disponível para consulta. Caso des
             interaction.guild.roles, id=settings.CRAFTER_ROLE
         )
 
-        # checa se o player passado é crafter e executa o comando
-        if crafter_role in crafter.roles:
+        crafter_checker = (
+            True
+            if MarketOfferBis.select().where(MarketOfferBis.vendor_id == crafter.id)
+            != None
+            else False
+        )
+
+        if crafter_checker:
+            # checa se o player passado é crafter e executa o comando
+            # if crafter_role in crafter.roles:
             logger.info(
                 f"{interaction.user.nick}(ID: {interaction.user.id}) consultou o perfil do crafter {crafter.nick}(ID: {crafter.id})"
             )
