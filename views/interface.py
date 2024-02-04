@@ -134,8 +134,8 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        item = self.item.value.title()
-        points = self.points.value
+        item = self.item.value.strip().title()
+        points = self.points.value.strip()
         changer_id = interaction.user.id
 
         # tenta converter points para um número inteiro
@@ -147,7 +147,7 @@ class EditItemModal(discord.ui.Modal, title="Edite um item"):
             await interaction.response.send_message(
                 "A pontuação não pode ser negativa.", ephemeral=True
             )
-        except:
+        except TypeError:
             embed = discord.Embed(
                 title=f"**` {points} ` não é um número válido**",
                 color=discord.Color.dark_red(),

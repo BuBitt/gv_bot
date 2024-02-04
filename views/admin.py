@@ -71,14 +71,15 @@ class NewItemModalAdmin(discord.ui.Modal, title="Adicione um novo item"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        new_item = self.new_item.value.title()
-        points = self.points.value
+        new_item = self.new_item.value.strip().title()
+        points = self.points.value.strip()
         changer_id = interaction.user.id
 
         # tenta converter points para um número inteiro
         try:
+            print(type(points), points, float(points), type(float(points)))
             points = float(points)
-            if points < 1:
+            if points < 0:
                 raise TypeError
         except:
             embed = discord.Embed(
