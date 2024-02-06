@@ -228,15 +228,26 @@ class DonationLauncher(discord.ui.View):
                     view_channel=True, send_messages=True, read_message_history=True
                 ),
             }
-            category = discord.utils.get(
-                interaction.guild.categories, id=settings.DONATION_CTEGORY
-            )
-            channel = await interaction.guild.create_text_channel(
-                name=global_channel_name,
-                overwrites=overwrites,
-                category=category,
-                reason=f"Canal de doação para {interaction.user}",
-            )
+            try:
+                category = discord.utils.get(
+                    interaction.guild.categories, id=settings.DONATION_CTEGORY
+                )
+                channel = await interaction.guild.create_text_channel(
+                    name=global_channel_name,
+                    overwrites=overwrites,
+                    category=category,
+                    reason=f"Canal de doação para {interaction.user}",
+                )
+            except:
+                category = discord.utils.get(
+                    interaction.guild.categories, id=settings.DONATION_CTEGORY_2
+                )
+                channel = await interaction.guild.create_text_channel(
+                    name=global_channel_name,
+                    overwrites=overwrites,
+                    category=category,
+                    reason=f"Canal de doação para {interaction.user}",
+                )
 
             instructions_embed = discord.Embed(
                 title=f"**Instruções de uso**",
