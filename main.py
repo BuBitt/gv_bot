@@ -132,7 +132,7 @@ def run():
                 raise error
 
         bot.tree.on_error = on_tree_error
-    
+
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 
 

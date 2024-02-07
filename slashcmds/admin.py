@@ -150,25 +150,36 @@ class AdminCommands(app_commands.Group):
         await player.send(log_message_ch)
 
     @app_commands.command(
-        name="aviso",
-        description="manda um embed de aviso",
+        name="enviar-aviso",
+        description="Envia o aviso para pm de todos aviso",
     )
     @app_commands.checks.has_any_role(
         settings.VICE_LIDER_ROLE, settings.LEADER_ROLE, settings.BOT_MANAGER_ROLE
     )
-    async def send_warning_gc_orders(
-        self, interaction: discord.Interaction, titulo: str, aviso: str
-    ):
-        embed = discord.Embed(
-            title=titulo, description=aviso, color=discord.Color.yellow()
+    async def send_warning_gc_orders(self, interaction: discord.Interaction):
+        msg_channel = discord.utils.get(
+            interaction.guild.channels, id=settings.AVISOS_CHANNEL
         )
-        chat_da_guilda = discord.utils.get(
-            interaction.guild.text_channels, id=settings.GUILD_CHAT
-        )
-        aviso = await chat_da_guilda.send(content=aviso)
+        async for msg in msg_channel.history(limit=1):
+            aviso = msg
+            break
+        role_ids = [
+            settings.MEMBRO_ROLE,
+            settings.MEMBRO_INICIANTE_ROLE,
+            settings.OFFICER_ROLE,
+            settings.COMMANDER_ROLE,
+            settings.VICE_LIDER_ROLE,
+        ]
+
         await interaction.response.send_message(
-            f"Aviso Publicado: {aviso.jump_url}", ephemeral=True
+            "Avisos enviados\nPode demorar um tempo até que todos recebam a PM.",
+            ephemeral=True,
         )
+
+        async for member in interaction.guild.members:
+            if any(role.id in role_ids for role in member.roles):
+                await member.send(f"A STAFF publicou um novo aviso.\n{aviso.jump_url}")
+                await asyncio.sleep(0.25)
 
     @app_commands.command(
         name="zerar",
