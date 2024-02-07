@@ -324,9 +324,8 @@ class MercadoBisCommands(app_commands.Group):
 
     @app_commands.command(
         name="ver-loja",
-        description="mostra as ofertas de um player específico",
+        description="envia sua loja é um bom formato no chat",
     )
-    @app_commands.describe(player="Player dono da loja")
     @app_commands.checks.has_any_role(
         settings.MEMBRO_INICIANTE_ROLE,
         settings.MEMBRO_ROLE,
@@ -335,12 +334,17 @@ class MercadoBisCommands(app_commands.Group):
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    async def player_offers(
+    async def player_send_offers(
         self, interaction: discord.Interaction, player: discord.User
     ):
         # Consulta ofertas ativas no mercado no banco de dados
-        query_search_for = MarketOfferBis.select().where(
-            (MarketOfferBis.vendor_id == player.id) & (MarketOfferBis.is_active == True)
+        query_search_for = (
+            MarketOfferBis.select()
+            .where(
+                (MarketOfferBis.vendor_id == player.id)
+                & (MarketOfferBis.is_active == True)
+            )
+            .order_by(MarketOfferBis.item_tier_name.desc())
         )
 
         player_name = player.nick if player.nick != None else player.name
@@ -348,35 +352,24 @@ class MercadoBisCommands(app_commands.Group):
         if not query_search_for:
             # Se nenhum resultado for encontrado envia uma mensagem
             return await interaction.response.send_message(
-                f"{player.mention}` não possui ofertas ativas. `", ephemeral=True
+                f"{player.mention}` não possui ofertas ativas. `",
+                ephemeral=True,
             )
 
-        # se o player for o author envia um embed da loja
-        if interaction.user.id == player.id:
-            offers = [
-                f"{my_offer.jump_url}` → {my_offer.item_tier_name} • {my_offer.atributes.upper()} `"
-                for my_offer in query_search_for
-            ]
-            offers_table = search_offer_table_construct(offers)
-            embed = discord.Embed(
-                title=f"**``` Loja - {player_name} ```**",
-                description=f"{offers_table}",
-                color=discord.Color.dark_purple(),
-            )
-            return await interaction.response.send_message(embed=embed)
-
-        # Envia a tabela contruida
         offers = [
-            f"{my_offer.jump_url}` → Item: {my_offer.item_tier_name} • {my_offer.atributes.upper()} • Quantidade: {my_offer.quantity} `"
+            f"{my_offer.jump_url}` → {completar_string(my_offer.item_tier_name)} • {my_offer.atributes.upper()} `"
             for my_offer in query_search_for
         ]
+        separate_offers = separate_offers_by_name(offers)
 
-        # Constroi uma tabela com as ofertas ativas
-        offers_table = search_offer_table_construct(offers)
+        table_construct = enviar_loja_table_construct(separate_offers)
 
-        return await interaction.response.send_message(
-            content=f"**` Loja - {player_name} `**\n{offers_table}", ephemeral=True
+        embed = discord.Embed(
+            title=f"**``` Loja - {player_name} ```**",
+            description=f"Clique na `#` para ir até a ofeta\n\n{table_construct}",
+            color=discord.Color.dark_purple(),
         )
+        return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
         name="enviar-loja",
@@ -437,8 +430,13 @@ class MercadoBisCommands(app_commands.Group):
     )
     async def items_poits(self, interaction: discord.Interaction):
         # busca no banco de dados os itens com pontuação diferente de 1
-        items = Items.select().where(Items.points != 1).order_by(Items.points.desc()).execute()
-        
+        items = (
+            Items.select()
+            .where(Items.points != 1)
+            .order_by(Items.points.desc())
+            .execute()
+        )
+
         # cria a tabela com as pontuações
         table_items = BeautifulTable()
         table_items.set_style(BeautifulTable.STYLE_COMPACT)
@@ -448,21 +446,25 @@ class MercadoBisCommands(app_commands.Group):
 
         table_items.columns.alignment["ITEM"] = BeautifulTable.ALIGN_LEFT
         table_items.columns.alignment["PONTOS"] = BeautifulTable.ALIGN_RIGHT
-        
+
         items = list(items)
 
         for item in items:
             row = [item.item, item.points]
             table_items.rows.append(row)
-        
+
         # cria o embed de pontuações
         embed = discord.Embed(
-            title="**Pontuação dos Itens**", description="Todos os itens que não estão nessa lista\nvalem `1.0` ponto.",color=discord.Color.purple()
+            title="**Pontuação dos Itens**",
+            description="Todos os itens que não estão nessa lista\nvalem `1.0` ponto.",
+            color=discord.Color.purple(),
         )
         embed.add_field(name="", value=f"```{table_items}```")
-        
-        logger.info(f"{interaction.user.nick}(ID: {interaction.user.id}) consultou a pontuação geral dos itens.")
-        
+
+        logger.info(
+            f"{interaction.user.nick}(ID: {interaction.user.id}) consultou a pontuação geral dos itens."
+        )
+
         # envia apontuação
         return await interaction.response.send_message(embed=embed)
 

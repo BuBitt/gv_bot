@@ -448,7 +448,7 @@ class CadastroTransacao(commands.Cog):
                     transaction_dict["print"] = print_proof
                     transaction_dict["timestamp"] = str(time.time()).split(".")[0]
 
-                    # Muda a cor do embed para vermelho (erro)
+                    # Muda a cor do embed para verde (sucesso)
                     embed_print.color = discord.Color.green()
                     await message_sent.edit(embed=embed_print, view=None)
 
@@ -502,12 +502,13 @@ class CadastroTransacao(commands.Cog):
                     int(transaction_dict.get("timestamp"))
                 ),
             )
+            embed_confirm.set_image(url=transaction_dict.get("print"))
             embed_confirm.set_author(
                 name=f"Crafter {crafter_name}",
                 icon_url=crafter_user_object.display_avatar,
             )
             embed_confirm.set_footer(text="Recibo de doação")
-            embed_confirm.set_image(url=transaction_dict.get("print"))
+            # embed_confirm.set_image(url="https://cdn.discordapp.com/attachments/1204243551790305281/1204737382650220544/Screenshot_from_2024-02-03_15-52-26.png")
             embed_confirm.set_thumbnail(url=donor_user_object.display_avatar)
 
             embed_confirm.add_field(
