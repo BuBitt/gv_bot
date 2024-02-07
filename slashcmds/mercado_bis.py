@@ -334,7 +334,7 @@ class MercadoBisCommands(app_commands.Group):
         settings.VICE_LIDER_ROLE,
         settings.LEADER_ROLE,
     )
-    async def player_send_offers(
+    async def player_send_offers_bis(
         self, interaction: discord.Interaction, player: discord.User
     ):
         # Consulta ofertas ativas no mercado no banco de dados
