@@ -176,7 +176,7 @@ class AdminCommands(app_commands.Group):
             ephemeral=True,
         )
 
-        async for member in interaction.guild.members:
+        for member in interaction.guild.members:
             if any(role.id in role_ids for role in member.roles):
                 await member.send(f"A STAFF publicou um novo aviso.\n{aviso.jump_url}")
                 await asyncio.sleep(0.25)
