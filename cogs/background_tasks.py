@@ -55,6 +55,9 @@ class BackgroundTasks(commands.Cog):
                         color=discord.Color.yellow(),
                     )
                     await vendor.send(embed=embed)
+                    
+                    log_message_terminal = f"Oferta Nº {offer.id} de {offer.vendor_name}: {offer.item_tier_name} {offer.atributes} teve o aviso de deleção enviado."
+                    logger.info(log_message_terminal)
 
                 # verifica se 24 horas parrasaram (avisodeleção)
                 if time_difference >= timedelta(hours=24):
