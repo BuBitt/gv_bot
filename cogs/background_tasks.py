@@ -38,7 +38,6 @@ class BackgroundTasks(commands.Cog):
 
             async for message in channel.history(limit=None):
                 offer = MarketOfferBis.fetch(message.id)
-                print(offer.id)
 
                 gv_guild = self.bot.guilds[0]
                 channel = discord.utils.get(
